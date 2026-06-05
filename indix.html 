@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>الرعدي أونلاين - المتجر الأسطوري</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ============================================================
+        التصميم العام - ألوان أنيقة ومريحة
+        ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* شريط الإعلانات المتحرك */
+        .marquee {
+            background: linear-gradient(90deg, #ff0066, #ff6600);
+            padding: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(255, 0, 102, 0.3);
+        }
+
+        .marquee span {
+            display: inline-block;
+            animation: marqueeScroll 25s linear infinite;
+            font-weight: bold;
+        }
+
+        @keyframes marqueeScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* الهيدر */
+        .header {
+            margin-top: 60px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .logo span {
+            font-size: 2.5rem;
+        }
+
+        .tagline {
+            color: #aaa;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        /* أزرار التنقل */
+        .nav-buttons {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 999;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: rgba(255, 102, 0, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            border: 1px solid rgba(255, 102, 0, 0.5);
+        }
+
+        .nav-btn:hover {
+            background: #ff6600;
+            transform: translateY(-2px);
+        }
+
+        /* أيقونة السلة */
+        .cart-icon {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff0066, #ff6600);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 0 20px rgba(255, 0, 102, 0.4);
+            transition: all 0.3s;
+        }
+
+        .cart-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ffcc00;
+            color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* الأقسام */
+        .categories-section {
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-right: 4px solid #ff6600;
+            padding-right: 15px;
+            color: #ffcc00;
+        }
+
+        .categories {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: thin;
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, rgba(255, 102, 0, 0.15), rgba(255, 0, 102, 0.1));
+            backdrop-filter: blur(5px);
+            padding: 12px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 102, 0, 0.3);
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .category-card:hover, .category-card.active {
+            background: linear-gradient(135deg, #ff6600, #ff0066);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 102, 0, 0.4);
+        }
+
+        /* شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: #ff6600;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: 18px;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffcc00;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .current-price {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ff6600;
+        }
+
+        .old-price {
+            font-size: 1rem;
+            color: #888;
+            text-decoration: line-through;
+        }
+
+        .discount-badge {
+            background: #00ff88;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .product-features {
+            font-size: 0.8rem;
+            color: #bbb;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .stock-status {
+            font-size: 0.8rem;
+            margin: 10px 0;
+        }
+
+        .in-stock { color: #00ff88; }
+        .low-stock { color: #ffaa00; }
+        .out-stock { color: #ff0066; }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .quantity-control button {
+            background: #ff6600;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .quantity-control button:hover {
+            background: #ff0066;
+            transform: scale(1.05);
+        }
+
+        .add-to-cart {
+            width: 100%;
+            background: linear-gradient(135deg, #ff6600, #ff0066);
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .add-to-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 102, 0, 0.4);
+        }
+
+        /* السلة الجانبية */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 420px;
+            height: 100%;
+            background: #0a0a0a;
+            z-index: 1001;
+            transition: 0.3s ease-in-out;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 2px solid #ff6600;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #222;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: bold;
+        }
+
+        .cart-item-price {
+            color: #ff6600;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-item-actions button {
+            background: #ff6600;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #ff6600;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* نافذة الدردشة */
+        .chat-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff6600, #ff0066);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 360px;
+            height: 500px;
+            background: #0a0a0a;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            border: 1px solid #ff6600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-window.open {
+            display: flex;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #ff6600, #ff0066);
+            padding: 15px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 85%;
+        }
+
+        .chat-message.user {
+            background: #ff6600;
+            margin-right: auto;
+        }
+
+        .chat-message.admin {
+            background: #2c2c2c;
+            margin-left: auto;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #222;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            background: #1a1a1a;
+            border: none;
+            border-radius: 25px;
+            color: white;
+        }
+
+        .chat-input-area button {
+            background: #ff6600;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* الفوتر */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            margin-top: 50px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* شاشة تسجيل الدخول */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-card {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 30px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid #ff6600;
+            box-shadow: 0 0 50px rgba(255, 102, 0, 0.2);
+        }
+
+        .auth-card h2 {
+            margin-bottom: 25px;
+            color: #ffcc00;
+        }
+
+        .auth-card input {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .auth-card button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff6600, #ff0066);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .auth-card .switch {
+            margin-top: 20px;
+            color: #ff6600;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .products-grid { grid-template-columns: 1fr; }
+            .cart-sidebar { width: 100%; right: -100%; }
+            .logo { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="marquee">
+    <span>⚡ عروض الصيف تصل إلى 70% | شحن مجاني للطلبات فوق 300 ريال | خصم 20% على أول طلب باستخدام كود WELCOME20 ⚡</span>
+</div>
+
+<div class="header">
+    <div class="logo">🦅 الرعدي أونلاين</div>
+    <div class="tagline">المتجر الأسطوري - تجربة تسوق فائقة</div>
+</div>
+
+<!-- أزرار التنقل -->
+<div class="nav-buttons">
+    <div class="nav-btn" onclick="logout()">🚪 تسجيل خروج</div>
+    <div class="nav-btn" id="adminBtn" onclick="goToAdmin()" style="display:none;">👑 لوحة التحكم</div>
+</div>
+
+<!-- أيقونة السلة -->
+<div class="cart-icon" onclick="toggleCart()">
+    🛒
+    <span class="cart-count" id="cartCount">0</span>
+</div>
+
+<!-- الأقسام -->
+<div class="categories-section">
+    <div class="section-title">📂 الأقسام الرئيسية</div>
+    <div class="categories" id="categoriesList"></div>
+</div>
+
+<!-- المنتجات -->
+<div class="products-grid" id="productsList"></div>
+
+<!-- السلة الجانبية -->
+<div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h3>🛍️ سلة المشتريات</h3>
+        <span onclick="toggleCart()" style="cursor:pointer; font-size:1.5rem;">✖</span>
+    </div>
+    <div id="cartItems"></div>
+    <div class="cart-total" id="cartTotal">الإجمالي: 0 ريال</div>
+    <button onclick="checkout()" style="width:100%; margin-top:20px; background:#ff6600; padding:12px; border:none; border-radius:30px; color:white; font-weight:bold;">✅ إتمام الطلب</button>
+    <div style="margin-top:15px;">
+        <input type="text" id="couponCode" placeholder="رمز الخصم" style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; border-radius:25px; color:white;">
+        <button onclick="applyCoupon()" style="width:100%; margin-top:10px; background:#333;">تطبيق</button>
+    </div>
+</div>
+
+<!-- زر الدردشة -->
+<div class="chat-button" onclick="toggleChat()">
+    💬
+</div>
+
+<!-- نافذة الدردشة -->
+<div id="chatWindow" class="chat-window">
+    <div class="chat-header">
+        <span>💬 الدعم الفني - الرعدي أونلاين</span>
+        <span onclick="toggleChat()" style="cursor:pointer;">✖</span>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="اكتب رسالتك...">
+        <button onclick="sendMessage()">📤</button>
+    </div>
+</div>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="authOverlay" class="auth-overlay">
+    <div class="auth-card">
+        <h2>🔐 بوابة دخول الرعدي</h2>
+        <div id="loginForm">
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+            <input type="password" id="loginPassword" placeholder="كلمة المرور">
+            <button onclick="login()">دخول آمن للمتجر</button>
+            <div class="switch" onclick="showRegister()">✨ لا تملك حساب؟ سجل الآن</div>
+        </div>
+        <div id="registerForm" style="display:none;">
+            <input type="text" id="regName" placeholder="الاسم الكامل">
+            <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
+            <input type="password" id="regPassword" placeholder="كلمة المرور">
+            <input type="tel" id="regPhone" placeholder="رقم الجوال">
+            <button onclick="register()">إنشاء حساب</button>
+            <div class="switch" onclick="showLogin()">🔙 عودة لتسجيل الدخول</div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <p>© 2026 الرعدي أونلاين - تجربة تسوق فائقة | شروط الاستخدام | سياسة الإرجاع خلال 14 يوماً</p>
+</div>
+
+<script>
+    // ============================================================
+    // متغيرات عامة
+    // ============================================================
+    let currentUser = null;
+    let products = [];
+    let categories = [];
+    let cart = [];
+    let couponDiscount = 0;
+    let activeCategory = 'all';
+    let quantities = {};
+
+    // ============================================================
+    // الدوال الأساسية
+    // ============================================================
+
+    // جلب البيانات من الخادم
+    async function loadProducts() {
+        try {
+            const response = await fetch('/api/products');
+            products = await response.json();
+            renderProducts();
+        } catch (error) {
+            console.error('خطأ في تحميل المنتجات:', error);
+        }
+    }
+
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/categories');
+            categories = await response.json();
+            renderCategories();
+        } catch (error) {
+            console.error('خطأ في تحميل الأقسام:', error);
+        }
+    }
+
+    // عرض الأقسام
+    function renderCategories() {
+        const container = document.getElementById('categoriesList');
+        container.innerHTML = `
+            <div class="category-card ${activeCategory === 'all' ? 'active' : ''}" onclick="filterProducts('all')">الكل</div>
+            ${categories.map(cat => `
+                <div class="category-card ${activeCategory === cat ? 'active' : ''}" onclick="filterProducts('${cat}')">${cat}</div>
+            `).join('')}
+        `;
+    }
+
+    // تصفية المنتجات حسب القسم
+    function filterProducts(category) {
+        activeCategory = category;
+        renderCategories();
+        renderProducts();
+    }
+
+    // عرض المنتجات
+    function renderProducts() {
+        let filtered = products;
+        if (activeCategory !== 'all') {
+            filtered = products.filter(p => p.category === activeCategory);
+        }
+
+        const container = document.getElementById('productsList');
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:50px;">📦 لا توجد منتجات في هذا القسم</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(product => {
+            const stockClass = product.stock > 10 ? 'in-stock' : (product.stock > 0 ? 'low-stock' : 'out-stock');
+            const stockText = product.stock > 10 ? 'متوفر' : (product.stock > 0 ? `متبقي ${product.stock} قطع` : 'غير متوفر');
+            const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : product.discount;
+            
+            return `
+                <div class="product-card">
+                    <img src="${product.image}" class="product-image" onerror="this.src='https://picsum.photos/id/20/300/300'">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-category"><i class="fas fa-tag"></i> ${product.category}</div>
+                        <div class="product-price">
+                            <span class="current-price">${product.price.toLocaleString()} ريال</span>
+                            ${product.oldPrice ? `<span class="old-price">${product.oldPrice.toLocaleString()} ريال</span>` : ''}
+                            ${discount > 0 ? `<span class="discount-badge">-${discount}%</span>` : ''}
+                        </div>
+                        <div class="product-features">
+                            <i class="fas fa-palette"></i> ${product.color || 'ألوان متعددة'}<br>
+                            <i class="fas fa-microchip"></i> ${product.features || 'مواصفات عالية الجودة'}
+                        </div>
+                        <div class="stock-status ${stockClass}">
+                            <i class="fas fa-box"></i> ${stockText}
+                        </div>
+                        <div class="quantity-control">
+                            <button onclick="changeQuantity(${product.id}, -1)">-</button>
+                            <span id="qty_${product.id}">1</span>
+                            <button onclick="changeQuantity(${product.id}, 1)">+</button>
+                        </div>
+                        <button class="add-to-cart" onclick="addToCart(${product.id})">
+                            ${product.stock > 0 ? '🛒 أضف إلى السلة' : '❌ غير متوفر'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // تغيير الكمية
+    function changeQuantity(productId, delta) {
+        const span = document.getElementById(`qty_${productId}`);
+        if (span) {
+            let newVal = parseInt(span.innerText) + delta;
+            if (newVal < 1) newVal = 1;
+            span.innerText = newVal;
+            quantities[productId] = newVal;
+        }
+    }
+
+    // إضافة إلى السلة
+    function addToCart(productId) {
+        const product = products.find(p => p.id == productId);
+        if (!product || product.stock <= 0) {
+            alert('❌ هذا المنتج غير متوفر حالياً');
+            return;
+        }
+
+        const qty = quantities[productId] || 1;
+        if (qty > product.stock) {
+            alert(`⚠️ لا يتوفر سوى ${product.stock} قطع فقط`);
+            return;
+        }
+
+        const existingItem = cart.find(item => item.id == productId);
+        if (existingItem) {
+            if (existingItem.quantity + qty > product.stock) {
+                alert(`⚠️ لا يتوفر سوى ${product.stock} قطع فقط`);
+                return;
+            }
+            existingItem.quantity += qty;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: qty,
+                image: product.image
+            });
+        }
+
+        saveCart();
+        updateCartUI();
+        alert('✅ تمت إضافة المنتج إلى السلة');
+    }
+
+    // تحديث واجهة السلة
+    function updateCartUI() {
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').innerText = count;
+
+        const container = document.getElementById('cartItems');
+        if (cart.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px;">سلة المشتريات فارغة</div>';
+            document.getElementById('cartTotal').innerHTML = 'الإجمالي: 0 ريال';
+            return;
+        }
+
+        let subtotal = 0;
+        container.innerHTML = cart.map(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            return `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${item.name}</div>
+                        <div class="cart-item-price">${item.price} ريال × ${item.quantity}</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button onclick="updateCartItem(${item.id}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateCartItem(${item.id}, 1)">+</button>
+                        <button onclick="removeFromCart(${item.id})" style="background:#ff0066;">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const total = subtotal * (1 - couponDiscount / 100);
+        document.getElementById('cartTotal').innerHTML = `
+            <div>المجموع الفرعي: ${subtotal} ريال</div>
+            ${couponDiscount > 0 ? `<div style="color:#00ff88;">الخصم (${couponDiscount}%): -${(subtotal * couponDiscount / 100).toFixed(2)} ريال</div>` : ''}
+            <div style="margin-top:10px;">الإجمالي: ${total.toFixed(2)} ريال</div>
+        `;
+    }
+
+    function updateCartItem(productId, delta) {
+        const item = cart.find(i => i.id == productId);
+        if (item) {
+            const product = products.find(p => p.id == productId);
+            const newQty = item.quantity + delta;
+            if (newQty < 1) {
+                removeFromCart(productId);
+                return;
+            }
+            if (product && newQty > product.stock) {
+                alert(`⚠️ لا يتوفر سوى ${product.stock} قطع فقط`);
+                return;
+            }
+            item.quantity = newQty;
+            saveCart();
+            updateCartUI();
+        }
+    }
+
+    function removeFromCart(productId) {
+        cart = cart.filter(item => item.id != productId);
+        saveCart();
+        updateCartUI();
+    }
+
+    function applyCoupon() {
+        const code = document.getElementById('couponCode').value.trim();
+        if (code === 'WELCOME20') {
+            couponDiscount = 20;
+            updateCartUI();
+            alert('✅ تم تطبيق خصم 20%');
+        } else if (code === 'SUMMER70') {
+            couponDiscount = 70;
+            updateCartUI();
+            alert('✅ تم تطبيق خصم 70% على عروض الصيف');
+        } else {
+            alert('❌ كود الخصم غير صالح');
+        }
+    }
+
+    function saveCart() {
+        localStorage.setItem('raadi_cart', JSON.stringify(cart));
+    }
+
+    function loadCart() {
+        const saved = localStorage.getItem('raadi_cart');
+        if (saved) cart = JSON.parse(saved);
+        updateCartUI();
+    }
+
+    function toggleCart() {
+        document.getElementById('cartSidebar').classList.toggle('open');
+    }
+
+    // إتمام الطلب وإنشاء فاتورة
+    async function checkout() {
+        if (cart.length === 0) {
+            alert('🛒 السلة فارغة');
+            return;
+        }
+        if (!currentUser) {
+            alert('🔐 الرجاء تسجيل الدخول أولاً');
+            return;
+        }
+
+        const name = prompt('📝 أدخل اسمك الرباعي:');
+        if (!name) return;
+        const address = prompt('📍 أدخل عنوان التوصيل:');
+        if (!address) return;
+        const phone = prompt('📞 رقم الواتساب:');
+        if (!phone) return;
+        const shippingMethod = confirm('هل الشحن دولي؟ (إذا كان خارج البلاد)') ? 'شحن دولي' : 'شحن داخلي';
+
+        let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const shippingCost = shippingMethod === 'شحن دولي' ? 50 : 15;
+        const discountAmount = subtotal * (couponDiscount / 100);
+        const total = subtotal - discountAmount + shippingCost;
+
+        const order = {
+            customer: name,
+            email: currentUser.email,
+            phone: phone,
+            address: address,
+            items: cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price })),
+            subtotal: subtotal,
+            discount: couponDiscount,
+            discountAmount: discountAmount,
+            shippingCost: shippingCost,
+            total: total,
+            shippingMethod: shippingMethod
+        };
+
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order)
+            });
+            const result = await response.json();
+            if (result.success) {
+                generateInvoice(result.order);
+                cart = [];
+                couponDiscount = 0;
+                saveCart();
+                updateCartUI();
+                toggleCart();
+                loadProducts();
+                alert('🎉 تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.');
+            } else {
+                alert('❌ حدث خطأ في إرسال الطلب');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('❌ خطأ في الاتصال بالخادم');
+        }
+    }
+
+    function generateInvoice(order) {
+        const win = window.open();
+        win.document.write(`
+            <html dir="rtl">
+            <head>
+                <title>فاتورة الرعدي أونلاين - ${order.orderNumber}</title>
+                <style>
+                    body { font-family: 'Cairo', Arial; padding: 30px; max-width: 800px; margin: auto; direction: rtl; }
+                    .header { text-align: center; border-bottom: 2px solid #ff6600; padding-bottom: 15px; margin-bottom: 20px; }
+                    .logo { font-size: 1.8rem; color: #ff6600; }
+                    .invoice-details { margin: 20px 0; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: right; }
+                    th { background: #f5f5f5; }
+                    .total { font-size: 1.3rem; font-weight: bold; color: #ff6600; text-align: left; }
+                    .footer { margin-top: 30px; font-size: 0.8rem; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 15px; }
+                    button { background: #ff6600; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo">🦅 مجموعة متاجر الرعدي أونلاين الفاخرة</div>
+                    <div>فاتورة شراء معتمدة رقم: ${order.orderNumber || 'RAD-' + order.id}</div>
+                </div>
+                <div class="invoice-details">
+                    <p><strong>تاريخ الإصدار:</strong> ${order.dateFormatted || new Date().toLocaleDateString('ar-EG')}</p>
+                    <p><strong>اسم العميل:</strong> ${order.customer}</p>
+                    <p><strong>رقم الواتساب:</strong> ${order.phone}</p>
+                    <p><strong>عنوان التوصيل:</strong> ${order.address}</p>
+                    <p><strong>نوع الشحن:</strong> ${order.shippingMethod}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                    </thead>
+                    <tbody>
+                        ${order.items.map(item => `
+                            <tr><td>${item.name}</td><td>${item.quantity}</td><td>${item.price} ريال</td><td>${item.price * item.quantity} ريال</td></tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="total">
+                    <div>المجموع الفرعي: ${order.subtotal} ريال</div>
+                    ${order.discount > 0 ? `<div>الخصم (${order.discount}%): -${order.discountAmount.toFixed(2)} ريال</div>` : ''}
+                    <div>رسوم الشحن: ${order.shippingCost} ريال</div>
+                    <div style="font-size:1.5rem;">الإجمالي النهائي: ${order.total.toFixed(2)} ريال</div>
+                </div>
+                <div class="footer">
+                    <p>شروط الفاتورة: يتم الاسترجاع خلال 14 يوماً في حالة وجود عيب صناعي.<br>
+                    يحق للزبون استبدال المنتج بآخر خلال 7 أيام.<br>
+                    شكراً لتسوقكم مع الرعدي أونلاين</p>
+                    <button onclick="window.print()">🖨️ طباعة الفاتورة</button>
+                </div>
+            </body>
+            </html>
+        `);
+    }
+
+    // الدردشة الحية
+    async function loadMessages() {
+        try {
+            const response = await fetch('/api/messages');
+            const messages = await response.json();
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = messages.map(msg => `
+                <div class="chat-message ${msg.isAdmin ? 'admin' : 'user'}">
+                    <strong>${msg.sender}:</strong> ${msg.text}
+                    <div style="font-size:0.7rem; color:#888;">${msg.timeFormatted}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        } catch (error) {
+            console.error('خطأ في تحميل الرسائل:', error);
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !currentUser) return;
+
+        try {
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sender: currentUser.name, text: text, isAdmin: false })
+            });
+            input.value = '';
+            loadMessages();
+        } catch (error) {
+            console.error('خطأ في إرسال الرسالة:', error);
+        }
+    }
+
+    function toggleChat() {
+        const chatWindow = document.getElementById('chatWindow');
+        chatWindow.classList.toggle('open');
+        if (chatWindow.classList.contains('open')) {
+            loadMessages();
+        }
+    }
+
+    // نظام المصادقة
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const result = await response.json();
+            if (result.success) {
+                currentUser = result.user;
+                localStorage.setItem('raadi_user', JSON.stringify(currentUser));
+                document.getElementById('authOverlay').style.display = 'none';
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminBtn').style.display = 'block';
+                }
+                loadProducts();
+                loadCategories();
+            } else {
+                alert(result.error || 'بيانات الدخول غير صحيحة');
+            }
+        } catch (error) {
+            alert('خطأ في الاتصال بالخادم');
+        }
+    }
+
+    async function register() {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const phone = document.getElementById('regPhone').value;
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password, phone })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('تم إنشاء الحساب بنجاح! الرجاء تسجيل الدخول');
+                showLogin();
+            } else {
+                alert(result.error);
+            }
+        } catch (error) {
+            alert('خطأ في الاتصال بالخادم');
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('raadi_user');
+        window.location.reload();
+    }
+
+    function goToAdmin() {
+        window.location.href = '/admin';
+    }
+
+    function showRegister() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+    }
+
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+    }
+
+    // التحقق من وجود مستخدم مسجل
+    function init() {
+        loadCart();
+        const savedUser = localStorage.getItem('raadi_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            document.getElementById('authOverlay').style.display = 'none';
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminBtn').style.display = 'block';
+            }
+            loadProducts();
+            loadCategories();
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

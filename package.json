@@ -1,7 +1,7 @@
 {
   "name": "raadi-legendary-store",
-  "version": "2.0.0",
-  "description": "متجر الرعدي الأسطوري - نسخة متكاملة",
+  "version": "3.0.0",
+  "description": "المتجر الأسطوري المتكامل - منصة تسوق فائقة",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

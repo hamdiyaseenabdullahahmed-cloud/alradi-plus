@@ -6,77 +6,514 @@
     <title>لوحة تحكم المدير - الرعدي أونلاين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Tajawal', sans-serif; }
-        body { background: #f0f2f5; }
-        .header { background: linear-gradient(135deg, #1e2a3a, #2c3e50); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+
+        /* الهيدر */
+        .header {
+            background: linear-gradient(135deg, #1e2a3a, #2c3e50);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
         .logo { font-size: 1.5rem; font-weight: bold; }
-        .dashboard-container { display: flex; gap: 25px; padding: 25px; max-width: 1400px; margin: 0 auto; }
-        .sidebar { width: 280px; background: white; border-radius: 25px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); height: fit-content; }
-        .menu-item { padding: 12px 16px; margin: 8px 0; border-radius: 15px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .header-buttons { display: flex; gap: 12px; }
+        .header-buttons button {
+            background: #ff6600;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .header-buttons button:hover { background: #e55a00; transform: translateY(-2px); }
+
+        /* تذييل */
+        .footer {
+            background: #1e2a3a;
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        /* الحاوية الرئيسية */
+        .dashboard-container {
+            display: flex;
+            gap: 25px;
+            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* الشريط الجانبي */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .menu-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
         .menu-item i { width: 25px; color: #ff6600; }
         .menu-item.active, .menu-item:hover { background: #fff5eb; color: #ff6600; }
+
+        /* المحتوى الرئيسي */
         .main-content { flex: 1; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stat-card h3 { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; }
         .stat-card .value { font-size: 1.8rem; font-weight: bold; color: #ff6600; }
-        .section { background: white; border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .section-title { font-size: 1.2rem; margin-bottom: 20px; border-right: 4px solid #ff6600; padding-right: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin: 8px 0; }
-        button { background: #ff6600; color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        .chat-area { background: #f8f9fa; border-radius: 16px; padding: 15px; max-height: 400px; overflow-y: auto; }
-        .chat-message { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; }
-        @media (max-width: 768px) { .dashboard-container { flex-direction: column; } .sidebar { width: 100%; } }
+
+        /* الأقسام العامة */
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border-right: 4px solid #ff6600;
+            padding-right: 15px;
+        }
+
+        /* النماذج */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #ff6600;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #e55a00; transform: translateY(-2px); }
+
+        /* الجداول */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        th { background: #f8f9fa; font-weight: 600; }
+        .delete-btn { background: #e74c3c; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .delete-btn:hover { background: #c0392b; }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        .status-processing { background: #f39c12; color: white; }
+        .status-shipped { background: #3498db; color: white; }
+        .status-delivered { background: #27ae60; color: white; }
+
+        /* الدردشة */
+        .chat-area {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .chat-message {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chat-message strong { color: #ff6600; }
+        .chat-message small { color: #888; font-size: 0.7rem; }
+
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; }
+            .sidebar { width: 100%; position: static; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
-<div class="header"><div class="logo">🦅 الرعدي أونلاين | لوحة القيادة</div><div><button onclick="logout()" style="background:#e74c3c;">تسجيل خروج</button> <button onclick="goToStore()">العودة للمتجر</button></div></div>
-<div class="dashboard-container">
-    <div class="sidebar">
-        <div class="menu-item active" data-tab="stats"><i class="fas fa-chart-line"></i> الإحصائيات</div>
-        <div class="menu-item" data-tab="products"><i class="fas fa-boxes"></i> إدارة المنتجات</div>
-        <div class="menu-item" data-tab="categories"><i class="fas fa-tags"></i> إدارة الأقسام</div>
-        <div class="menu-item" data-tab="coupons"><i class="fas fa-ticket-alt"></i> الخصومات والكوبونات</div>
-        <div class="menu-item" data-tab="orders"><i class="fas fa-truck"></i> الطلبات والفواتير</div>
-        <div class="menu-item" data-tab="chat"><i class="fas fa-comments"></i> المحادثات الحية</div>
-    </div>
-    <div class="main-content">
-        <div id="stats-tab" class="tab-content"><div class="stats-grid"><div class="stat-card"><h3>إجمالي المشتركين</h3><div class="value" id="totalUsers">0</div></div><div class="stat-card"><h3>إجمالي المنتجات</h3><div class="value" id="totalProducts">0</div></div><div class="stat-card"><h3>إجمالي الطلبات</h3><div class="value" id="totalOrders">0</div></div><div class="stat-card"><h3>إجمالي الأرباح</h3><div class="value" id="totalProfit">0 SR</div></div><div class="stat-card"><h3>أرباح اليوم</h3><div class="value" id="todayProfit">0 SR</div></div><div class="stat-card"><h3>منتجات منخفضة</h3><div class="value" id="lowStock">0</div></div></div><div class="section"><div class="section-title">فئات الخصومات والمساقات المالية</div><div class="stats-grid" style="grid-template-columns:repeat(3,1fr)"><div class="stat-card"><h3>الخصم الأول</h3><div class="value">29%</div></div><div class="stat-card"><h3>الخصم الثاني</h3><div class="value">15%</div></div><div class="stat-card"><h3>الخصم الثالث</h3><div class="value">5%</div></div></div></div></div>
-        <div id="products-tab" class="tab-content" style="display:none"><div class="section"><div class="section-title">نشر منتج جديد بالمخزون</div><select id="productCat"><option>هواتف</option><option>عطور</option><option>إكسسوارات</option></select><input type="text" id="productName" placeholder="اسم المنتج الكامل"><input type="number" id="productPrice" placeholder="السعر (SR)"><input type="number" id="productOldPrice" placeholder="السعر القديم (SR)"><input type="number" id="productDiscount" placeholder="الخصم (%)"><input type="text" id="productColor" placeholder="اللون المتوفر"><textarea id="productFeatures" rows="2" placeholder="المواصفات"></textarea><input type="text" id="productImage" placeholder="رابط الصورة"><input type="number" id="productStock" placeholder="الكمية"><button onclick="addProduct()">طرح المنتج في السوق فوراً</button></div><div class="section"><div class="section-title">مستودع المخزون العام وإدارة المنتجات</div><table id="productsTable"><thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون</th><th></th></tr></thead><tbody></tbody></table></div></div>
-        <div id="categories-tab" class="tab-content" style="display:none"><div class="section"><div class="section-title">إضافة قسم جديد</div><input type="text" id="newCategory" placeholder="اسم القسم الجديد"><button onclick="addCategory()">بث القسم الجديد</button></div><div class="section"><div class="section-title">الأقسام الموجودة</div><div id="categoriesList"></div></div></div>
-        <div id="coupons-tab" class="tab-content" style="display:none"><div class="section"><div class="section-title">إدارة كوبونات الخصم</div><input type="text" id="couponCodeNew" placeholder="كود خصم جديد"><input type="number" id="couponValue" placeholder="قيمة الخصم (%)"><button onclick="addCoupon()">تفعيل كود الخصم</button></div><div class="section"><div id="couponsList"></div></div></div>
-        <div id="orders-tab" class="tab-content" style="display:none"><div class="section"><div class="section-title">فواتير المبيعات الواردة والأرشيف</div><div id="ordersList"></div></div></div>
-        <div id="chat-tab" class="tab-content" style="display:none"><div class="section"><div class="section-title">مركز إدارة المحادثات الحية</div><div id="chatMessagesAdmin" class="chat-area">لا توجد رسائل جديدة من العملاء حالياً.</div><textarea id="replyMsg" rows="3" placeholder="اكتب ردك هنا..."></textarea><button onclick="sendAdminReply()">إرسال الرد للعميل</button></div></div>
+<div class="header">
+    <div class="logo">🦅 الرعدي أونلاين | لوحة القيادة الشاملة</div>
+    <div class="header-buttons">
+        <button onclick="goToStore()"><i class="fas fa-store"></i> العودة للمتجر</button>
+        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
     </div>
 </div>
+
+<div class="dashboard-container">
+    <!-- الشريط الجانبي -->
+    <div class="sidebar">
+        <div class="menu-item active" data-tab="stats"><i class="fas fa-chart-line"></i> الإحصائيات الرئيسية</div>
+        <div class="menu-item" data-tab="products"><i class="fas fa-boxes"></i> إدارة المنتجات</div>
+        <div class="menu-item" data-tab="categories"><i class="fas fa-tags"></i> إدارة الأقسام</div>
+        <div class="menu-item" data-tab="orders"><i class="fas fa-truck"></i> الطلبات والفواتير</div>
+        <div class="menu-item" data-tab="users"><i class="fas fa-users"></i> العملاء والمشتركين</div>
+        <div class="menu-item" data-tab="coupons"><i class="fas fa-ticket-alt"></i> الخصومات والكوبونات</div>
+        <div class="menu-item" data-tab="settings"><i class="fas fa-sliders-h"></i> إعدادات المتجر</div>
+        <div class="menu-item" data-tab="chat"><i class="fas fa-comments"></i> مركز المحادثات الحية</div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <!-- تبويب الإحصائيات -->
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card"><h3>إجمالي المشتركين</h3><div class="value" id="totalUsers">0</div></div>
+                <div class="stat-card"><h3>إجمالي المنتجات</h3><div class="value" id="totalProducts">0</div></div>
+                <div class="stat-card"><h3>إجمالي الطلبات</h3><div class="value" id="totalOrders">0</div></div>
+                <div class="stat-card"><h3>إجمالي الأرباح</h3><div class="value" id="totalProfit">0 SR</div></div>
+                <div class="stat-card"><h3>أرباح اليوم</h3><div class="value" id="todayProfit">0 SR</div></div>
+                <div class="stat-card"><h3>منتجات منخفضة</h3><div class="value" id="lowStock">0</div></div>
+            </div>
+            <div class="section">
+                <div class="section-title">فئات الخصومات والمساقات المالية</div>
+                <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+                    <div class="stat-card"><h3>الخصم الأول</h3><div class="value">29%</div></div>
+                    <div class="stat-card"><h3>الخصم الثاني</h3><div class="value">15%</div></div>
+                    <div class="stat-card"><h3>الخصم الثالث</h3><div class="value">5%</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب إدارة المنتجات -->
+        <div id="products-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">📦 نشر منتج جديد بالمخزون</div>
+                <select id="productCat"><option>هواتف</option><option>عطور</option><option>إكسسوارات</option></select>
+                <input type="text" id="productName" placeholder="اسم المنتج الكامل">
+                <input type="number" id="productPrice" placeholder="السعر (SR)">
+                <input type="number" id="productOldPrice" placeholder="السعر القديم (SR)">
+                <input type="number" id="productDiscount" placeholder="الخصم (%)">
+                <input type="text" id="productColor" placeholder="اللون المتوفر">
+                <textarea id="productFeatures" rows="2" placeholder="المواصفات"></textarea>
+                <input type="text" id="productImage" placeholder="رابط الصورة">
+                <input type="number" id="productStock" placeholder="الكمية المتاحة">
+                <button onclick="addProduct()"><i class="fas fa-plus-circle"></i> طرح المنتج في السوق فوراً</button>
+            </div>
+            <div class="section">
+                <div class="section-title">مستودع المخزون العام</div>
+                <div style="overflow-x:auto">
+                    <table id="productsTable">
+                        <thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون</th><th>الإجراءات</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب إدارة الأقسام -->
+        <div id="categories-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">🏷️ إضافة قسم جديد</div>
+                <input type="text" id="newCategory" placeholder="اسم القسم الجديد">
+                <button onclick="addCategory()">إضافة القسم</button>
+            </div>
+            <div class="section">
+                <div class="section-title">الأقسام الموجودة</div>
+                <div id="categoriesList"></div>
+            </div>
+        </div>
+
+        <!-- تبويب الطلبات والفواتير -->
+        <div id="orders-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">📋 فواتير المبيعات الواردة والأرشيف</div>
+                <div id="ordersList"></div>
+            </div>
+        </div>
+
+        <!-- تبويب العملاء -->
+        <div id="users-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">👥 العملاء المسجلون</div>
+                <div id="usersList"></div>
+            </div>
+        </div>
+
+        <!-- تبويب الكوبونات -->
+        <div id="coupons-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">🎟️ إدارة كوبونات الخصم</div>
+                <input type="text" id="couponCode" placeholder="كود الخصم الجديد">
+                <input type="number" id="couponValue" placeholder="قيمة الخصم (%)">
+                <button onclick="addCoupon()">إضافة كوبون</button>
+            </div>
+            <div class="section">
+                <div class="section-title">الكوبونات المتاحة</div>
+                <div id="couponsList"></div>
+            </div>
+        </div>
+
+        <!-- تبويب إعدادات المتجر -->
+        <div id="settings-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">⚙️ إعدادات الشحن والسياسات</div>
+                <label>رسوم الشحن الداخلي (ريال)</label>
+                <input type="number" id="domesticShipping" placeholder="رسوم الشحن داخل المملكة">
+                <label>رسوم الشحن الدولي (ريال)</label>
+                <input type="number" id="internationalShipping" placeholder="رسوم الشحن خارج المملكة">
+                <label>سياسة الإرجاع والاستبدال</label>
+                <textarea id="returnPolicy" rows="3"></textarea>
+                <button onclick="saveSettings()">💾 حفظ الإعدادات</button>
+            </div>
+        </div>
+
+        <!-- تبويب المحادثات -->
+        <div id="chat-tab" class="tab-content" style="display:none">
+            <div class="section">
+                <div class="section-title">💬 مركز إدارة المحادثات الحية</div>
+                <div id="chatMessagesAdmin" class="chat-area">لا توجد رسائل جديدة من العملاء حالياً.</div>
+                <textarea id="replyMsg" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+                <button onclick="sendAdminReply()"><i class="fas fa-paper-plane"></i> إرسال الرد للعميل</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <p>© 2026 الرعدي أونلاين - لوحة تحكم المدير المتكاملة | جميع الحقوق محفوظة</p>
+</div>
+
 <script>
-    let products = JSON.parse(localStorage.getItem('raadi_products')) || [];
-    let orders = JSON.parse(localStorage.getItem('raadi_orders')) || [];
-    let categories = JSON.parse(localStorage.getItem('raadi_categories')) || ['هواتف', 'عطور', 'إكسسوارات'];
-    let coupons = JSON.parse(localStorage.getItem('raadi_coupons')) || [{ code: 'WELCOME20', value: 20 }, { code: 'SUMMER70', value: 70 }];
-    let chatMessages = JSON.parse(localStorage.getItem('raadi_chat')) || [];
+    // ============================================================
+    // المتغيرات الأساسية
+    // ============================================================
+    let products = [];
+    let categories = [];
+    let orders = [];
+    let users = [];
+    let coupons = [];
+    let messages = [];
+    let currentAdmin = null;
 
-    function saveAll() { localStorage.setItem('raadi_products', JSON.stringify(products)); localStorage.setItem('raadi_categories', JSON.stringify(categories)); localStorage.setItem('raadi_coupons', JSON.stringify(coupons)); localStorage.setItem('raadi_chat', JSON.stringify(chatMessages)); }
+    // ============================================================
+    // تحميل البيانات من الخادم
+    // ============================================================
+    async function loadAllData() {
+        try {
+            const [productsRes, ordersRes, usersRes, messagesRes] = await Promise.all([
+                fetch('/api/products'), fetch('/api/orders'), fetch('/api/users'), fetch('/api/messages')
+            ]);
+            products = await productsRes.json();
+            orders = await ordersRes.json();
+            users = await usersRes.json();
+            messages = await messagesRes.json();
+            categories = [...new Set(products.map(p => p.category))];
+            // تحميل الكوبونات من localStorage مؤقتاً
+            coupons = JSON.parse(localStorage.getItem('raadi_coupons')) || [
+                { code: "WELCOME20", value: 20 },
+                { code: "SUMMER70", value: 70 }
+            ];
+            renderStats();
+            renderProductsTable();
+            renderCategoriesList();
+            renderOrdersList();
+            renderUsersList();
+            renderCouponsList();
+            renderChatMessages();
+        } catch (error) {
+            console.error("خطأ في تحميل البيانات:", error);
+        }
+    }
 
-    function renderProductsTable() { let tbody = document.querySelector('#productsTable tbody'); tbody.innerHTML = products.map(p => `<tr><td><img src="${p.image}" width="50" height="50" style="border-radius:10px"></td><td>${p.name}</td><td>${p.category}</td><td>${p.price} ريال</td><td>${p.discount}%</td><td>${p.stock}</td><td><button onclick="deleteProduct(${p.id})">حذف</button></td></tr>`).join(''); document.getElementById('totalProducts').innerText = products.length; }
-    function addProduct() { let newProduct = { id: Date.now(), name: document.getElementById('productName').value, category: document.getElementById('productCat').value, price: document.getElementById('productPrice').value, oldPrice: document.getElementById('productOldPrice').value, discount: document.getElementById('productDiscount').value, color: document.getElementById('productColor').value, features: document.getElementById('productFeatures').value, image: document.getElementById('productImage').value, stock: document.getElementById('productStock').value }; if(newProduct.name && newProduct.price) products.push(newProduct); saveAll(); renderProductsTable(); alert('تم إضافة المنتج'); }
-    function deleteProduct(id) { products = products.filter(p => p.id != id); saveAll(); renderProductsTable(); }
-    function renderCategoriesList() { document.getElementById('categoriesList').innerHTML = categories.map(c => `<div style="background:#f8f9fa; padding:10px; margin:8px 0; border-radius:10px; display:flex; justify-content:space-between"><span>${c}</span><button onclick="deleteCategory('${c}')">حذف</button></div>`).join(''); }
-    function addCategory() { let newCat = document.getElementById('newCategory').value.trim(); if(newCat && !categories.includes(newCat)) { categories.push(newCat); saveAll(); renderCategoriesList(); } }
-    function deleteCategory(cat) { categories = categories.filter(c => c !== cat); saveAll(); renderCategoriesList(); }
-    function renderCoupons() { document.getElementById('couponsList').innerHTML = coupons.map(c => `<div style="background:#f8f9fa; padding:10px; margin:8px 0; border-radius:10px;"><strong>${c.code}</strong> - خصم ${c.value}% <button onclick="deleteCoupon('${c.code}')">حذف</button></div>`).join(''); }
-    function addCoupon() { let code = document.getElementById('couponCodeNew').value.trim().toUpperCase(); let value = parseInt(document.getElementById('couponValue').value); if(code && value) { coupons.push({ code, value }); saveAll(); renderCoupons(); } }
-    function deleteCoupon(code) { coupons = coupons.filter(c => c.code !== code); saveAll(); renderCoupons(); }
-    function renderOrders() { document.getElementById('ordersList').innerHTML = orders.map(o => `<div class="section"><p><strong>فاتورة #${o.id}</strong> - ${o.customer}</p><p>المجموع: ${o.total} ريال | التاريخ: ${o.date}</p><button onclick="viewOrder(${o.id})">عرض الفاتورة</button></div>`).join(''); document.getElementById('totalOrders').innerText = orders.length; let totalProfit = orders.reduce((s,o)=>s+o.total,0); document.getElementById('totalProfit').innerText = totalProfit + ' SR'; }
-    function viewOrder(id) { let order = orders.find(o=>o.id==id); if(order) generateInvoice(order); }
-    function generateInvoice(order) { let win = window.open(); win.document.write(`<html dir="rtl"><head><title>فاتورة</title></head><body style="padding:20px"><h1>فاتورة #${order.id}</h1><p>العميل: ${order.customer}</p><p>الهاتف: ${order.phone}</p><p>العنوان: ${order.address}</p><p>الإجمالي: ${order.total} ريال</p><button onclick="window.print()">طباعة</button></body></html>`); }
-    function renderChat() { let container = document.getElementById('chatMessagesAdmin'); if(chatMessages.length===0) container.innerHTML = '<div class="chat-message">لا توجد رسائل جديدة من العملاء حالياً.</div>'; else container.innerHTML = chatMessages.map(m => `<div class="chat-message"><strong>${m.sender}:</strong> ${m.text}<br><span style="font-size:0.7rem">${m.time}</span></div>`).join(''); }
-    function sendAdminReply() { let reply = document.getElementById('replyMsg').value.trim(); if(reply) { chatMessages.push({ sender: 'الدعم', text: reply, time: new Date().toLocaleTimeString() }); saveAll(); renderChat(); document.getElementById('replyMsg').value = ''; alert('تم إرسال الرد'); } }
-    function logout() { localStorage.removeItem('raadi_admin'); window.location.href = '/'; }
-    function goToStore() { window.location.href = '/'; }
-    document.querySelectorAll('.menu-item').forEach(item => { item.addEventListener('click', () => { let tab = item.dataset.tab; document.querySelectorAll('.tab-content').forEach(t => t.style.display='none'); document.getElementById(`${tab}-tab`).style.display='block'; document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active')); item.classList.add('active'); if(tab==='products') renderProductsTable(); if(tab==='categories') renderCategoriesList(); if(tab==='coupons') renderCoupons(); if(tab==='orders') renderOrders(); if(tab==='chat') renderChat(); }); });
-    renderProductsTable(); renderCategoriesList(); renderCoupons(); renderOrders(); renderChat();
-</script>
-</body>
-</html>
+    // ============================================================
+    // عرض الإحصائيات
+    // ============================================================
+    function renderStats() {
+        const totalUsers = users.filter(u => u.role !== 'admin').length;
+        const totalOrders = orders.length;
+        const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+        const today = new Date().toDateString();
+        const todayRevenue = orders.filter(o => new Date(o.date).toDateString() === today).reduce((sum, o) => sum + o.total, 0);
+        document.getElementById('totalUsers').innerText = totalUsers;
+        document.getElementById('totalProducts').innerText = products.length;
+        document.getElementById('totalOrders').innerText = totalOrders;
+        document.getElementById('totalProfit').innerText = totalRevenue + ' SR';
+        document.getElementById('todayProfit').innerText = todayRevenue + ' SR';
+        document.getElementById('lowStock').innerText = products.filter(p => p.stock < 5).length;
+    }
+
+    // ============================================================
+    // إدارة المنتجات
+    // ============================================================
+    async function addProduct() {
+        const newProduct = {
+            name: document.getElementById('productName').value,
+            category: document.getElementById('productCat').value,
+            price: parseFloat(document.getElementById('productPrice').value),
+            oldPrice: parseFloat(document.getElementById('productOldPrice').value) || 0,
+            discount: parseFloat(document.getElementById('productDiscount').value) || 0,
+            color: document.getElementById('productColor').value,
+            features: document.getElementById('productFeatures').value,
+            image: document.getElementById('productImage').value || 'https://picsum.photos/id/20/300/300',
+            stock: parseInt(document.getElementById('productStock').value) || 0
+        };
+        if (!newProduct.name || !newProduct.price) { alert("الاسم والسعر مطلوبان"); return; }
+        const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newProduct) });
+        if (res.ok) {
+            alert("تم إضافة المنتج بنجاح");
+            loadAllData();
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+        } else alert("حدث خطأ");
+    }
+
+    async function deleteProduct(id) {
+        if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+            await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            loadAllData();
+        }
+    }
+
+    function renderProductsTable() {
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = products.map(p => `
+            <tr>
+                <td><img src="${p.image}" width="50" height="50" style="border-radius:10px; object-fit:cover"></td>
+                <td>${p.name}</td>
+                <td>${p.category}</td>
+                <td>${p.price} ريال</td>
+                <td>${p.discount}%</td>
+                <td>${p.stock}</td>
+                <td><button class="delete-btn" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> حذف</button></td>
+            </tr>
+        `).join('');
+    }
+
+    // ============================================================
+    // إدارة الأقسام
+    // ============================================================
+    function addCategory() {
+        const newCat = document.getElementById('newCategory').value.trim();
+        if (!newCat) { alert("أدخل اسم القسم"); return; }
+        categories.push(newCat);
+        localStorage.setItem('raadi_categories', JSON.stringify(categories));
+        renderCategoriesList();
+        document.getElementById('newCategory').value = '';
+        alert("تم إضافة القسم");
+    }
+
+    function renderCategoriesList() {
+        const container = document.getElementById('categoriesList');
+        container.innerHTML = categories.map(cat => `
+            <div style="background:#f8f9fa; padding:12px; margin:8px 0; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fas fa-folder"></i> ${cat}</span>
+                <button class="delete-btn" onclick="deleteCategory('${cat}')">حذف</button>
+            </div>
+        `).join('');
+    }
+
+    function deleteCategory(cat) {
+        if (confirm(`حذف القسم "${cat}" سيؤدي إلى حذف جميع منتجاته. هل أنت متأكد؟`)) {
+            categories = categories.filter(c => c !== cat);
+            products = products.filter(p => p.category !== cat);
+            localStorage.setItem('raadi_categories', JSON.stringify(categories));
+            fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(products) });
+            loadAllData();
+        }
+    }
+
+    // ============================================================
+    // عرض الطلبات
+    // ============================================================
+    function renderOrdersList() {
+        const container = document.getElementById('ordersList');
+        if (orders.length === 0) { container.innerHTML = '<div style="text-align:center; padding:30px;">لا توجد طلبات بعد</div>'; return; }
+        container.innerHTML = orders.map(o => `
+            <div class="section" style="margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                    <div><strong>🧾 فاتورة #${o.id}</strong><br>العميل: ${o.customer}<br>الهاتف: ${o.phone}<br>العنوان: ${o.address}</div>
+                    <div><strong>الإجمالي:</strong> ${o.total} ريال<br><strong>التاريخ:</strong> ${o.dateFormatted || new Date(o.date).toLocaleDateString('ar-EG')}<br>
+                    <span class="status-badge status-${o.status === 'قيد المعالجة' ? 'processing' : (o.status === 'تم الشحن' ? 'shipped' : 'delivered')}">${o.status || 'قيد المعالجة'}</span></div>
+                </div>
+                <div style="margin-top:15px;">
+                    <select id="status-${o.id}" onchange="updateOrderStatus(${o.id}, this.value)">
+                        <option value="قيد المعالجة" ${o.status === 'قيد المعالجة' ? 'selected' : ''}>قيد المعالجة</option>
+                        <option value="تم الشحن" ${o.status === 'تم الشحن' ? 'selected' : ''}>تم الشحن</option>
+                        <option value="تم التوصيل" ${o.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل</option>
+                    </select>
+                    <button onclick="viewOrder(${o.id})" style="margin-top:10px;"><i class="fas fa-print"></i> عرض الفاتورة</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function updateOrderStatus(id, status) {
+        await fetch(`/api/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+        loadAllData();
+    }
+
+    function viewOrder(id) {
+        const order = orders.find(o => o.id === id);
+        if (order) generateInvoice(order);
+    }
+
+    function generateInvoice(order) {
+        const win = window.open();
+        win.document.write(`
+            <html dir="rtl"><head><title>فاتورة الرعدي أونلاين</title>
+            <style>body{font-family:Arial;padding:30px;max-width:800px;margin:auto;} .header{text-align:center;border-bottom:2px solid #ff6600;padding-bottom:15px;} .logo{color:#ff6600;font-size:1.8rem;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{padding:12px;border-bottom:1px solid #ddd;text-align:right;} .total{font-size:1.3rem;color:#ff6600;} button{background:#ff6600;color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;}</style>
+            </head><body>
+            <div class="header"><div class="logo">🦅 مجموعة متاجر الرعدي أونلاين الفاخرة</div><div>فاتورة شراء معتمدة رقم: RAD-${order.id}</div></div>
+            <p><strong>تاريخ الإصدار:</strong> ${order.dateFormatted || new Date(order.date).toLocaleDateString('ar-EG')}</p>
+            <p><strong>اسم العميل:</strong> ${order.customer}</p><p><strong>رقم الواتساب:</strong> ${order.phone}</p><p><strong>عنوان التوصيل:</strong> ${order.address}</p>
+            <table><thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>
+            ${order.items.map(i => `<tr><td

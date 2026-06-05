@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>الرعدي بلس | المتجر الأسطوري</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js للرسوم البيانية -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Socket.io للدردشة الحية -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at 10% 20%, #0a0a0a, #0a0a2a);
+            color: #eee;
+            overflow-x: hidden;
+        }
+        /* تأثيرات النيون */
+        .neon-text {
+            text-shadow: 0 0 5px #ff0066, 0 0 10px #ff0066, 0 0 20px #ff6600;
+        }
+        .glow-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 0, 102, 0.3);
+        }
+        .glow-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 0 25px rgba(255, 0, 102, 0.6);
+            border-color: #ff0066;
+        }
+        /* شريط الإعلانات */
+        .marquee {
+            background: linear-gradient(90deg, #ff0066, #ff6600);
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .marquee span {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+            font-weight: bold;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        /* اللوجو */
+        .logo-3d {
+            margin-top: 70px;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff0066, #ffcc00, #ff0066);
+            background-clip: text;
+            color: transparent;
+            animation: float 3s infinite;
+        }
+        @keyframes float {
+            0%,100%{ transform: translateY(0);}
+            50%{ transform: translateY(-10px);}
+        }
+        .eagle {
+            font-size: 3rem;
+            text-align: center;
+            filter: drop-shadow(0 0 15px gold);
+            animation: fly 2s infinite alternate;
+        }
+        @keyframes fly {
+            from { transform: translateX(0); }
+            to { transform: translateX(15px); }
+        }
+        /* صناديق المصادقة */
+        .auth-card {
+            max-width: 450px;
+            margin: 2rem auto;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 2rem;
+            border: 1px solid #ff0066;
+            box-shadow: 0 0 30px rgba(255,0,102,0.3);
+        }
+        .input-group {
+            margin: 1rem 0;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        .btn {
+            background: linear-gradient(45deg, #ff0066, #ff6600);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin: 8px 0;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ff0066;
+        }
+        .admin-panel, .main-store {
+            display: none;
+        }
+        /* شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+        .product-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 28px;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+        }
+        .product-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 24px;
+        }
+        .cart-icon {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #ff0066;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 0 15px #ff0066;
+        }
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 380px;
+            height: 100%;
+            background: #0a0a0a;
+            z-index: 1100;
+            transition: 0.3s;
+            padding: 20px;
+            border-left: 2px solid #ff0066;
+            overflow-y: auto;
+        }
+        .cart-sidebar.open {
+            right: 0;
+        }
+        .chat-circle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #ff0066;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff0066;
+            z-index: 1050;
+        }
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 330px;
+            height: 450px;
+            background: #111;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 1050;
+            border: 1px solid #ff0066;
+        }
+        .chat-window.open {
+            display: flex;
+        }
+        .chat-msgs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .tab-btn {
+            background: #222;
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #ff0066;
+        }
+        @media (max-width: 600px) {
+            .products-grid { grid-template-columns: 1fr; }
+            .cart-sidebar { width: 100%; right: -100%; }
+        }
+        /* تذييل */
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: #000000aa;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="marquee"><span>⚡ عروض الصيف تصل إلى 70% | شحن مجاني للطلبات فوق 300 ريال | خصم 20% على أول طلب باستخدام كود WELCOME20 ⚡</span></div>
+<div class="logo-3d">الرعـــــدي بـــلس</div>
+<div class="eagle">🦅⚡ المتجر الأسطوري ⚡🦅</div>
+
+<!-- نافذة المصادقة -->
+<div id="authContainer" class="auth-card">
+    <h2 style="text-align:center;">مرحباً بعودتك</h2>
+    <div id="loginForm">
+        <div class="input-group"><input type="email" id="loginEmail" placeholder="البريد الإلكتروني"></div>
+        <div class="input-group"><input type="password" id="loginPassword" placeholder="كلمة المرور"></div>
+        <button class="btn" onclick="login()">تسجيل الدخول</button>
+        <button class="btn btn-outline" onclick="showRegister()">إنشاء حساب جديد</button>
+        <div id="authMsg" style="color:#ffaa00; text-align:center; margin-top:10px;"></div>
+    </div>
+    <div id="registerForm" style="display:none;">
+        <div class="input-group"><input type="text" id="regName" placeholder="الاسم الكامل"></div>
+        <div class="input-group"><input type="email" id="regEmail" placeholder="البريد الإلكتروني"></div>
+        <div class="input-group"><input type="password" id="regPassword" placeholder="كلمة المرور"></div>
+        <div class="input-group"><input type="text" id="regPhone" placeholder="رقم الجوال"></div>
+        <button class="btn" onclick="register()">تسجيل</button>
+        <button class="btn btn-outline" onclick="showLogin()">لديك حساب؟ سجل دخول</button>
+    </div>
+</div>
+
+<!-- المتجر الرئيسي -->
+<div id="mainStore" class="main-store">
+    <div class="cart-icon" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i><span id="cartCount" style="position:absolute; top:-5px; right:-5px; background:#ffcc00; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; color:#000;">0</span></div>
+    <div style="position:fixed; top:80px; left:20px; z-index:999; display:flex; gap:10px;">
+        <button class="btn" style="width:auto; padding:8px 18px;" onclick="logout()">تسجيل خروج</button>
+        <button id="adminBtn" class="btn" style="width:auto; padding:8px 18px; display:none;" onclick="showAdminPanel()">لوحة التحكم</button>
+    </div>
+    <!-- الأقسام -->
+    <div style="padding:0 15px;">
+        <h3><i class="fas fa-th-large"></i> الأقسام الرئيسية</h3>
+        <div id="categoriesList" style="display:flex; gap:12px; overflow-x:auto; padding:15px 0;"></div>
+    </div>
+    <!-- المنتجات -->
+    <div id="productsContainer" class="products-grid"></div>
+</div>
+
+<!-- لوحة تحكم المدير -->
+<div id="adminPanel" class="admin-panel">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+        <button class="btn" onclick="backToStore()">العودة للمتجر</button>
+        <button class="btn" onclick="logout()">تسجيل خروج</button>
+    </div>
+    <div class="admin-tabs">
+        <div class="tab-btn active" data-tab="prodTab">المنتجات</div>
+        <div class="tab-btn" data-tab="catTab">الأقسام</div>
+        <div class="tab-btn" data-tab="ordersTab">الطلبات</div>
+        <div class="tab-btn" data-tab="profitsTab">الأرباح والتقارير</div>
+        <div class="tab-btn" data-tab="couponsTab">كوبونات الخصم</div>
+        <div class="tab-btn" data-tab="usersTab">العملاء</div>
+    </div>
+    <div id="prodTab">
+        <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:20px; margin-bottom:20px;">
+            <h3>➕ إضافة منتج جديد</h3>
+            <div class="input-group"><input type="text" id="prodName" placeholder="اسم المنتج"></div>
+            <div class="input-group"><textarea id="prodDesc" placeholder="وصف المنتج" rows="2"></textarea></div>
+            <div class="input-group"><input type="number" id="prodPrice" placeholder="السعر"></div>
+            <div class="input-group"><input type="number" id="prodStock" placeholder="الكمية"></div>
+            <div class="input-group"><input type="text" id="prodCat" placeholder="القسم"></div>
+            <div class="input-group"><input type="text" id="prodImg" placeholder="رابط الصورة"></div>
+            <button class="btn" onclick="addProduct()">إضافة المنتج</button>
+        </div>
+        <div id="adminProductsList"></div>
+    </div>
+    <div id="catTab" style="display:none;">
+        <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:20px;">
+            <h3>🏷️ إضافة قسم جديد</h3>
+            <div class="input-group"><input type="text" id="newCategory" placeholder="اسم القسم"></div>
+            <button class="btn" onclick="addCategory()">إضافة قسم</button>
+        </div>
+        <div id="adminCategoriesList"></div>
+    </div>
+    <div id="ordersTab" style="display:none;"><div id="ordersList"></div></div>
+    <div id="profitsTab" style="display:none;">
+        <div style="background:rgba(0,0,0,0.6); border-radius:20px; padding:20px;">
+            <h3>📊 إجمالي الأرباح</h3>
+            <div id="totalProfitDisplay" style="font-size:2rem; text-align:center;">0 ريال</div>
+            <canvas id="profitChart" width="300" height="150" style="max-width:100%; margin-top:20px;"></canvas>
+            <button class="btn" onclick="printReport()">طباعة التقرير</button>
+        </div>
+    </div>
+    <div id="couponsTab" style="display:none;">
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:20px;">
+            <h3>🎟️ إنشاء كوبون خصم</h3>
+            <div class="input-group"><input type="text" id="couponCode" placeholder="رمز الكوبون"></div>
+            <div class="input-group"><input type="number" id="couponPercent" placeholder="نسبة الخصم %"></div>
+            <button class="btn" onclick="addCoupon()">إضافة كوبون</button>
+        </div>
+        <div id="couponsAdminList"></div>
+    </div>
+    <div id="usersTab" style="display:none;"><div id="usersListAdmin"></div></div>
+</div>
+
+<!-- سلة الشراء -->
+<div id="cartSidebar" class="cart-sidebar">
+    <h3><i class="fas fa-shopping-basket"></i> سلتي</h3>
+    <div id="cartItemsList"></div>
+    <div id="cartTotals" style="margin-top:15px;"></div>
+    <div class="input-group"><input type="text" id="cartCouponInput" placeholder="رمز الخصم"></div>
+    <button class="btn" onclick="applyCouponCart()">تطبيق الخصم</button>
+    <button class="btn" onclick="checkout()">إتمام الطلب</button>
+    <button class="btn btn-outline" onclick="toggleCart()">إغلاق</button>
+</div>
+
+<!-- الدردشة الحية -->
+<div class="chat-circle" onclick="toggleChat()"><i class="fas fa-comments" style="font-size:28px;"></i></div>
+<div id="chatWindow" class="chat-window">
+    <div style="background:#ff0066; padding:12px; border-radius:20px 20px 0 0;">محادثة الدعم الفني <span style="float:left; cursor:pointer;" onclick="toggleChat()">✖</span></div>
+    <div id="chatMessagesBox" class="chat-msgs"></div>
+    <div style="display:flex; padding:10px; gap:8px;">
+        <input type="text" id="chatInput" placeholder="اكتب رسالتك..." style="flex:1; border-radius:40px; padding:8px;">
+        <button onclick="sendMessage()" style="border-radius:40px;">إرسال</button>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 الرعدي بلس - تجربة تسوق فائقة | شروط الاستخدام | سياسة الإرجاع خلال 14 يومًا</p>
+</footer>
+
+<script>
+    // ------------------- بيانات أساسية -------------------
+    let currentUser = null;
+    let products = [];
+    let categories = ["إلكترونيات", "ملابس", "أجهزة منزلية", "عطور"];
+    let orders = [];
+    let coupons = [];
+    let cart = [];
+    let chatHistory = [];
+    let discountPercent = 0;
+    const socket = io();
+
+    // تحميل البيانات من localStorage
+    function loadData() {
+        const p = localStorage.getItem('raadi_products');
+        if(p) products = JSON.parse(p);
+        else products = [
+            { id:1, name:"هاتف رعدي X", price:1999, stock:10, category:"إلكترونيات", image:"https://picsum.photos/id/0/200/200", desc:"هاتف ثوري بشاشة 6.8 بوصة" },
+            { id:2, name:"سماعات لاسلكية", price:349, stock:25, category:"إلكترونيات", image:"https://picsum.photos/id/1/200/200", desc:"عزل الضوضاء" },
+            { id:3, name:"تيشirt قطني", price:89, stock:50, category:"ملابس", image:"https://picsum.photos/id/2/200/200", desc:"قطن 100%" }
+        ];
+        const c = localStorage.getItem('raadi_categories');
+        if(c) categories = JSON.parse(c);
+        const ord = localStorage.getItem('raadi_orders');
+        if(ord) orders = JSON.parse(ord);
+        const coup = localStorage.getItem('raadi_coupons');
+        if(coup) coupons = JSON.parse(coup);
+        const savedCart = localStorage.getItem('raadi_cart');
+        if(savedCart) cart = JSON.parse(savedCart);
+        updateCartUI();
+        saveToLocal();
+    }
+    function saveToLocal() {
+        localStorage.setItem('raadi_products', JSON.stringify(products));
+        localStorage.setItem('raadi_categories', JSON.stringify(categories));
+        localStorage.setItem('raadi_orders', JSON.stringify(orders));
+        localStorage.setItem('raadi_coupons', JSON.stringify(coupons));
+        localStorage.setItem('raadi_cart', JSON.stringify(cart));
+    }
+    // عرض الأقسام والمنتجات
+    function renderCategories() {
+        const container = document.getElementById('categoriesList');
+        if(!container) return;
+        container.innerHTML = `<div class="glow-card" style="padding:10px 20px; border-radius:40px; cursor:pointer;" onclick="filterProducts('all')">الكل</div>` +
+            categories.map(c => `<div class="glow-card" style="padding:10px 20px; border-radius:40px; cursor:pointer;" onclick="filterProducts('${c}')">${c}</div>`).join('');
+    }
+    function filterProducts(category) {
+        let filtered = (category === 'all') ? products : products.filter(p=>p.category === category);
+        const container = document.getElementById('productsContainer');
+        if(filtered.length===0) { container.innerHTML = "<div style='text-align:center;padding:50px;'>🚀 لا توجد منتجات بعد</div>"; return; }
+        container.innerHTML = filtered.map(p => `
+            <div class="product-card glow-card">
+                <img src="${p.image}" class="product-img" onerror="this.src='https://picsum.photos/id/20/200/200'">
+                <h3>${p.name}</h3>
+                <p>${p.desc || ''}</p>
+                <div style="font-size:1.6rem; color:#ff0066;">${p.price} ريال</div>
+                <div>📦 المتبقي: ${p.stock}</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
+                    <div><button onclick="changeQty(${p.id},-1)">-</button> <span id="qty_${p.id}">1</span> <button onclick="changeQty(${p.id},1)">+</button></div>
+                    <button class="btn" style="width:auto;" onclick="addToCart(${p.id})">➕ أضف للسلة</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    let quantities = {};
+    function changeQty(pid, delta) {
+        let span = document.getElementById(`qty_${pid}`);
+        if(span) { let newVal = Math.max(1, parseInt(span.innerText) + delta); span.innerText = newVal; quantities[pid] = newVal; }
+    }
+    function addToCart(pid) {
+        let product = products.find(p=>p.id === pid);
+        if(!product || product.stock <=0) { alert("غير متوفر"); return; }
+        let qty = quantities[pid] || 1;
+        if(qty > product.stock) { alert(`يوجد ${product.stock} قطع فقط`); return; }
+        let existing = cart.find(i=>i.id === pid);
+        if(existing) existing.qty += qty;
+        else cart.push({ id:pid, name:product.name, price:product.price, qty, image:product.image });
+        saveToLocal();
+        updateCartUI();
+        alert("✅ تمت الإضافة");
+    }
+    function updateCartUI() {
+        let count = cart.reduce((s,i)=>s+i.qty,0);
+        document.getElementById('cartCount').innerText = count;
+        let container = document.getElementById('cartItemsList');
+        if(!container) return;
+        if(cart.length===0) { container.innerHTML = "<div style='text-align:center'>السلة فارغة</div>"; document.getElementById('cartTotals').innerHTML = ""; return; }
+        let subtotal = 0;
+        container.innerHTML = cart.map(i => {
+            let total = i.price * i.qty;
+            subtotal += total;
+            return `<div style="border-bottom:1px solid #333; padding:8px 0;"><strong>${i.name}</strong> x ${i.qty} = ${total} ريال <button onclick="removeCartItem(${i.id})">🗑️</button></div>`;
+        }).join('');
+        let final = subtotal * (1 - discountPercent/100);
+        document.getElementById('cartTotals').innerHTML = `<div>المجموع: ${subtotal} ريال</div>${discountPercent>0 ? `<div style="color:#0f0">الخصم ${discountPercent}% : -${(subtotal*discountPercent/100).toFixed(2)} ريال</div>` : ''}<div style="font-size:1.3rem;">الإجمالي: ${final.toFixed(2)} ريال</div>`;
+    }
+    function removeCartItem(id) { cart = cart.filter(i=>i.id !== id); saveToLocal(); updateCartUI(); }
+    function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
+    function applyCouponCart() {
+        let code = document.getElementById('cartCouponInput').value.trim();
+        let coup = coupons.find(c=>c.code === code);
+        if(coup) { discountPercent = coup.percent; updateCartUI(); alert(`تم تطبيق خصم ${coup.percent}%`); }
+        else alert("كود غير صالح");
+    }
+    function checkout() {
+        if(!currentUser) { alert("يجب تسجيل الدخول أولاً"); return; }
+        if(cart.length===0) { alert("السلة فارغة"); return; }
+        let name = prompt("الاسم الكامل");
+        let addr = prompt("العنوان");
+        let phone = prompt("رقم الجوال");
+        let subtotal = cart.reduce((s,i)=>s+(i.price*i.qty),0);
+        let total = subtotal * (1 - discountPercent/100);
+        let order = { id:Date.now(), customer:name, address:addr, phone, items:cart.map(i=>({name:i.name,qty:i.qty,price:i.price})), subtotal,discount:discountPercent,total, date:new Date().toLocaleString(), status:"جاري التحضير", userId:currentUser.email };
+        orders.push(order);
+        // تقليل المخزون
+        cart.forEach(item => { let p = products.find(pr=>pr.id===item.id); if(p) p.stock -= item.qty; });
+        cart = []; discountPercent=0; saveToLocal(); updateCartUI(); toggleCart(); filterProducts('all');
+        generateInvoice(order);
+        alert("تم إرسال الطلب بنجاح ✔️");
+    }
+    function generateInvoice(order) {
+        let win = window.open();
+        win.document.write(`
+        <html dir="rtl"><head><title>فاتورة الرعدي بلس</title></head>
+        <body style="font-family:Arial; padding:20px; max-width:700px; margin:auto;">
+            <h1 style="color:#ff0066;">🦅 الرعدي بلس</h1>
+            <h2>فاتورة شراء #${order.id}</h2>
+            <p>العميل: ${order.customer}</p>
+            <p>العنوان: ${order.address}</p>
+            <p>الهاتف: ${order.phone}</p>
+            <p>التاريخ: ${order.date}</p>
+            <table border="1" width="100%" style="border-collapse:collapse;">${order.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>${i.price*i.qty}</td></tr>`).join('')}</table>
+            <h3>الإجمالي: ${order.total.toFixed(2)} ريال</h3>
+            <small>سياسة الإرجاع 14 يوماً</small><br/>
+            <button onclick="window.print()">🖨️ طباعة</button>
+        </body></html>`);
+    }
+    // إدارة المدير
+    function addProduct() {
+        if(!currentUser?.isAdmin) { alert("غير مصرح"); return; }
+        let name = document.getElementById('prodName').value;
+        let desc = document.getElementById('prodDesc').value;
+        let price = parseFloat(document.getElementById('prodPrice').value);
+        let stock = parseInt(document.getElementById('prodStock').value);
+        let cat = document.getElementById('prodCat').value;
+        let img = document.getElementById('prodImg').value;
+        if(!name || !price) { alert("بيانات ناقصة"); return; }
+        let newId = Date.now();
+        products.push({ id:newId, name, desc, price, stock, category:cat || "عام", image:img || "https://picsum.photos/id/10/200/200" });
+        saveToLocal(); filterProducts('all'); loadAdminProducts(); alert("تم الإضافة");
+    }
+    function loadAdminProducts() { /* ملخص بسيط */ }
+    function addCategory() { if(!currentUser?.isAdmin) return; let n = document.getElementById('newCategory').value; if(n && !categories.includes(n)){ categories.push(n); saveToLocal(); renderCategories(); loadAdminCategories(); alert("تم"); } }
+    function loadAdminCategories() { /* ... */ }
+    function loadAdminOrders() { /* عرض الطلبات */ updateProfitChart(); }
+    function updateProfitChart() { /* رسم بياني */ }
+    function printReport() { alert("تقرير الأرباح: "+ orders.reduce((a,b)=>a+b.total,0).toFixed(2)+" ريال"); }
+    function addCoupon() { let code = document.getElementById('couponCode').value; let per = parseInt(document.getElementById('couponPercent').value); if(code && per) { coupons.push({code, percent:per}); saveToLocal(); alert("تم"); } }
+    // المصادقة
+    function login() {
+        let email = document.getElementById('loginEmail').value;
+        let pwd = document.getElementById('loginPassword').value;
+        if(email === "admin@raadi.com" && pwd === "admin123") {
+            currentUser = { email, name:"المدير", isAdmin:true };
+            localStorage.setItem('raadi_user', JSON.stringify(currentUser));
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('mainStore').style.display = 'block';
+            document.getElementById('adminBtn').style.display = 'block';
+            renderCategories(); filterProducts('all');
+            return;
+        }
+        let users = JSON.parse(localStorage.getItem('raadi_users') || '[]');
+        let u = users.find(u=>u.email === email && u.password === pwd);
+        if(u) {
+            currentUser = { email, name:u.name, isAdmin:false };
+            localStorage.setItem('raadi_user', JSON.stringify(currentUser));
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('mainStore').style.display = 'block';
+            renderCategories(); filterProducts('all');
+        } else document.getElementById('authMsg').innerText = "بيانات غير صحيحة";
+    }
+    function register() {
+        let name = document.getElementById('regName').value;
+        let email = document.getElementById('regEmail').value;
+        let pwd = document.getElementById('regPassword').value;
+        let phone = document.getElementById('regPhone').value;
+        if(!name || !email || !pwd) { alert("املأ الحقول"); return; }
+        let users = JSON.parse(localStorage.getItem('raadi_users') || '[]');
+        if(users.find(u=>u.email===email)) { alert("البريد موجود"); return; }
+        users.push({ name, email, password:pwd, phone });
+        localStorage.setItem('raadi_users', JSON.stringify(users));
+        alert("تم التسجيل بنجاح، سجل دخول الآن");
+        showLogin();
+    }
+    function showRegister() { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; }
+    function showLogin() { document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; }
+    function logout() { currentUser=null; localStorage.removeItem('raadi_user'); location.reload(); }
+    function showAdminPanel() { if(currentUser?.isAdmin) { document.getElementById('mainStore').style.display='none'; document.getElementById('adminPanel').style.display='block'; loadAdminProducts(); loadAdminCategories(); loadAdminOrders(); } else alert("غير مصرح"); }
+    function backToStore() { document.getElementById('adminPanel').style.display='none'; document.getElementById('mainStore').style.display='block'; filterProducts('all'); }
+    // الدردشة
+    function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
+    function sendMessage() { let input = document.getElementById('chatInput'); if(input.value.trim()) { socket.emit('chatMessage', {sender: currentUser?.email || 'زائر', text: input.value}); input.value = ''; } }
+    socket.on('chatMessage', (data) => { let box = document.getElementById('chatMessagesBox'); box.innerHTML += `<div><strong>${data.sender}</strong>: ${data.text}</div>`; box.scrollTop = box.scrollHeight; });
+    // بدء
+    window.onload = () => {
+        loadData();
+        let saved = localStorage.getItem('raadi_user');
+        if(saved) {
+            currentUser = JSON.parse(saved);
+            if(currentUser) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('mainStore').style.display = 'block';
+                if(currentUser.isAdmin) document.getElementById('adminBtn').style.display = 'block';
+                renderCategories(); filterProducts('all');
+            }
+        }
+        setInterval(()=>{ if(currentUser?.isAdmin) updateProfitChart(); }, 5000);
+    };
+</script>
+</body>
+</html>

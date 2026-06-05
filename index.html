@@ -7,92 +7,120 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Tajawal', sans-serif; }
-        body { background: #f8fafc; color: #1e293b; }
-        /* شريط الإعلانات */
+        body { background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%); color: #0f172a; }
+        
+        /* شريط الإعلانات الأسطوري */
         .top-bar { background: linear-gradient(90deg, #0f172a, #1e293b); color: #fbbf24; text-align: center; padding: 12px; font-size: 0.85rem; position: fixed; top: 0; width: 100%; z-index: 1000; overflow: hidden; white-space: nowrap; }
-        .top-bar span { display: inline-block; animation: scrollText 20s linear infinite; }
+        .top-bar span { display: inline-block; animation: scrollText 25s linear infinite; font-weight: bold; letter-spacing: 1px; }
         @keyframes scrollText { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        /* الهيدر */
-        .header { margin-top: 48px; background: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 48px; z-index: 999; flex-wrap: wrap; gap: 15px; }
-        .logo { font-size: 1.8rem; font-weight: bold; color: #e67e22; }
-        .logo span { color: #1e293b; }
-        .search-box { background: #f1f5f9; border-radius: 40px; padding: 10px 20px; display: flex; align-items: center; gap: 12px; width: 320px; }
-        .search-box input { background: none; border: none; outline: none; width: 100%; }
-        .user-actions { display: flex; gap: 15px; align-items: center; }
-        .icon-btn { background: #f1f5f9; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        
+        /* الهيدر الرائع */
+        .header { margin-top: 48px; background: white; padding: 18px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 48px; z-index: 999; flex-wrap: wrap; gap: 20px; border-bottom: 2px solid #e67e22; }
+        .logo { font-size: 2rem; font-weight: bold; background: linear-gradient(135deg, #e67e22, #d35400); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo span { color: #1e293b; background: none; -webkit-background-clip: unset; background-clip: unset; }
+        .search-box { background: #f1f5f9; border-radius: 50px; padding: 12px 25px; display: flex; align-items: center; gap: 15px; width: 350px; border: 1px solid #e2e8f0; transition: 0.3s; }
+        .search-box:focus-within { border-color: #e67e22; box-shadow: 0 0 0 3px rgba(230,126,34,0.1); }
+        .search-box input { background: none; border: none; outline: none; width: 100%; font-size: 1rem; }
+        .user-actions { display: flex; gap: 18px; align-items: center; }
+        .icon-btn { background: #f1f5f9; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.2rem; }
+        .icon-btn:hover { background: #e67e22; color: white; transform: translateY(-3px); }
         .cart-icon { background: #e67e22; color: white; position: relative; }
-        .cart-count { position: absolute; top: -5px; right: -5px; background: #ef4444; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
+        .cart-icon:hover { background: #d35400; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: #ef4444; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
         /* الأقسام */
-        .categories { display: flex; gap: 25px; padding: 20px 25px; flex-wrap: wrap; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 108px; z-index: 99; }
-        .category-item { font-weight: 600; cursor: pointer; padding: 5px 0; transition: 0.3s; }
-        .category-item.active, .category-item:hover { color: #e67e22; border-bottom: 2px solid #e67e22; }
-        /* المنتجات */
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 35px; max-width: 1400px; margin: 0 auto; }
-        .product-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; }
-        .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 35px rgba(0,0,0,0.1); }
-        .product-img { width: 100%; height: 240px; object-fit: cover; }
-        .product-info { padding: 20px; }
-        .product-title { font-weight: bold; font-size: 1.2rem; margin-bottom: 5px; }
-        .product-category { font-size: 0.75rem; color: #e67e22; margin-bottom: 10px; }
-        .product-price { display: flex; align-items: baseline; gap: 12px; margin: 12px 0; }
-        .current-price { font-size: 1.5rem; font-weight: bold; color: #e67e22; }
+        .categories-section { background: white; border-bottom: 1px solid #e2e8f0; }
+        .categories { display: flex; gap: 30px; padding: 20px 30px; flex-wrap: wrap; position: sticky; top: 120px; z-index: 98; background: white; }
+        .category-item { font-weight: 700; cursor: pointer; padding: 8px 0; transition: 0.3s; font-size: 1rem; color: #475569; position: relative; }
+        .category-item.active, .category-item:hover { color: #e67e22; }
+        .category-item.active::after, .category-item:hover::after { content: ''; position: absolute; bottom: 0; right: 0; width: 100%; height: 3px; background: #e67e22; border-radius: 3px; }
+        
+        /* المنتجات - شبكة احترافية */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 35px; padding: 40px; max-width: 1400px; margin: 0 auto; }
+        .product-card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.02); transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); cursor: pointer; border: 1px solid #f1f5f9; }
+        .product-card:hover { transform: translateY(-12px); box-shadow: 0 25px 40px -12px rgba(0,0,0,0.2); border-color: #e67e22; }
+        .product-img { width: 100%; height: 260px; object-fit: cover; transition: transform 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.05); }
+        .product-info { padding: 25px; }
+        .product-title { font-weight: 800; font-size: 1.25rem; margin-bottom: 8px; color: #0f172a; }
+        .product-category { font-size: 0.75rem; color: #e67e22; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .product-price { display: flex; align-items: baseline; gap: 15px; margin: 15px 0; flex-wrap: wrap; }
+        .current-price { font-size: 1.6rem; font-weight: 800; color: #e67e22; }
         .old-price { font-size: 0.9rem; color: #94a3b8; text-decoration: line-through; }
-        .discount-badge { background: #10b981; color: white; padding: 2px 10px; border-radius: 25px; font-size: 0.7rem; }
-        .product-features { font-size: 0.8rem; color: #475569; margin: 10px 0; line-height: 1.4; }
-        .stock-status { font-size: 0.75rem; margin: 10px 0; }
-        .in-stock { color: #10b981; }
-        .low-stock { color: #f59e0b; }
-        .out-stock { color: #ef4444; }
-        .quantity-control { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 15px 0; }
-        .quantity-control button { background: #f1f5f9; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
-        .quantity-control button:hover { background: #e67e22; color: white; }
-        .add-to-cart-btn { width: 100%; background: #e67e22; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .add-to-cart-btn:hover { background: #d35400; }
-        /* السلة الجانبية */
-        .cart-sidebar { position: fixed; top: 0; right: -450px; width: 420px; height: 100%; background: white; z-index: 1200; transition: 0.3s ease-in-out; box-shadow: -5px 0 30px rgba(0,0,0,0.1); padding: 25px; overflow-y: auto; }
+        .discount-badge { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; }
+        .product-features { font-size: 0.85rem; color: #475569; margin: 12px 0; line-height: 1.5; }
+        .stock-status { font-size: 0.75rem; margin: 12px 0; font-weight: 500; }
+        .in-stock { color: #10b981; background: #d1fae5; display: inline-block; padding: 4px 12px; border-radius: 20px; }
+        .low-stock { color: #f59e0b; background: #fed7aa; display: inline-block; padding: 4px 12px; border-radius: 20px; }
+        .out-stock { color: #ef4444; background: #fee2e2; display: inline-block; padding: 4px 12px; border-radius: 20px; }
+        .quantity-control { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 18px 0; }
+        .quantity-control button { background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: 0.2s; }
+        .quantity-control button:hover { background: #e67e22; color: white; transform: scale(1.05); }
+        .add-to-cart-btn { width: 100%; background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none; padding: 14px; border-radius: 50px; font-weight: 800; cursor: pointer; transition: all 0.3s; font-size: 1rem; margin-top: 5px; }
+        .add-to-cart-btn:hover { background: linear-gradient(135deg, #d35400, #b83d00); transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(230,126,34,0.4); }
+        
+        /* السلة الجانبية المتطورة */
+        .cart-sidebar { position: fixed; top: 0; right: -480px; width: 450px; height: 100%; background: white; z-index: 1200; transition: 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); box-shadow: -10px 0 40px rgba(0,0,0,0.15); padding: 30px; overflow-y: auto; }
         .cart-sidebar.open { right: 0; }
-        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
-        .cart-item-actions { display: flex; gap: 8px; align-items: center; }
-        .cart-item-actions button { background: #f1f5f9; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
-        .cart-total { margin-top: 20px; padding-top: 15px; border-top: 2px solid #e67e22; font-size: 1.2rem; font-weight: bold; }
-        .coupon-input { display: flex; gap: 10px; margin: 20px 0; }
-        .coupon-input input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 30px; }
-        .coupon-input button { background: #334155; border: none; padding: 10px 15px; border-radius: 30px; color: white; cursor: pointer; }
-        /* نافذة الطلب */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .checkout-modal { background: white; width: 500px; max-width: 95%; border-radius: 30px; padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .checkout-modal h3 { margin-bottom: 20px; color: #1e293b; border-right: 4px solid #e67e22; padding-right: 15px; }
-        .checkout-modal input, .checkout-modal select, .checkout-modal textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 12px; }
-        .checkout-modal button { background: #e67e22; color: white; border: none; padding: 14px; border-radius: 30px; width: 100%; margin-top: 15px; font-weight: bold; cursor: pointer; }
-        .order-summary { background: #f8fafc; padding: 15px; border-radius: 15px; margin: 15px 0; }
-        .close-modal { position: absolute; top: 15px; left: 20px; font-size: 1.5rem; cursor: pointer; }
-        /* الدردشة */
-        .chat-btn { position: fixed; bottom: 30px; right: 30px; background: #e67e22; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; color: white; font-size: 1.5rem; }
-        .chat-window { position: fixed; bottom: 100px; right: 30px; width: 360px; height: 480px; background: white; border-radius: 25px; display: none; flex-direction: column; z-index: 1001; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e67e22; padding-bottom: 18px; margin-bottom: 20px; }
+        .cart-header h3 { font-size: 1.5rem; font-weight: 800; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #e2e8f0; }
+        .cart-item-info h4 { font-weight: 700; margin-bottom: 5px; }
+        .cart-item-actions { display: flex; gap: 12px; align-items: center; }
+        .cart-item-actions button { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .cart-item-actions button:hover { background: #e67e22; color: white; }
+        .cart-total { margin-top: 25px; padding-top: 20px; border-top: 2px solid #e67e22; font-size: 1.3rem; font-weight: 800; }
+        .coupon-input { display: flex; gap: 12px; margin: 25px 0; }
+        .coupon-input input { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 50px; font-size: 0.9rem; }
+        .coupon-input button { background: #334155; border: none; padding: 12px 20px; border-radius: 50px; color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .coupon-input button:hover { background: #1e293b; }
+        
+        /* نافذة الطلب المنبثقة الاحترافية */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
+        .checkout-modal { background: white; width: 550px; max-width: 95%; border-radius: 40px; padding: 35px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .checkout-modal h3 { font-size: 1.6rem; margin-bottom: 25px; color: #0f172a; border-right: 4px solid #e67e22; padding-right: 18px; }
+        .checkout-modal input, .checkout-modal select, .checkout-modal textarea { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #cbd5e1; border-radius: 16px; font-size: 1rem; transition: 0.2s; }
+        .checkout-modal input:focus, .checkout-modal select:focus { border-color: #e67e22; outline: none; box-shadow: 0 0 0 3px rgba(230,126,34,0.1); }
+        .checkout-modal button { background: #e67e22; color: white; border: none; padding: 16px; border-radius: 50px; width: 100%; margin-top: 20px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
+        .checkout-modal button:hover { background: #d35400; transform: translateY(-2px); }
+        .order-summary { background: #f8fafc; padding: 20px; border-radius: 20px; margin: 20px 0; border: 1px solid #e2e8f0; }
+        .close-modal { position: absolute; top: 20px; left: 25px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; transition: 0.2s; }
+        .close-modal:hover { color: #e67e22; }
+        
+        /* الدردشة الحية المتطورة */
+        .chat-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #e67e22, #d35400); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 15px 30px -8px rgba(230,126,34,0.5); z-index: 1000; color: white; font-size: 1.8rem; transition: 0.3s; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); box-shadow: 0 20px 35px -8px rgba(230,126,34,0.7); } }
+        .chat-window { position: fixed; bottom: 110px; right: 30px; width: 380px; height: 520px; background: white; border-radius: 30px; display: none; flex-direction: column; z-index: 1001; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; border: 1px solid #e67e22; }
         .chat-window.open { display: flex; }
-        .chat-header { background: #1e293b; color: white; padding: 15px; display: flex; justify-content: space-between; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; background: #f8fafc; }
-        .chat-message { margin-bottom: 12px; padding: 8px 14px; border-radius: 20px; max-width: 85%; }
-        .chat-message.user { background: #e67e22; color: white; margin-right: auto; }
-        .chat-message.admin { background: #e2e8f0; margin-left: auto; }
-        .chat-input { display: flex; padding: 12px; border-top: 1px solid #e2e8f0; background: white; }
-        .chat-input input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 30px; outline: none; }
-        .chat-input button { background: #e67e22; border: none; width: 40px; height: 40px; border-radius: 50%; margin-left: 8px; color: white; cursor: pointer; }
-        /* شاشة تسجيل الدخول */
-        .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .auth-card { background: white; width: 420px; padding: 40px; border-radius: 35px; text-align: center; }
-        .auth-card h2 { margin-bottom: 25px; color: #1e293b; }
-        .auth-card input { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #cbd5e1; border-radius: 30px; }
-        .auth-card button { background: #e67e22; width: 100%; padding: 14px; border: none; border-radius: 30px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        .auth-card .switch { margin-top: 20px; color: #e67e22; cursor: pointer; }
-        .footer { background: #1e293b; color: #94a3b8; text-align: center; padding: 25px; margin-top: 50px; }
-        @media (max-width: 768px) { .search-box { display: none; } .cart-sidebar { width: 100%; right: -100%; } .products-grid { padding: 20px; } .auth-card { width: 90%; } }
+        .chat-header { background: #1e293b; color: white; padding: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header span { font-weight: 700; font-size: 1.1rem; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc; }
+        .chat-message { margin-bottom: 15px; padding: 10px 16px; border-radius: 20px; max-width: 85%; word-wrap: break-word; }
+        .chat-message.user { background: linear-gradient(135deg, #e67e22, #d35400); color: white; margin-right: auto; border-bottom-right-radius: 5px; }
+        .chat-message.admin { background: #e2e8f0; color: #0f172a; margin-left: auto; border-bottom-left-radius: 5px; }
+        .chat-input { display: flex; padding: 15px; border-top: 1px solid #e2e8f0; background: white; gap: 10px; }
+        .chat-input input { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 40px; outline: none; }
+        .chat-input button { background: #e67e22; border: none; width: 45px; height: 45px; border-radius: 50%; color: white; cursor: pointer; transition: 0.2s; }
+        .chat-input button:hover { background: #d35400; transform: scale(1.05); }
+        
+        /* شاشة تسجيل الدخول الأسطورية */
+        .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
+        .auth-card { background: white; width: 480px; padding: 45px; border-radius: 50px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .auth-card h2 { margin-bottom: 30px; color: #0f172a; font-size: 1.8rem; font-weight: 800; }
+        .auth-card input { width: 100%; padding: 16px; margin: 12px 0; border: 1px solid #cbd5e1; border-radius: 50px; font-size: 1rem; transition: 0.2s; }
+        .auth-card input:focus { border-color: #e67e22; outline: none; box-shadow: 0 0 0 3px rgba(230,126,34,0.1); }
+        .auth-card button { background: #e67e22; width: 100%; padding: 16px; border: none; border-radius: 50px; color: white; font-weight: 800; font-size: 1.1rem; margin-top: 20px; cursor: pointer; transition: 0.3s; }
+        .auth-card button:hover { background: #d35400; transform: translateY(-3px); }
+        .auth-card .switch { margin-top: 25px; color: #e67e22; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .auth-card .switch:hover { text-decoration: underline; }
+        
+        .footer { background: #0f172a; color: #94a3b8; text-align: center; padding: 35px; margin-top: 60px; }
+        @media (max-width: 768px) { .search-box { display: none; } .cart-sidebar { width: 100%; right: -100%; } .products-grid { padding: 20px; } .auth-card { width: 90%; padding: 30px; } }
     </style>
 </head>
 <body>
 
-<div class="top-bar"><span>⚡ عروض الصيف تصل إلى 70% | شحن مجاني للطلبات فوق 300 ريال | خصم 20% على أول طلب باستخدام كود WELCOME20 ⚡</span></div>
+<div class="top-bar"><span>⚡ عروض الصيف تصل إلى 70% | شحن مجاني للطلبات فوق 300 ريال | خصم 20% على أول طلب باستخدام كود WELCOME20 | خصم إضافي 10% على الطلبات الدولية ⚡</span></div>
 
 <div class="header">
     <div class="logo">🦅 الرعدي <span>أونلاين</span></div>
@@ -104,16 +132,16 @@
     </div>
 </div>
 
-<div class="categories" id="categoriesList"><div class="category-item active" data-cat="all">الكل</div></div>
+<div class="categories-section"><div class="categories" id="categoriesList"><div class="category-item active" data-cat="all">الكل</div></div></div>
 <div class="products-grid" id="productsList"></div>
 
 <!-- السلة الجانبية -->
 <div id="cartSidebar" class="cart-sidebar">
-    <div class="cart-header"><h3>🛍️ سلة المشتريات</h3><i class="fas fa-times" style="cursor:pointer" onclick="toggleCart()"></i></div>
+    <div class="cart-header"><h3>🛍️ سلة المشتريات</h3><i class="fas fa-times" style="cursor:pointer; font-size:1.3rem;" onclick="toggleCart()"></i></div>
     <div id="cartItems"></div>
     <div class="coupon-input"><input type="text" id="couponCode" placeholder="رمز الخصم"><button onclick="applyCoupon()">تطبيق</button></div>
     <div id="cartTotal" class="cart-total"></div>
-    <button onclick="openCheckoutModal()" style="width:100%; background:#e67e22; color:white; border:none; padding:14px; border-radius:40px; margin-top:15px; font-weight:bold;">✅ إتمام الطلب</button>
+    <button onclick="openCheckoutModal()" style="width:100%; background:#e67e22; color:white; border:none; padding:16px; border-radius:50px; margin-top:20px; font-weight:800;">✅ إتمام الطلب</button>
 </div>
 
 <!-- نافذة إتمام الطلب -->
@@ -121,17 +149,17 @@
     <div class="checkout-modal">
         <i class="fas fa-times close-modal" onclick="closeCheckoutModal()"></i>
         <h3>📝 استكمال الطلب</h3>
-        <input type="text" id="fullName" placeholder="الاسم الرباعي" required>
+        <input type="text" id="fullName" placeholder="الاسم الرباعي (كما في الإثبات)" required>
         <input type="email" id="email" placeholder="البريد الإلكتروني">
         <input type="tel" id="phone" placeholder="رقم الواتساب" required>
         <input type="text" id="address" placeholder="العنوان بالكامل" required>
-        <select id="country"><option value="saudi">🇸🇦 السعودية (شحن داخلي)</option><option value="other">🌍 خارج المملكة (شحن دولي)</option></select>
+        <select id="country"><option value="saudi">🇸🇦 السعودية (شحن داخلي 15 ريال)</option><option value="other">🌍 خارج المملكة (شحن دولي 50 ريال)</option></select>
         <div class="order-summary" id="orderSummary"></div>
-        <button onclick="submitOrder()">💰 تأكيد الطلب وإصدار الفاتورة</button>
+        <button onclick="submitOrder()">💰 تأكيد الطلب وإصدار الفاتورة PDF</button>
     </div>
 </div>
 
-<!-- الدردشة -->
+<!-- الدردشة الحية -->
 <div class="chat-btn" onclick="toggleChat()"><i class="fas fa-comments"></i></div>
 <div id="chatWindow" class="chat-window">
     <div class="chat-header"><span>💬 الدعم الفني - الرعدي أونلاين</span><i class="fas fa-times" style="cursor:pointer" onclick="toggleChat()"></i></div>
@@ -161,10 +189,10 @@
     </div>
 </div>
 
-<div class="footer"><p>© 2026 الرعدي أونلاين - تجربة تسوق فائقة | سياسة الإرجاع خلال 14 يوماً</p></div>
+<div class="footer"><p>© 2026 الرعدي أونلاين - تجربة تسوق فائقة | شروط الاستخدام | سياسة الإرجاع خلال 14 يوماً</p></div>
 
 <script>
-    // ================================ متغيرات عامة ================================
+    // ================================ المتغيرات العامة ================================
     let products = [];
     let cart = [];
     let currentUser = null;
@@ -174,7 +202,7 @@
     let shippingSettings = { domestic: 15, international: 50 };
     let currentOrderItems = [];
 
-    // ================================ تحميل البيانات ================================
+    // ================================ تحميل البيانات من الخادم ================================
     async function loadProducts() {
         const res = await fetch('/api/products');
         products = await res.json();
@@ -207,7 +235,7 @@
         const searchTerm = document.getElementById('searchInput')?.value.toLowerCase();
         if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
         const container = document.getElementById('productsList');
-        if (filtered.length === 0) { container.innerHTML = '<div style="text-align:center; padding:50px;">لا توجد منتجات</div>'; return; }
+        if (filtered.length === 0) { container.innerHTML = '<div style="text-align:center; padding:60px; font-size:1.2rem; color:#64748b;">📦 لا توجد منتجات في هذا القسم</div>'; return; }
         container.innerHTML = filtered.map(p => {
             const stockClass = p.stock > 10 ? 'in-stock' : (p.stock > 0 ? 'low-stock' : 'out-stock');
             const stockText = p.stock > 10 ? 'متوفر' : (p.stock > 0 ? `متبقي ${p.stock} قطع` : 'غير متوفر');
@@ -216,17 +244,17 @@
                     <img src="${p.image}" class="product-img" onerror="this.src='https://picsum.photos/id/20/300/300'">
                     <div class="product-info">
                         <div class="product-title">${p.name}</div>
-                        <div class="product-category">${p.category}</div>
+                        <div class="product-category"><i class="fas fa-tag"></i> ${p.category}</div>
                         <div class="product-price">
                             <span class="current-price">${p.price} ريال</span>
                             ${p.oldPrice ? `<span class="old-price">${p.oldPrice} ريال</span>` : ''}
                             ${p.discount ? `<span class="discount-badge">-${p.discount}%</span>` : ''}
                         </div>
-                        <div class="product-features">🎨 ${p.color} | ⚙️ ${p.features}</div>
-                        <div class="stock-status ${stockClass}">📦 ${stockText}</div>
+                        <div class="product-features"><i class="fas fa-palette"></i> ${p.color} | <i class="fas fa-microchip"></i> ${p.features}</div>
+                        <div class="stock-status"><span class="${stockClass}">📦 ${stockText}</span></div>
                         <div class="quantity-control">
                             <button onclick="changeQuantity(${p.id}, -1)">-</button>
-                            <span id="qty_${p.id}">1</span>
+                            <span id="qty_${p.id}" style="font-weight:700; min-width:35px; text-align:center;">1</span>
                             <button onclick="changeQuantity(${p.id}, 1)">+</button>
                         </div>
                         <button class="add-to-cart-btn" onclick="addToCart(${p.id})">🛒 أضف للسلة</button>
@@ -237,32 +265,36 @@
     }
     function changeQuantity(id, delta) {
         const span = document.getElementById(`qty_${id}`);
-        if (span) { let newVal = Math.max(1, parseInt(span.innerText) + delta); span.innerText = newVal; quantities[id] = newVal; }
+        if (span) {
+            let newVal = Math.max(1, parseInt(span.innerText) + delta);
+            span.innerText = newVal;
+            quantities[id] = newVal;
+        }
     }
     function addToCart(id) {
         const product = products.find(p => p.id === id);
-        if (!product || product.stock <= 0) { alert("❌ غير متوفر"); return; }
+        if (!product || product.stock <= 0) { alert("❌ هذا المنتج غير متوفر حالياً"); return; }
         const qty = quantities[id] || 1;
-        if (qty > product.stock) { alert(`⚠️ لا يتوفر سوى ${product.stock} قطع`); return; }
+        if (qty > product.stock) { alert(`⚠️ لا يتوفر سوى ${product.stock} قطع فقط`); return; }
         const existing = cart.find(i => i.id === id);
         if (existing) existing.quantity += qty;
-        else cart.push({ id, name: product.name, price: product.price, quantity: qty });
-        saveCart(); updateCartUI(); alert("✅ تمت الإضافة");
+        else cart.push({ id, name: product.name, price: product.price, quantity: qty, image: product.image });
+        saveCart(); updateCartUI(); alert("✅ تمت إضافة المنتج إلى السلة بنجاح");
     }
     function updateCartUI() {
         const count = cart.reduce((s, i) => s + i.quantity, 0);
         document.getElementById('cartCount').innerText = count;
         const container = document.getElementById('cartItems');
-        if (cart.length === 0) { container.innerHTML = '<div style="text-align:center; padding:30px;">السلة فارغة</div>'; document.getElementById('cartTotal').innerHTML = ''; return; }
+        if (cart.length === 0) { container.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">🛒 سلة المشتريات فارغة</div>'; document.getElementById('cartTotal').innerHTML = ''; return; }
         let subtotal = 0;
         container.innerHTML = cart.map(i => {
             const itemTotal = i.price * i.quantity;
             subtotal += itemTotal;
-            return `<div class="cart-item"><div><strong>${i.name}</strong><br>${i.price} ريال × ${i.quantity}</div><div class="cart-item-actions"><button onclick="updateCartItem(${i.id}, -1)">-</button><span>${i.quantity}</span><button onclick="updateCartItem(${i.id}, 1)">+</button><button onclick="removeFromCart(${i.id})" style="background:#ef4444; color:white;">🗑️</button></div></div>`;
+            return `<div class="cart-item"><div class="cart-item-info"><h4>${i.name}</h4><div>${i.price} ريال × ${i.quantity}</div></div><div class="cart-item-actions"><button onclick="updateCartItem(${i.id}, -1)">-</button><span style="min-width:30px; text-align:center;">${i.quantity}</span><button onclick="updateCartItem(${i.id}, 1)">+</button><button onclick="removeFromCart(${i.id})" style="background:#ef4444; color:white;">🗑️</button></div></div>`;
         }).join('');
         const discountAmount = subtotal * (couponDiscount / 100);
         const total = subtotal - discountAmount;
-        document.getElementById('cartTotal').innerHTML = `<div>المجموع الفرعي: ${subtotal} ريال</div>${couponDiscount > 0 ? `<div style="color:#10b981;">الخصم (${couponDiscount}%): -${discountAmount.toFixed(2)} ريال</div>` : ''}<div style="margin-top:10px;">الإجمالي: ${total.toFixed(2)} ريال</div>`;
+        document.getElementById('cartTotal').innerHTML = `<div>المجموع الفرعي: ${subtotal} ريال</div>${couponDiscount > 0 ? `<div style="color:#10b981;">الخصم (${couponDiscount}%): -${discountAmount.toFixed(2)} ريال</div>` : ''}<div style="margin-top:12px; font-size:1.4rem;">الإجمالي: ${total.toFixed(2)} ريال</div>`;
     }
     function updateCartItem(id, delta) {
         const item = cart.find(i => i.id === id);
@@ -279,16 +311,16 @@
     function loadCart() { const saved = localStorage.getItem('raadi_cart'); if (saved) cart = JSON.parse(saved); updateCartUI(); }
     function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
     function applyCoupon() {
-        const code = document.getElementById('couponCode').value.trim();
-        if (code === 'WELCOME20') { couponDiscount = 20; alert('✅ خصم 20%'); updateCartUI(); }
-        else if (code === 'SUMMER70') { couponDiscount = 70; alert('✅ خصم 70%'); updateCartUI(); }
-        else alert('❌ كود غير صالح');
+        const code = document.getElementById('couponCode').value.trim().toUpperCase();
+        if (code === 'WELCOME20') { couponDiscount = 20; alert('✅ تم تطبيق خصم 20%'); updateCartUI(); }
+        else if (code === 'SUMMER70') { couponDiscount = 70; alert('✅ تم تطبيق خصم 70%'); updateCartUI(); }
+        else alert('❌ كود الخصم غير صالح');
     }
 
-    // ================================ الطلب والفاتورة ================================
+    // ================================ نافذة الطلب والفاتورة ================================
     function openCheckoutModal() {
-        if (!currentUser) { alert("الرجاء تسجيل الدخول أولاً"); return; }
-        if (cart.length === 0) { alert("السلة فارغة"); return; }
+        if (!currentUser) { alert("🔐 الرجاء تسجيل الدخول أولاً"); return; }
+        if (cart.length === 0) { alert("🛒 السلة فارغة"); return; }
         currentOrderItems = [...cart];
         const subtotal = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
         const discountAmount = subtotal * (couponDiscount / 100);
@@ -303,7 +335,7 @@
         const discountAmount = subtotal * (couponDiscount / 100);
         let shipping = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
         const total = subtotal - discountAmount + shipping;
-        document.getElementById('orderSummary').innerHTML = `<strong>منتجاتك:</strong><br>${cart.map(i => `${i.name} × ${i.quantity} = ${i.price * i.quantity} ريال`).join('<br>')}<hr>المجموع الفرعي: ${subtotal} ريال<br>${couponDiscount > 0 ? `الخصم: -${discountAmount.toFixed(2)} ريال<br>` : ''}رسوم الشحن: ${shipping} ريال<br><strong style="color:#e67e22;">الإجمالي النهائي: ${total.toFixed(2)} ريال</strong>`;
+        document.getElementById('orderSummary').innerHTML = `<strong>منتجاتك:</strong><br>${cart.map(i => `${i.name} × ${i.quantity} = ${i.price * i.quantity} ريال`).join('<br>')}<hr>المجموع الفرعي: ${subtotal} ريال<br>${couponDiscount > 0 ? `الخصم: -${discountAmount.toFixed(2)} ريال<br>` : ''}رسوم الشحن: ${shipping} ريال<br><strong style="color:#e67e22; font-size:1.1rem;">الإجمالي النهائي: ${total.toFixed(2)} ريال</strong>`;
     }
     async function submitOrder() {
         const name = document.getElementById('fullName').value.trim();
@@ -311,7 +343,7 @@
         const phone = document.getElementById('phone').value.trim();
         const address = document.getElementById('address').value.trim();
         const country = document.getElementById('country').value;
-        if (!name || !phone || !address) { alert("الرجاء ملء الحقول المطلوبة"); return; }
+        if (!name || !phone || !address) { alert("الرجاء ملء الحقول المطلوبة (الاسم، الهاتف، العنوان)"); return; }
         const subtotal = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
         const discountAmount = subtotal * (couponDiscount / 100);
         let shipping = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
@@ -321,41 +353,42 @@
         const result = await res.json();
         if (result.success) {
             generateInvoice(result.order);
-            cart = []; couponDiscount = 0; saveCart(); updateCartUI(); closeCheckoutModal(); alert("🎉 تم إرسال الطلب بنجاح"); loadProducts();
-        } else alert("حدث خطأ");
+            cart = []; couponDiscount = 0; saveCart(); updateCartUI(); closeCheckoutModal(); alert("🎉 تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً."); loadProducts();
+        } else alert("حدث خطأ في إرسال الطلب");
     }
     function generateInvoice(order) {
         const win = window.open();
         win.document.write(`
-            <html dir="rtl"><head><title>فاتورة الرعدي أونلاين</title>
-            <style>body{font-family:Arial;padding:30px;max-width:800px;margin:auto;} .header{text-align:center;border-bottom:2px solid #e67e22;padding-bottom:15px;} .logo{color:#e67e22;font-size:1.8rem;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{padding:12px;border-bottom:1px solid #ddd;text-align:right;} .total{font-size:1.3rem;color:#e67e22;} button{background:#e67e22;color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;}</style>
+            <html dir="rtl"><head><title>فاتورة الرعدي أونلاين - ${order.id}</title>
+            <style>body{font-family:'Cairo',Arial;padding:30px;max-width:800px;margin:auto;direction:rtl;} .header{text-align:center;border-bottom:2px solid #e67e22;padding-bottom:15px;margin-bottom:20px;} .logo{color:#e67e22;font-size:2rem;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{padding:12px;border-bottom:1px solid #e2e8f0;text-align:right;} th{background:#f8fafc;} .total{font-size:1.2rem;color:#e67e22;font-weight:bold;} button{background:#e67e22;color:white;padding:10px 20px;border:none;border-radius:8px;cursor:pointer;margin-top:20px;} .footer{margin-top:30px;font-size:0.8rem;color:#64748b;text-align:center;}</style>
             </head><body>
             <div class="header"><div class="logo">🦅 مجموعة متاجر الرعدي أونلاين الفاخرة</div><div>فاتورة شراء معتمدة رقم: RAD-${order.id}</div></div>
             <p><strong>تاريخ الإصدار:</strong> ${order.dateFormatted || new Date().toLocaleDateString('ar-EG')}</p>
-            <p><strong>اسم العميل:</strong> ${order.customer}</p><p><strong>رقم الواتساب:</strong> ${order.phone}</p><p><strong>عنوان التوصيل:</strong> ${order.address}</p>
+            <p><strong>اسم العميل:</strong> ${order.customer}</p><p><strong>رقم الواتساب:</strong> ${order.phone}</p><p><strong>عنوان التوصيل:</strong> ${order.address}</p><p><strong>نوع الشحن:</strong> ${order.country === 'saudi' ? 'شحن داخلي' : 'شحن دولي'}</p>
             <table><thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>
             ${order.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price} ريال</td><td>${i.price * i.quantity} ريال</td></tr>`).join('')}
             </tbody></table>
-            <div class="total">المجموع الفرعي: ${order.subtotal} ريال<br>${order.discount > 0 ? `الخصم (${order.discount}%): -${order.discountAmount.toFixed(2)} ريال<br>` : ''}رسوم الشحن: ${order.shipping} ريال<br>الإجمالي النهائي: ${order.total.toFixed(2)} ريال</div>
-            <div><small>شروط الفاتورة: يتم الاسترجاع خلال 14 يوماً في حالة وجود عيب صناعي.<br>شكراً لتسوقكم مع الرعدي أونلاين</small><br><button onclick="window.print()">🖨️ طباعة وتحميل PDF</button></div>
+            <div class="total">المجموع الفرعي: ${order.subtotal} ريال<br>${order.discount > 0 ? `الخصم (${order.discount}%): -${order.discountAmount.toFixed(2)} ريال<br>` : ''}رسوم الشحن: ${order.shipping} ريال<br><span style="font-size:1.4rem;">الإجمالي النهائي: ${order.total.toFixed(2)} ريال</span></div>
+            <div class="footer"><small>شروط الفاتورة: يتم الاسترجاع خلال 14 يوماً في حالة وجود عيب صناعي.<br>شكراً لتسوقكم مع الرعدي أونلاين</small><br><button onclick="window.print()">🖨️ طباعة الفاتورة وحفظها كـ PDF</button></div>
             </body></html>
         `);
     }
     function closeCheckoutModal() { document.getElementById('checkoutModal').style.display = 'none'; }
 
-    // ================================ الدردشة ================================
+    // ================================ الدردشة الحية ================================
     async function loadMessages() {
         if (!currentUser) return;
         const res = await fetch('/api/messages');
         const msgs = await res.json();
         const container = document.getElementById('chatMessages');
-        container.innerHTML = msgs.map(m => `<div class="chat-message ${m.isAdmin ? 'admin' : 'user'}"><strong>${m.sender}:</strong> ${m.text}<br><span style="font-size:0.7rem;">${m.timestamp}</span></div>`).join('');
+        container.innerHTML = msgs.map(m => `<div class="chat-message ${m.isAdmin ? 'admin' : 'user'}"><strong>${m.sender}:</strong> ${m.text}<br><span style="font-size:0.7rem; opacity:0.7;">${m.timestamp}</span></div>`).join('');
+        container.scrollTop = container.scrollHeight;
     }
     async function sendChatMessage() {
         const input = document.getElementById('chatInput');
         const text = input.value.trim();
         if (!text || !currentUser) return;
-        await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+        await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, isAdmin: false }) });
         input.value = ''; loadMessages();
     }
     function toggleChat() { const win = document.getElementById('chatWindow'); win.classList.toggle('open'); if (win.classList.contains('open')) loadMessages(); }
@@ -372,7 +405,7 @@
             document.getElementById('authModal').style.display = 'none';
             if (currentUser.role === 'admin') document.getElementById('adminBtn').style.display = 'flex';
             loadProducts();
-        } else alert(data.error);
+        } else alert(data.error || 'بيانات الدخول غير صحيحة');
     }
     async function register() {
         const name = document.getElementById('regName').value;
@@ -382,7 +415,7 @@
         const address = document.getElementById('regAddress').value;
         const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password, phone, address }) });
         const data = await res.json();
-        if (data.success) { alert('تم التسجيل بنجاح، سجل الدخول الآن'); showLogin(); }
+        if (data.success) { alert('✅ تم التسجيل بنجاح! سجل الدخول الآن'); showLogin(); }
         else alert(data.error);
     }
     function showRegister() { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; }
@@ -404,4 +437,4 @@
     init();
 </script>
 </body>
-</html>
+    </html>

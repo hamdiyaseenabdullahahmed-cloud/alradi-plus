@@ -3,334 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المدير - الرعدي أونلاين | القيادة العليا</title>
+    <title>لوحة تحكم المدير - الرعدي أونلاين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', 'Tajawal', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Tajawal', sans-serif; }
+        body { background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%); color: #0f172a; }
 
-        body {
-            background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
-            color: #0f172a;
-        }
+        .header { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #e67e22, #fbbf24); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .header-buttons button { background: #e67e22; border: none; padding: 10px 22px; border-radius: 40px; color: white; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .header-buttons button:hover { background: #d35400; }
 
-        /* الهيدر */
-        .header {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-size: 1.6rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e67e22, #fbbf24);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .header-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        .header-buttons button {
-            background: #e67e22;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .header-buttons button:hover {
-            background: #d35400;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(230,126,34,0.3);
-        }
+        .dashboard-container { display: flex; gap: 25px; padding: 30px; max-width: 1600px; margin: 0 auto; }
+        .sidebar { width: 300px; background: white; border-radius: 28px; padding: 25px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; border: 1px solid #e2e8f0; }
+        .menu-item { padding: 14px 18px; margin: 8px 0; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: 0.3s; font-weight: 600; }
+        .menu-item i { width: 28px; font-size: 1.2rem; color: #e67e22; }
+        .menu-item.active, .menu-item:hover { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #e67e22; transform: translateX(-5px); }
 
-        /* الحاوية الرئيسية */
-        .dashboard-container {
-            display: flex;
-            gap: 25px;
-            padding: 30px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+        .main-content { flex: 1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 35px; }
+        .stat-card { background: white; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-card h3 { font-size: 0.85rem; color: #64748b; margin-bottom: 12px; }
+        .stat-card .value { font-size: 2rem; font-weight: 800; color: #e67e22; }
 
-        /* الشريط الجانبي */
-        .sidebar {
-            width: 300px;
-            background: white;
-            border-radius: 28px;
-            padding: 25px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-            height: fit-content;
-            position: sticky;
-            top: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .menu-item {
-            padding: 14px 18px;
-            margin: 8px 0;
-            border-radius: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        .menu-item i {
-            width: 28px;
-            font-size: 1.2rem;
-            color: #e67e22;
-        }
-        .menu-item.active, .menu-item:hover {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            color: #e67e22;
-            transform: translateX(-5px);
-        }
+        .section { background: white; border-radius: 28px; padding: 28px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
+        .section-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 25px; border-right: 4px solid #e67e22; padding-right: 18px; }
 
-        /* المحتوى الرئيسي */
-        .main-content {
-            flex: 1;
-        }
+        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 16px; margin: 10px 0; font-size: 0.95rem; }
+        button { background: #e67e22; color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 5px; }
+        button:hover { background: #d35400; }
+        .delete-btn { background: #ef4444; }
+        .delete-btn:hover { background: #dc2626; }
 
-        /* بطاقات الإحصائيات */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 25px;
-            margin-bottom: 35px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            border: 1px solid #e2e8f0;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
-        }
-        .stat-card h3 {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
-        }
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #e67e22;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 700; }
+        .status-badge { padding: 5px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; color: white; display: inline-block; }
+        .status-processing { background: #f59e0b; }
+        .status-shipped { background: #3b82f6; }
+        .status-delivered { background: #10b981; }
 
-        /* الأقسام العامة */
-        .section {
-            background: white;
-            border-radius: 28px;
-            padding: 28px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-            border: 1px solid #e2e8f0;
-        }
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 800;
-            margin-bottom: 25px;
-            border-right: 4px solid #e67e22;
-            padding-right: 18px;
-        }
+        .chat-area { background: #f8fafc; border-radius: 24px; padding: 20px; max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; }
+        .chat-message { background: white; padding: 15px; border-radius: 18px; margin-bottom: 15px; border-right: 3px solid #e67e22; }
 
-        /* النماذج */
-        input, select, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 16px;
-            margin: 10px 0;
-            font-size: 0.95rem;
-            transition: 0.2s;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #e67e22;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
-        }
-        button {
-            background: #e67e22;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 5px;
-        }
-        button:hover {
-            background: #d35400;
-            transform: translateY(-2px);
-        }
-        .delete-btn {
-            background: #ef4444;
-        }
-        .delete-btn:hover {
-            background: #dc2626;
-        }
-
-        /* الجداول */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            padding: 15px;
-            text-align: right;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background: #f8fafc;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        .status-badge {
-            padding: 5px 14px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: inline-block;
-        }
-        .status-processing {
-            background: #f59e0b;
-            color: white;
-        }
-        .status-shipped {
-            background: #3b82f6;
-            color: white;
-        }
-        .status-delivered {
-            background: #10b981;
-            color: white;
-        }
-
-        /* الدردشة */
-        .chat-area {
-            background: #f8fafc;
-            border-radius: 24px;
-            padding: 20px;
-            max-height: 450px;
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
-        }
-        .chat-message {
-            background: white;
-            padding: 15px;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-right: 3px solid #e67e22;
-        }
-        .chat-message strong {
-            color: #e67e22;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                position: static;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+        @media (max-width: 768px) { .dashboard-container { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function checkAdminAuth() {
+            try {
+                const res = await fetch('/api/me');
+                if (!res.ok) { alert("🔐 غير مصرح لك بدخول لوحة التحكم."); window.location.href = '/'; return; }
+                const user = await res.json();
+                if (user.role !== 'admin') { alert("⛔ هذه الصفحة مخصصة للإدارة فقط."); window.location.href = '/'; }
+            } catch { window.location.href = '/'; }
+        }
+        checkAdminAuth();
+    </script>
 </head>
 <body>
 <div class="header">
-    <div class="logo">🦅 الرعدي أونلاين | مركز القيادة المتكامل</div>
+    <div class="logo">🦅 الرعدي أونلاين | لوحة القيادة</div>
     <div class="header-buttons">
-        <button onclick="location.href='/'"><i class="fas fa-store"></i> العودة للمتجر</button>
-        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+        <button onclick="location.href='/'"><i class="fas fa-store"></i> المتجر</button>
+        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
 </div>
 
 <div class="dashboard-container">
     <div class="sidebar">
-        <div class="menu-item active" data-tab="stats"><i class="fas fa-chart-line"></i> الإحصائيات الرئيسية</div>
-        <div class="menu-item" data-tab="products"><i class="fas fa-boxes"></i> إدارة المنتجات</div>
+        <div class="menu-item active" data-tab="stats"><i class="fas fa-chart-line"></i> الإحصائيات ورسوم النمو</div>
+        <div class="menu-item" data-tab="products"><i class="fas fa-boxes"></i> المنتجات والمخزن</div>
         <div class="menu-item" data-tab="categories"><i class="fas fa-tags"></i> إدارة الأقسام</div>
-        <div class="menu-item" data-tab="orders"><i class="fas fa-truck"></i> الطلبات والفواتير</div>
+        <div class="menu-item" data-tab="orders"><i class="fas fa-truck"></i> الفواتير والمبيعات</div>
         <div class="menu-item" data-tab="users"><i class="fas fa-users"></i> العملاء والمشتركين</div>
-        <div class="menu-item" data-tab="coupons"><i class="fas fa-ticket-alt"></i> الخصومات والكوبونات</div>
-        <div class="menu-item" data-tab="settings"><i class="fas fa-sliders-h"></i> إعدادات المتجر</div>
-        <div class="menu-item" data-tab="chat"><i class="fas fa-comments"></i> مركز المحادثات الحية</div>
+        <div class="menu-item" data-tab="coupons"><i class="fas fa-ticket-alt"></i> الكوبونات الخصم</div>
+        <div class="menu-item" data-tab="settings"><i class="fas fa-sliders-h"></i> إعدادات الشحن</div>
+        <div class="menu-item" data-tab="chat"><i class="fas fa-comments"></i> المحادثات والدردشة</div>
     </div>
     <div class="main-content">
         <!-- Stats Tab -->
         <div id="stats-tab" class="tab-content">
             <div class="stats-grid">
-                <div class="stat-card"><h3>👥 إجمالي المشتركين</h3><div class="value" id="totalUsers">0</div></div>
-                <div class="stat-card"><h3>📦 إجمالي المنتجات</h3><div class="value" id="totalProducts">0</div></div>
-                <div class="stat-card"><h3>📋 إجمالي الطلبات</h3><div class="value" id="totalOrders">0</div></div>
-                <div class="stat-card"><h3>💰 إجمالي الأرباح</h3><div class="value" id="totalProfit">0 SR</div></div>
-                <div class="stat-card"><h3>📅 أرباح اليوم</h3><div class="value" id="todayProfit">0 SR</div></div>
-                <div class="stat-card"><h3>⚠️ منتجات منخفضة</h3><div class="value" id="lowStock">0</div></div>
+                <div class="stat-card"><h3>👥 العملاء</h3><div class="value" id="totalUsers">0</div></div>
+                <div class="stat-card"><h3>📦 المنتجات</h3><div class="value" id="totalProducts">0</div></div>
+                <div class="stat-card"><h3>📋 الطلبات</h3><div class="value" id="totalOrders">0</div></div>
+                <div class="stat-card"><h3>💰 الأرباح</h3><div class="value" id="totalProfit">0 SR</div></div>
+                <div class="stat-card"><h3>📅 اليوم</h3><div class="value" id="todayProfit">0 SR</div></div>
+                <div class="stat-card"><h3>⚠️ نقص بالمخزون</h3><div class="value" id="lowStock">0</div></div>
             </div>
             <div class="section">
-                <div class="section-title">🏷️ فئات الخصومات والمساقات المالية</div>
-                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="stat-card"><h3>الخصم الأول</h3><div class="value">29%</div></div>
-                    <div class="stat-card"><h3>الخصم الثاني</h3><div class="value">15%</div></div>
-                    <div class="stat-card"><h3>الخصم الثالث</h3><div class="value">5%</div></div>
-                </div>
+                <div class="section-title">📊 مؤشر الأداء المالي والمبيعات اليومي</div>
+                <canvas id="salesChart" style="max-height:280px; width:100%;"></canvas>
             </div>
         </div>
 
         <!-- Products Tab -->
         <div id="products-tab" class="tab-content" style="display: none;">
             <div class="section">
-                <div class="section-title">✨ نشر منتج جديد بالمخزون</div>
-                <select id="productCat">
-                    <option>هواتف</option>
-                    <option>عطور</option>
-                    <option>إكسسوارات</option>
-                    <option>إلكترونيات</option>
-                </select>
-                <input type="text" id="productName" placeholder="اسم المنتج الكامل">
-                <input type="number" id="productPrice" placeholder="السعر (SR)">
-                <input type="number" id="productOldPrice" placeholder="السعر القديم (SR)">
-                <input type="number" id="productDiscount" placeholder="الخصم (%)">
-                <input type="text" id="productColor" placeholder="اللون المتوفر">
-                <textarea id="productFeatures" rows="2" placeholder="المواصفات"></textarea>
+                <div class="section-title">✨ إضافة منتج جديد</div>
+                <select id="productCat"></select>
+                <input type="text" id="productName" placeholder="اسم المنتج">
+                <input type="number" id="productPrice" placeholder="السعر">
+                <input type="number" id="productOldPrice" placeholder="السعر القديم">
+                <input type="number" id="productDiscount" placeholder="الخصم %">
+                <input type="text" id="productColor" placeholder="اللون">
+                <textarea id="productFeatures" placeholder="المواصفات"></textarea>
                 <input type="text" id="productImage" placeholder="رابط الصورة">
-                <input type="number" id="productStock" placeholder="الكمية المتاحة">
-                <button onclick="addProduct()"><i class="fas fa-plus-circle"></i> طرح المنتج في السوق فوراً</button>
+                <input type="number" id="productStock" placeholder="الكمية">
+                <button onclick="addProduct()">إضافة للمتجر</button>
             </div>
             <div class="section">
-                <div class="section-title">مستودع المخزون العام</div>
+                <div class="section-title">مستودع المنتجات</div>
                 <div style="overflow-x: auto;">
                     <table id="productsTable">
-                        <thead>
-                            <tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون</th><th>الإجراءات</th></tr>
-                        </thead>
+                        <thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون</th><th>الإجراءات</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -342,412 +129,209 @@
             <div class="section">
                 <div class="section-title">🏷️ إضافة قسم جديد</div>
                 <input type="text" id="newCategory" placeholder="اسم القسم الجديد">
-                <button onclick="addCategory()">إضافة القسم</button>
+                <button onclick="addCategory()">حفظ القسم</button>
             </div>
-            <div class="section">
-                <div class="section-title">الأقسام الموجودة</div>
-                <div id="categoriesList"></div>
-            </div>
+            <div class="section"><div class="section-title">الأقسام الحالية</div><div id="categoriesList"></div></div>
         </div>
 
         <!-- Orders Tab -->
         <div id="orders-tab" class="tab-content" style="display: none;">
-            <div class="section">
-                <div class="section-title">📋 فواتير المبيعات الواردة والأرشيف</div>
-                <div id="ordersList"></div>
-            </div>
+            <div class="section"><div class="section-title">📋 طلبات المبيعات الواردة</div><div id="ordersList"></div></div>
         </div>
 
         <!-- Users Tab -->
         <div id="users-tab" class="tab-content" style="display: none;">
-            <div class="section">
-                <div class="section-title">👥 العملاء المسجلون</div>
-                <div id="usersList"></div>
-            </div>
+            <div class="section"><div class="section-title">👤 العملاء والمسجلين</div><div id="usersList"></div></div>
         </div>
 
         <!-- Coupons Tab -->
         <div id="coupons-tab" class="tab-content" style="display: none;">
             <div class="section">
-                <div class="section-title">🎟️ إدارة كوبونات الخصم</div>
-                <input type="text" id="couponCode" placeholder="كود الخصم الجديد">
-                <input type="number" id="couponValue" placeholder="قيمة الخصم (%)">
-                <button onclick="addCoupon()">إضافة كوبون</button>
+                <div class="section-title">🎟️ إضافة كوبون خصم جديد</div>
+                <input type="text" id="couponCode" placeholder="الرمز">
+                <input type="number" id="couponValue" placeholder="النسبة %">
+                <button onclick="addCoupon()">حفظ الكوبون</button>
             </div>
-            <div class="section">
-                <div class="section-title">الكوبونات المتاحة</div>
-                <div id="couponsList"></div>
-            </div>
+            <div class="section"><div class="section-title">الكوبونات الحالية</div><div id="couponsList"></div></div>
         </div>
 
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content" style="display: none;">
             <div class="section">
-                <div class="section-title">⚙️ إعدادات الشحن والسياسات</div>
-                <label>رسوم الشحن الداخلي (ريال)</label>
-                <input type="number" id="domesticShipping" placeholder="رسوم الشحن داخل المملكة">
-                <label>رسوم الشحن الدولي (ريال)</label>
-                <input type="number" id="internationalShipping" placeholder="رسوم الشحن خارج المملكة">
-                <label>سياسة الإرجاع والاستبدال</label>
-                <textarea id="returnPolicy" rows="3"></textarea>
-                <button onclick="saveSettings()">💾 حفظ الإعدادات</button>
+                <div class="section-title">⚙️ الشحن والسياسات العامة</div>
+                <label>الشحن الداخلي (ريال):</label><input type="number" id="domesticShipping">
+                <label>الشحن الدولي (ريال):</label><input type="number" id="internationalShipping">
+                <label>سياسة المتجر والارجاع:</label><textarea id="returnPolicy"></textarea>
+                <button onclick="saveSettings()">💾 حفظ التعديلات</button>
             </div>
         </div>
 
         <!-- Chat Tab -->
         <div id="chat-tab" class="tab-content" style="display: none;">
             <div class="section">
-                <div class="section-title">💬 مركز إدارة المحادثات الحية</div>
-                <div id="chatMessagesAdmin" class="chat-area">لا توجد رسائل جديدة من العملاء حالياً.</div>
-                <textarea id="replyMsg" rows="3" placeholder="اكتب ردك هنا..."></textarea>
-                <button onclick="sendAdminReply()"><i class="fas fa-paper-plane"></i> إرسال الرد للعميل</button>
+                <div class="section-title">💬 محادثات ودردشة العملاء</div>
+                <div id="chatMessagesAdmin" class="chat-area">لا توجد رسائل جديدة</div>
+                <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
+                <button onclick="sendAdminReply()">إرسال الرد</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ================================ المتغيرات العامة ================================
-    let products = [], categories = [], orders = [], users = [], coupons = [], messages = [];
+    let products = [], categories = [], orders = [], users = [], coupons = [], messages = [], salesChartInstance = null;
 
-    // ================================ تحميل البيانات من الخادم ================================
     async function loadAll() {
         try {
-            const [prodRes, ordRes, userRes, msgRes] = await Promise.all([
-                fetch('/api/products'),
-                fetch('/api/orders'),
-                fetch('/api/users'),
-                fetch('/api/messages')
+            const [pRes, oRes, uRes, mRes, cRes, cpRes, sRes] = await Promise.all([
+                fetch('/api/products'), fetch('/api/orders'), fetch('/api/users'), fetch('/api/messages'), fetch('/api/categories'), fetch('/api/coupons'), fetch('/api/stats')
             ]);
-            products = await prodRes.json();
-            orders = await ordRes.json();
-            users = await userRes.json();
-            messages = await msgRes.json();
-            categories = [...new Set(products.map(p => p.category))];
-            const couponsRes = await fetch('/api/coupons');
-            coupons = await couponsRes.json();
-            renderStats();
-            renderProductsTable();
-            renderCategoriesList();
-            renderOrdersList();
-            renderUsersList();
-            renderCouponsList();
-            renderChatMessages();
-        } catch (e) {
-            console.error("خطأ في تحميل البيانات:", e);
-        }
+            products = await pRes.json(); orders = await oRes.json(); users = await uRes.json(); messages = await mRes.json(); categories = await cRes.json(); coupons = await cpRes.json();
+            renderStats(await sRes.json());
+            renderProductsTable(); renderCategoriesList(); renderOrdersList(); renderUsersList(); renderCouponsList(); renderChatMessages(); renderSalesChart();
+        } catch (e) { console.error("خطأ بتحميل البيانات الإدارية:", e); }
     }
 
-    function renderStats() {
-        const totalUsers = users.filter(u => u.role !== 'admin').length;
-        const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
-        const today = new Date().toDateString();
-        const todayRevenue = orders.filter(o => new Date(o.date).toDateString() === today).reduce((s, o) => s + o.total, 0);
-        document.getElementById('totalUsers').innerText = totalUsers;
-        document.getElementById('totalProducts').innerText = products.length;
-        document.getElementById('totalOrders').innerText = totalOrders;
-        document.getElementById('totalProfit').innerText = totalRevenue + ' SR';
-        document.getElementById('todayProfit').innerText = todayRevenue + ' SR';
-        document.getElementById('lowStock').innerText = products.filter(p => p.stock < 5).length;
+    function renderStats(s) {
+        document.getElementById('totalUsers').innerText = s.totalUsers || 0;
+        document.getElementById('totalProducts').innerText = s.totalProducts || 0;
+        document.getElementById('totalOrders').innerText = s.totalOrders || 0;
+        document.getElementById('totalProfit').innerText = (s.totalRevenue || 0) + ' SR';
+        document.getElementById('todayProfit').innerText = (s.todayRevenue || 0) + ' SR';
+        document.getElementById('lowStock').innerText = s.lowStock || 0;
     }
 
-    // ================================ إدارة المنتجات ================================
-    async function addProduct() {
-        const newProd = {
-            name: document.getElementById('productName').value,
-            category: document.getElementById('productCat').value,
-            price: parseFloat(document.getElementById('productPrice').value),
-            oldPrice: parseFloat(document.getElementById('productOldPrice').value) || 0,
-            discount: parseFloat(document.getElementById('productDiscount').value) || 0,
-            color: document.getElementById('productColor').value,
-            features: document.getElementById('productFeatures').value,
-            image: document.getElementById('productImage').value || 'https://picsum.photos/id/20/300/300',
-            stock: parseInt(document.getElementById('productStock').value) || 0
-        };
-        if (!newProd.name || !newProd.price) {
-            alert("الاسم والسعر مطلوبان");
-            return;
-        }
-        const res = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newProd)
+    function renderSalesChart() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const map = {};
+        orders.slice().reverse().forEach(o => { const d = o.dateFormatted || new Date(o.date).toLocaleDateString('ar-EG'); map[d] = (map[d] || 0) + o.total; });
+        const labels = Object.keys(map).slice(-7), data = labels.map(l => map[l]);
+        if (salesChartInstance) salesChartInstance.destroy();
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [{ label: 'حجم المبيعات اليومي (ريال)', data, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.1)', borderWidth: 3, tension: 0.3, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
-        if (res.ok) {
-            alert("✅ تم إضافة المنتج بنجاح");
-            loadAll();
-            clearProductForm();
-        } else {
-            alert("خطأ في الإضافة");
-        }
     }
 
-    function clearProductForm() {
-        ['productName', 'productPrice', 'productOldPrice', 'productDiscount', 'productColor', 'productFeatures', 'productImage', 'productStock'].forEach(id => document.getElementById(id).value = '');
+    async function addProduct() {
+        const p = { name: document.getElementById('productName').value, category: document.getElementById('productCat').value, price: parseFloat(document.getElementById('productPrice').value), oldPrice: parseFloat(document.getElementById('productOldPrice').value)||0, discount: parseInt(document.getElementById('productDiscount').value)||0, color: document.getElementById('productColor').value, features: document.getElementById('productFeatures').value, image: document.getElementById('productImage').value, stock: parseInt(document.getElementById('productStock').value)||0 };
+        if(!p.name || !p.price || !p.category) { alert("الحقول الأساسية مطلوبة"); return; }
+        const res = await fetch('/api/products', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
+        if(res.ok) { alert("✅ تم الإضافة"); loadAll(); clearForm(); }
     }
-
-    async function deleteProduct(id) {
-        if (confirm("هل أنت متأكد من حذف هذا المنتج نهائياً؟")) {
-            await fetch(`/api/products/${id}`, { method: 'DELETE' });
-            loadAll();
-        }
-    }
+    function clearForm() { ['productName', 'productPrice', 'productOldPrice', 'productDiscount', 'productColor', 'productFeatures', 'productImage', 'productStock'].forEach(id => document.getElementById(id).value=''); }
+    async function deleteProduct(id) { if(confirm("حذف المنتج؟")) { await fetch(`/api/products/${id}`, { method:'DELETE' }); loadAll(); } }
 
     function renderProductsTable() {
-        const tbody = document.querySelector('#productsTable tbody');
-        tbody.innerHTML = products.map(p => `
+        document.querySelector('#productsTable tbody').innerHTML = products.map(p => `
             <tr>
-                <td><img src="${p.image}" width="55" height="55" style="border-radius: 12px; object-fit: cover;"></td>
+                <td><img src="${p.image}" width="55" height="55" style="border-radius:12px; object-fit:cover;"></td>
                 <td><strong>${p.name}</strong></td>
                 <td>${p.category}</td>
-                <td>${p.price} ريال</td>
+                <td>${p.price} SR</td>
                 <td>${p.discount}%</td>
                 <td>${p.stock}</td>
-                <td><button class="delete-btn" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> حذف</button></td>
+                <td><button class="delete-btn" onclick="deleteProduct(${p.id})">حذف</button></td>
             </tr>
         `).join('');
     }
 
-    // ================================ إدارة الأقسام ================================
-    function addCategory() {
-        const newCat = document.getElementById('newCategory').value.trim();
-        if (!newCat) return alert("أدخل اسم القسم");
-        categories.push(newCat);
-        localStorage.setItem('raadi_categories', JSON.stringify(categories));
-        renderCategoriesList();
-        document.getElementById('newCategory').value = '';
-        alert("✅ تم إضافة القسم");
+    async function addCategory() {
+        const name = document.getElementById('newCategory').value.trim();
+        if(!name) return;
+        const res = await fetch('/api/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name}) });
+        if(res.ok) { alert("تم حفظ القسم"); document.getElementById('newCategory').value=''; loadAll(); }
     }
-
     function renderCategoriesList() {
-        const container = document.getElementById('categoriesList');
-        container.innerHTML = categories.map(cat => `
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 14px; border-radius: 16px; margin-bottom: 10px;">
-                <span><i class="fas fa-folder-open"></i> ${cat}</span>
-                <button class="delete-btn" onclick="deleteCategory('${cat}')">حذف</button>
+        document.getElementById('categoriesList').innerHTML = categories.map(cat => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:8px;">
+                <span>📂 ${cat}</span><button class="delete-btn" onclick="deleteCategory('${cat}')">حذف</button>
             </div>
         `).join('');
+        const sel = document.getElementById('productCat');
+        if(sel) sel.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
+    async function deleteCategory(cat) { if(confirm("حذف القسم سيمسح جميع منتجاته، تأكيد؟")) { await fetch(`/api/categories/${encodeURIComponent(cat)}`, { method:'DELETE' }); loadAll(); } }
 
-    function deleteCategory(cat) {
-        if (confirm(`حذف القسم "${cat}" سيؤدي إلى حذف جميع منتجاته. هل أنت متأكد؟`)) {
-            categories = categories.filter(c => c !== cat);
-            localStorage.setItem('raadi_categories', JSON.stringify(categories));
-            loadAll();
-        }
-    }
-
-    // ================================ الطلبات ================================
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
-        if (orders.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px;">📭 لا توجد طلبات بعد</div>';
-            return;
-        }
+        if(orders.length===0) { container.innerHTML = '<div style="text-align:center;">لا توجد طلبات</div>'; return; }
         container.innerHTML = orders.map(o => `
-            <div class="section" style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                    <div>
-                        <strong>🧾 فاتورة #${o.id}</strong><br>
-                        👤 ${o.customer}<br>
-                        📞 ${o.phone}<br>
-                        📍 ${o.address}
-                    </div>
-                    <div>
-                        <strong>💰 الإجمالي:</strong> ${o.total} ريال<br>
-                        <strong>📅 التاريخ:</strong> ${o.dateFormatted || new Date(o.date).toLocaleDateString('ar-EG')}<br>
-                        <span class="status-badge status-${o.status === 'قيد المعالجة' ? 'processing' : (o.status === 'تم الشحن' ? 'shipped' : 'delivered')}">${o.status}</span>
-                    </div>
-                </div>
-                <div style="margin-top: 20px;">
-                    <select id="status-${o.id}" onchange="updateOrderStatus(${o.id}, this.value)" style="width: auto; display: inline-block; margin-left: 10px;">
-                        <option value="قيد المعالجة" ${o.status === 'قيد المعالجة' ? 'selected' : ''}>قيد المعالجة</option>
-                        <option value="تم الشحن" ${o.status === 'تم الشحن' ? 'selected' : ''}>تم الشحن</option>
-                        <option value="تم التوصيل" ${o.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل</option>
+            <div class="section">
+                <div><strong>🧾 فاتورة #${o.id}</strong> | العميل: ${o.customer} | الهواتف: ${o.phone} | العنوان: ${o.address}</div>
+                <div>الإجمالي: ${o.total} ريال | الحالة: <span class="status-badge status-${o.status==='قيد المعالجة'?'processing':(o.status==='تم الشحن'?'shipped':'delivered')}">${o.status}</span></div>
+                <div style="margin-top:15px;">
+                    <select onchange="updateStatus(${o.id}, this.value)">
+                        <option value="قيد المعالجة" ${o.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option>
+                        <option value="تم الشحن" ${o.status==='تم الشحن'?'selected':''}>تم الشحن</option>
+                        <option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option>
                     </select>
-                    <button onclick="viewOrder(${o.id})"><i class="fas fa-print"></i> عرض الفاتورة</button>
                 </div>
             </div>
         `).join('');
     }
+    async function updateStatus(id, status) { await fetch(`/api/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); loadAll(); }
 
-    async function updateOrderStatus(id, status) {
-        await fetch(`/api/orders/${id}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        loadAll();
-    }
-
-    function viewOrder(id) {
-        const order = orders.find(o => o.id === id);
-        if (order) generateInvoice(order);
-    }
-
-    function generateInvoice(order) {
-        const win = window.open();
-        win.document.write(`
-            <html dir="rtl">
-            <head><title>فاتورة الرعدي - ${order.id}</title>
-            <style>
-                body{font-family:'Cairo';padding:30px;max-width:800px;margin:auto;direction:rtl;}
-                .header{text-align:center;border-bottom:2px solid #e67e22;padding-bottom:15px;}
-                .logo{color:#e67e22;font-size:1.8rem;}
-                table{width:100%;border-collapse:collapse;margin:20px 0;}
-                th,td{padding:12px;border-bottom:1px solid #e2e8f0;}
-                .total{font-size:1.2rem;color:#e67e22;}
-            </style>
-            </head>
-            <body>
-                <div class="header"><div class="logo">🦅 الرعدي أونلاين</div><p>فاتورة رقم: RAD-${order.id}</p></div>
-                <p><strong>العميل:</strong> ${order.customer}</p>
-                <p><strong>الهاتف:</strong> ${order.phone}</p>
-                <p><strong>العنوان:</strong> ${order.address}</p>
-                <table>
-                    <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
-                    <tbody>
-                        ${order.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price} ريال</td><td>${i.price * i.quantity} ريال</td></tr>`).join('')}
-                    </tbody>
-                </table>
-                <div class="total">المجموع: ${order.total} ريال</div>
-                <button onclick="window.print()" style="margin-top:20px;">🖨️ طباعة</button>
-            </body>
-            </html>
-        `);
-    }
-
-    // ================================ العملاء ================================
     function renderUsersList() {
-        const container = document.getElementById('usersList');
-        const regularUsers = users.filter(u => u.role !== 'admin');
-        if (regularUsers.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px;">👤 لا يوجد عملاء مسجلون بعد</div>';
-            return;
-        }
-        container.innerHTML = regularUsers.map(u => `
-            <div style="background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 12px;">
-                <strong>${u.name}</strong> (${u.email})<br>
-                📞 ${u.phone || 'لا يوجد'} | 📍 ${u.address || 'لا يوجد'}
-            </div>
-        `).join('');
+        document.getElementById('usersList').innerHTML = users.map(u => `<div style="background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:8px;"><strong>${u.name}</strong> (${u.email}) | هاتف: ${u.phone || 'غير مسجل'}</div>`).join('');
     }
 
-    // ================================ الكوبونات ================================
     async function addCoupon() {
-        const code = document.getElementById('couponCode').value.trim().toUpperCase();
-        const value = parseInt(document.getElementById('couponValue').value);
-        if (!code || isNaN(value)) {
-            alert("أدخل رمزاً ونسبة صحيحة");
-            return;
-        }
-        const res = await fetch('/api/coupons', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, value })
-        });
-        if (res.ok) {
-            alert("✅ تم إضافة كوبون الخصم");
-            loadAll();
-            document.getElementById('couponCode').value = '';
-            document.getElementById('couponValue').value = '';
-        } else {
-            alert("الكود موجود مسبقاً");
-        }
+        const code = document.getElementById('couponCode').value.trim().toUpperCase(), value = parseInt(document.getElementById('couponValue').value);
+        if(!code || isNaN(value)) return;
+        const res = await fetch('/api/coupons', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, value}) });
+        if(res.ok) { alert("تم الحفظ"); document.getElementById('couponCode').value=''; document.getElementById('couponValue').value=''; loadAll(); }
     }
-
-    async function deleteCoupon(code) {
-        if (confirm(`حذف الكوبون ${code}؟`)) {
-            await fetch(`/api/coupons/${code}`, { method: 'DELETE' });
-            loadAll();
-        }
-    }
-
     function renderCouponsList() {
-        const container = document.getElementById('couponsList');
-        container.innerHTML = coupons.map(c => `
-            <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 14px; border-radius: 16px; margin-bottom: 10px;">
-                <span>🎟️ <strong>${c.code}</strong> - خصم ${c.value}%</span>
-                <button class="delete-btn" onclick="deleteCoupon('${c.code}')">حذف</button>
+        document.getElementById('couponsList').innerHTML = coupons.map(c => `
+            <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:8px;">
+                <span>🎟️ <strong>${c.code}</strong> - خصم ${c.value}%</span><button class="delete-btn" onclick="deleteCoupon('${c.code}')">حذف</button>
             </div>
         `).join('');
     }
+    async function deleteCoupon(code) { if(confirm("حذف الكوبون؟")) { await fetch(`/api/coupons/${code}`, { method:'DELETE' }); loadAll(); } }
 
-    // ================================ إعدادات المتجر ================================
     async function loadSettings() {
-        const res = await fetch('/api/settings');
-        const s = await res.json();
+        const s = await (await fetch('/api/settings')).json();
         document.getElementById('domesticShipping').value = s.domesticShipping || 15;
         document.getElementById('internationalShipping').value = s.internationalShipping || 50;
-        document.getElementById('returnPolicy').value = s.returnPolicy || "يمكن استرجاع المنتج خلال 14 يوماً في حالة وجود عيب صناعي.";
+        document.getElementById('returnPolicy').value = s.returnPolicy || "";
     }
-
     async function saveSettings() {
-        const payload = {
-            domesticShipping: parseFloat(document.getElementById('domesticShipping').value),
-            internationalShipping: parseFloat(document.getElementById('internationalShipping').value),
-            returnPolicy: document.getElementById('returnPolicy').value
-        };
-        await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        alert("✅ تم حفظ الإعدادات بنجاح");
+        const s = { domesticShipping: parseFloat(document.getElementById('domesticShipping').value), internationalShipping: parseFloat(document.getElementById('internationalShipping').value), returnPolicy: document.getElementById('returnPolicy').value };
+        await fetch('/api/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s) });
+        alert("✅ تم حفظ الإعدادات");
     }
 
-    // ================================ الدردشة ================================
     function renderChatMessages() {
         const container = document.getElementById('chatMessagesAdmin');
-        if (messages.length === 0) {
-            container.innerHTML = '<div class="chat-message">💬 لا توجد رسائل جديدة من العملاء حالياً.</div>';
-            return;
-        }
-        container.innerHTML = messages.map(m => `
-            <div class="chat-message">
-                <strong><i class="fas fa-user"></i> ${m.sender}:</strong> ${m.text}<br>
-                <small>${m.timestamp}</small>
-            </div>
-        `).join('');
+        if (messages.length === 0) { container.innerHTML = '<div style="text-align:center;">لا توجد رسائل</div>'; return; }
+        container.innerHTML = messages.map(m => `<div class="chat-message"><strong>${m.sender}:</strong> ${m.text}<br><small>${m.timestamp}</small></div>`).join('');
+        container.scrollTop = container.scrollHeight;
     }
-
     async function sendAdminReply() {
-        const reply = document.getElementById('replyMsg').value.trim();
-        if (!reply) return;
-        await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: reply, isAdmin: true })
-        });
-        document.getElementById('replyMsg').value = '';
-        loadAll();
-        alert("✅ تم إرسال الرد للعميل");
+        const inp = document.getElementById('replyMsg');
+        const text = inp.value.trim();
+        if(!text) return;
+        await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, isAdmin:true}) });
+        inp.value = ''; loadAll(); alert("تم الإرسال");
     }
 
-    // ================================ تسجيل الخروج ================================
-    async function logout() {
-        await fetch('/api/logout', { method: 'POST' });
-        localStorage.removeItem('raadi_user');
-        window.location.href = '/';
-    }
+    async function logout() { await fetch('/api/logout', { method:'POST' }); window.location.href='/'; }
 
-    // ================================ التبويبات ================================
     document.querySelectorAll('.menu-item').forEach(item => {
         item.addEventListener('click', () => {
-            const tab = item.dataset.tab;
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById(`${tab}-tab`).style.display = 'block';
+            document.getElementById(`${item.dataset.tab}-tab`).style.display = 'block';
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             item.classList.add('active');
-            if (tab === 'settings') loadSettings();
-            if (tab === 'chat') renderChatMessages();
+            if (item.dataset.tab === 'settings') loadSettings();
         });
     });
 
-    // ================================ بدء التشغيل ================================
     loadAll();
     loadSettings();
 </script>
 </body>
-    </html>
+</html>

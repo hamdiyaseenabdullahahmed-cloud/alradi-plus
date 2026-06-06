@@ -1,11 +1,18 @@
 {
-  "name": "raadi-store",
-  "version": "4.5.0",
-  "description": "متجر الرعدي أونلاين الفاخر - النسخة السحابية المتوافقة مع Render",
+  "name": "raadi-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.joinstore",
+  "version": "4.6.0",
+  "description": "متجر الرعدي أونلاين الفاخر - النسخة السحابية المتكاملة والمطورة",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^(__dirname, 'public')));
+
+// ---------------------------- تهيئة وتطوير قاعدة البيانات ----------------------------
+const db = new sqlite3.Database('./raadi.db');
+db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL)`);
+    db.run(`CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, category4.18.2",
     "express-session": "^1.18.0",
     "bcrypt": "^5.1.1",
     "sqlite3": "^5.1.6"

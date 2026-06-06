@@ -3,54 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المدير - الرعدي أونلاين</title>
+    <title>لوحة القيادة العليا - الرعدي أونلاين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Tajawal', sans-serif; }
-        body { background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%); color: #0f172a; }
+        :root {
+            --bg: linear-gradient(135deg, #0a192f 0%, #0d253f 100%);
+            --txt: #f8fafc;
+            --card: #0f2c4a;
+            --border: #1e3d5a;
+            --accent: #d4af37;
+            --btn-glow: 0 0 10px rgba(212, 175, 55, 0.4);
+            --font-family: 'Cairo', 'Tajawal', sans-serif;
+        }
 
-        .header { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #e67e22, #fbbf24); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .header-buttons button { background: #e67e22; border: none; padding: 10px 22px; border-radius: 40px; color: white; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .header-buttons button:hover { background: #d35400; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+        body { background: var(--bg); color: var(--txt); min-height: 100vh; overflow-x: hidden; }
 
-        .dashboard-container { display: flex; gap: 25px; padding: 30px; max-width: 1600px; margin: 0 auto; }
-        .sidebar { width: 300px; background: white; border-radius: 28px; padding: 25px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; border: 1px solid #e2e8f0; }
-        .menu-item { padding: 14px 18px; margin: 8px 0; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: 0.3s; font-weight: 600; }
-        .menu-item i { width: 28px; font-size: 1.2rem; color: #e67e22; }
-        .menu-item.active, .menu-item:hover { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #e67e22; transform: translateX(-5px); }
+        .header { background: var(--card); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-bottom: 2px solid var(--accent); }
+        .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), #f3e5ab); -webkit-background-clip: text; background-clip: text; color: transparent; display: flex; align-items: center; gap: 10px; }
+        .falcon-logo { fill: var(--accent); width: 45px; height: 45px; display: inline-block; vertical-align: middle; }
+        
+        .header-buttons button { background: var(--accent); border: none; padding: 10px 22px; border-radius: 40px; color: #0a192f; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .header-buttons button:hover { background: #f3e5ab; transform: translateY(-2px); }
 
-        .main-content { flex: 1; }
+        .dashboard-container { display: flex; gap: 25px; padding: 30px; max-width: 1600px; margin: 0 auto; flex-wrap: wrap; }
+        .sidebar { width: 300px; background: var(--card); border-radius: 28px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); height: fit-content; position: sticky; top: 20px; border: 1.5px solid var(--border); }
+        
+        .menu-item { padding: 14px 18px; margin: 8px 0; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: 0.3s; font-weight: 600; color: #cbd5e1; }
+        .menu-item i { width: 28px; font-size: 1.2rem; color: var(--accent); }
+        .menu-item.active, .menu-item:hover { background: rgba(212, 175, 55, 0.1); color: var(--accent); border-right: 4px solid var(--accent); transform: translateX(-5px); }
+
+        .main-content { flex: 1; min-width: 320px; }
+        
+        /* بطاقات إحصائية فخمة */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 35px; }
-        .stat-card { background: white; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #e2e8f0; }
-        .stat-card h3 { font-size: 0.85rem; color: #64748b; margin-bottom: 12px; }
-        .stat-card .value { font-size: 2rem; font-weight: 800; color: #e67e22; }
+        .stat-card { background: var(--card); border-radius: 24px; padding: 25px; text-align: center; border: 1.5px solid var(--border); box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .stat-card h3 { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; font-weight: 700; }
+        .stat-card .value { font-size: 2rem; font-weight: 800; color: var(--accent); }
 
-        .section { background: white; border-radius: 28px; padding: 28px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
-        .section-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 25px; border-right: 4px solid #e67e22; padding-right: 18px; display:flex; justify-content:space-between; align-items:center; }
+        .section { background: var(--card); border-radius: 28px; padding: 28px; margin-bottom: 30px; border: 1.5px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .section-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 25px; border-right: 4px solid var(--accent); padding-right: 18px; display:flex; justify-content:space-between; align-items:center; color: inherit; }
 
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 16px; margin: 10px 0; font-size: 0.95rem; }
-        button { background: #e67e22; color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 5px; }
-        button:hover { background: #d35400; }
-        .delete-btn { background: #ef4444; }
-        .delete-btn:hover { background: #dc2626; }
+        input, select, textarea { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 16px; margin: 10px 0; font-size: 0.95rem; background: rgba(0,0,0,0.15); color: inherit; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+        
+        button { background: var(--accent); color: #0a192f; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 5px; }
+        button:hover { background: #f3e5ab; transform: translateY(-2px); box-shadow: var(--btn-glow); }
+        button:active { transform: scale(0.95); }
+        
+        .delete-btn { background: #ef4444; color: white; }
+        .delete-btn:hover { background: #dc2626; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 700; }
+        th, td { padding: 15px; text-align: right; border-bottom: 1.5px solid var(--border); }
+        th { background: rgba(255,255,255,0.03); font-weight: 800; color: var(--accent); }
+        
         .status-badge { padding: 5px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; color: white; display: inline-block; }
         .status-processing { background: #f59e0b; }
         .status-shipped { background: #3b82f6; }
         .status-delivered { background: #10b981; }
 
-        .chat-area { background: #f8fafc; border-radius: 24px; padding: 20px; max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; }
-        .chat-message { background: white; padding: 15px; border-radius: 18px; margin-bottom: 15px; border-right: 3px solid #e67e22; }
+        .chat-area { background: rgba(0,0,0,0.15); border-radius: 24px; padding: 20px; max-height: 450px; overflow-y: auto; border: 1px solid var(--border); }
+        .chat-message { background: var(--card); padding: 15px; border-radius: 18px; margin-bottom: 15px; border-right: 3px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1300; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
-        .checkout-modal { background: white; border-radius: 40px; padding: 35px; border: 2px solid #e67e22; width: 580px; max-width: 95%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .checkout-modal { background: var(--card); border-radius: 40px; padding: 35px; border: 2px solid var(--accent); width: 580px; max-width: 95%; max-height: 90vh; overflow-y: auto; position: relative; }
         .close-modal { position: absolute; top: 20px; left: 25px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
+        .close-modal:hover { color: var(--accent); }
 
-        @media (max-width: 768px) { .dashboard-container { flex-direction: column; } .sidebar { width: 100%; } }
+        /* الشارات والتنبيهات المضيئة العائمة */
+        .premium-badge { background: linear-gradient(135deg, var(--accent), #f3e5ab); color: #0a192f; padding: 8px 18px; border-radius: 50px; font-size: 0.85rem; font-weight: 800; display: inline-block; margin-top: 10px; box-shadow: var(--btn-glow); }
+
+        @media (max-width: 991px) { .dashboard-container { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -67,7 +92,14 @@
 </head>
 <body>
 <div class="header">
-    <div class="logo">🦅 الرعدي أونلاين | لوحة القيادة العليا</div>
+    <div class="logo">
+        <svg class="falcon-logo" viewBox="0 0 100 100">
+            <path d="M50 15 C65 25 78 40 85 55 C70 58 58 48 48 62 C38 74 25 80 15 75 C30 70 35 55 18 42 Z" fill="none" stroke="#d4af37" stroke-width="4"/>
+            <path d="M48 62 L38 68 L42 62 Z" fill="#d4af37"/>
+            <circle cx="52" cy="45" r="4" fill="#d4af37"/>
+        </svg>
+        <span>الرعدي أونلاين | لوحة القيادة العليا</span>
+    </div>
     <div class="header-buttons">
         <button onclick="location.href='/'"><i class="fas fa-store"></i> المتجر</button>
         <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
@@ -92,28 +124,34 @@
                 <div class="stat-card"><h3>👥 العملاء</h3><div class="value" id="totalUsers">0</div></div>
                 <div class="stat-card"><h3>📦 المنتجات</h3><div class="value" id="totalProducts">0</div></div>
                 <div class="stat-card"><h3>📋 الطلبات</h3><div class="value" id="totalOrders">0</div></div>
-                <div class="stat-card"><h3>💰 الأرباح</h3><div class="value" id="totalProfit">0 SR</div></div>
+                <div class="stat-card"><h3>💰 الأرباح الكلية</h3><div class="value" id="totalProfit">0 SR</div></div>
                 <div class="stat-card"><h3>📅 اليوم</h3><div class="value" id="todayProfit">0 SR</div></div>
                 <div class="stat-card"><h3>⚠️ نقص بالمخزون</h3><div class="value" id="lowStock">0</div></div>
             </div>
+            
+            <!-- رصد ذكي عائم للمنتج الأكثر مبيعاً بمشروعك -->
+            <div style="margin-bottom: 25px; text-align: left;">
+                <div id="trendingProductBadge" class="premium-badge">🔥 الأكثر طلباً: جاري الحساب...</div>
+            </div>
+
             <div class="section">
                 <div class="section-title">📊 مؤشر الأداء المالي والمبيعات اليومي</div>
                 <canvas id="salesChart" style="max-height:280px; width:100%;"></canvas>
             </div>
             
-            <!-- تقرير جرد المستودع -->
+            <!-- تقرير جرد المستودع التفصيلي القابل للطباعة والمزامنة -->
             <div class="section" id="warehouseReportSection">
                 <div class="section-title">
-                    <span>📦 تقرير جرد المستودع والمخزون الكلي</span>
+                    <span>📦 تقرير جرد المستودع والمخزون الكلي للمالية</span>
                     <button onclick="printWarehouseReport()" style="background:#10b981; padding:8px 18px; font-size:0.85rem;"><i class="fas fa-print"></i> طباعة التقرير المالي</button>
                 </div>
                 <select id="warehouseFilterCategory" onchange="renderWarehouseReportTable()" style="width: auto; display: inline-block;">
-                    <option value="all">الكل</option>
+                    <option value="all">كل الأقسام</option>
                 </select>
                 <div style="overflow-x:auto;">
                     <table id="warehouseReportTable">
                         <thead>
-                            <tr><th>المنتج</th><th>القسم</th><th>المخزون المتبقي</th><th>سعر الحبة</th><th>القيمة الكلية للمخزون</th></tr>
+                            <tr><th>اسم المنتج الفاخر</th><th>القسم</th><th>المخزون المتبقي</th><th>سعر الحبة</th><th>القيمة الكلية للمخزون</th></tr>
                         </thead>
                         <tbody></tbody>
                     </table>
@@ -133,14 +171,14 @@
                 <input type="text" id="productColor" placeholder="اللون">
                 <textarea id="productFeatures" placeholder="المواصفات"></textarea>
                 <input type="text" id="productImage" placeholder="رابط الصورة">
-                <input type="number" id="productStock" placeholder="الكمية">
-                <button onclick="addProduct()">إضافة للمتجر</button>
+                <input type="number" id="productStock" placeholder="الكمية المتاحة">
+                <button onclick="addProduct()">إضافة للمتجر فوراً</button>
             </div>
             <div class="section">
-                <div class="section-title">مستودع المنتجات</div>
+                <div class="section-title">مستودع المنتجات الحالي</div>
                 <div style="overflow-x: auto;">
                     <table id="productsTable">
-                        <thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون</th><th>الإجراءات</th></tr></thead>
+                        <thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الخصم</th><th>المخزون السريع</th><th>الإجراءات</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -171,9 +209,10 @@
         <!-- Users Tab -->
         <div id="users-tab" class="tab-content" style="display: none;">
             <div class="section">
-                <div class="section-title">👥 العملاء والمشتركين والمجموعات</div>
+                <div class="section-title">👥 العملاء والمشتركين وإدارة المجموعات</div>
+                <!-- لوحة إنشاء وإدارة المجموعات وبث الإشعارات -->
                 <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
-                    <input type="text" id="newGroupName" placeholder="اسم مجموعة جديدة" style="width: auto; flex:1;">
+                    <input type="text" id="newGroupName" placeholder="اسم مجموعة جديدة للمشتركين" style="width: auto; flex:1;">
                     <button onclick="createGroup()" style="background:#3b82f6;">إنشاء مجموعة</button>
                 </div>
                 <div id="groupsList" style="margin-bottom:20px;"></div>
@@ -189,28 +228,29 @@
                 <input type="number" id="couponValue" placeholder="النسبة %">
                 <button onclick="addCoupon()">حفظ الكوبون</button>
             </div>
-            <div class="section"><div class="section-title">الكوبونات الحالية</div><div id="couponsList"></div></div>
+            <div class="section"><div class="section-title">الكوبونات الحالية للخصم</div><div id="couponsList"></div></div>
         </div>
 
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content" style="display: none;">
             <div class="section">
                 <div class="section-title">⚙️ الشحن والسياسات العامة والصوت الترحيبي</div>
-                <label>الشحن الداخلي (ريال):</label><input type="number" id="domesticShipping">
-                <label>الشحن الدولي (ريال):</label><input type="number" id="internationalShipping">
-                <label>رقم واتساب الإدارة (تلقي الطلبات):</label><input type="text" id="whatsappNumber">
+                <label>الشحن الداخلي داخل المملكة (ريال):</label><input type="number" id="domesticShipping">
+                <label>الشحن الدولي خارج المملكة (ريال):</label><input type="number" id="internationalShipping">
+                <label>رقم واتساب الموظف المسؤول (تلقي الإشعارات والطلبات):</label><input type="text" id="whatsappNumber">
                 <label>شريط إعلان المتجر الأعلى الترويجي:</label><input type="text" id="marqueeText">
                 
-                <label>جنس المتحدث الترحيبي (صوت الدخول):</label>
+                <label>جنس المتحدث الترحيبي عند دخول العملاء:</label>
                 <select id="voiceGender">
-                    <option value="female">أنثى (أميرة الفخامة)</option>
-                    <option value="male">ذكر (أمير الفخامة)</option>
+                    <option value="female">صوت أنثى (رقيق ولبق)</option>
+                    <option value="male">صوت ذكر (وقور ومرحب)</option>
                 </select>
-                <label>نص الترحيب الصوتي عند الدخول:</label><input type="text" id="voiceText">
+                <label>نص الترحيب الصوتي الآلي:</label><input type="text" id="voiceText">
                 
-                <label>سياسة المتجر الصارمة للإرجاع (شروط الفاتورة):</label><textarea id="returnPolicy" rows="4"></textarea>
+                <label>سياسة المتجر الصارمة للإرجاع والاستبدال (شروط الفاتورة):</label><textarea id="returnPolicy" rows="4"></textarea>
                 
-                <h4 style="margin-top:20px;">🔐 تعديل بيانات حساب المسؤول (المدير)</h4>
+                <!-- لوحة الإدارة للمدير لتغيير بياناته الشخصية الأمنية -->
+                <h4 style="margin-top:20px; border-bottom:1.5px solid var(--border); padding-bottom:8px;">🔐 تعديل بيانات حساب المسؤول (المدير)</h4>
                 <input type="text" id="adminName" placeholder="الاسم الكامل">
                 <input type="email" id="adminEmail" placeholder="البريد الإلكتروني">
                 <input type="password" id="adminPass" placeholder="كلمة مرور جديدة (اتركها فارغة لعدم التغيير)">
@@ -224,25 +264,35 @@
                 <div class="section-title" id="chatTitleAdmin">💬 محادثات ودردشة العملاء</div>
                 <select id="chatTargetUser" onchange="loadAdminChatWithUser()" style="margin-bottom:15px;"></select>
                 <div id="chatMessagesAdmin" class="chat-area" style="margin-bottom:15px;">لا توجد رسائل جديدة</div>
-                <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
+                <textarea id="replyMsg" placeholder="اكتب ردك ومراسلتك المباشرة هنا..."></textarea>
                 <button onclick="sendAdminReply()">إرسال الرسالة للعميل</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- نافذة عرض كشف حساب العميل القابل للطباعة -->
 <div id="clientReportModal" class="modal-overlay">
     <div class="checkout-modal" style="width:700px;">
         <i class="fas fa-times close-modal" onclick="closeClientReportModal()"></i>
-        <h3 id="clientReportTitle">📊 كشف حساب المشتريات للعميل</h3>
+        <h3 id="clientReportTitle">📊 كشف حساب المشتريات المالي للعميل</h3>
         <div id="clientReportContent"></div>
-        <button onclick="window.print()" style="background:#10b981; margin-top:20px;">🖨️ طباعة كشف الحساب المالي</button>
+        <button onclick="window.print()" style="background:#10b981; margin-top:20px;">🖨️ طباعة كشف الحساب المالي المعتمد</button>
     </div>
 </div>
 
 <script>
     let products = [], categories = [], orders = [], users = [], coupons = [], messages = [], groups = [], salesChartInstance = null;
     let selectedChatUserId = null;
+
+    // ---------------------------- نظام التنبيهات المضيئة التفاعلية (Toast) ----------------------------
+    function showToast(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.style = `position:fixed; top:20px; right:20px; background:${isError ? '#ef4444' : '#0f2c4a'}; color:white; padding:15px 25px; border-radius:15px; border:2.5px solid var(--accent); box-shadow:0 10px 25px rgba(0,0,0,0.3); font-weight:bold; z-index:9999; transition:0.3s;`;
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+    }
 
     async function loadAll() {
         try {
@@ -253,23 +303,30 @@
             renderStats(await sRes.json());
             renderProductsTable(); renderCategoriesList(); renderOrdersList(); renderUsersList(); renderCouponsList(); renderChatMessages(); renderSalesChart();
             renderWarehouseReportTable(); renderGroupsList();
+            calculateTrendingProduct();
             populateAdminForm();
         } catch (e) { console.error("خطأ بتحميل البيانات الإدارية:", e); }
+    }
+
+    // حساب ومعاينة السلعة الأكثر طلباً ديناميكياً
+    function calculateTrendingProduct() {
+        const counts = {};
+        orders.forEach(o => {
+            o.items.forEach(item => {
+                counts[item.name] = (counts[item.name] || 0) + item.quantity;
+            });
+        });
+        let maxCount = 0, bestProduct = "لا توجد مبيعات مرصودة بعد";
+        for (const [name, count] of Object.entries(counts)) {
+            if (count > maxCount) { maxCount = count; bestProduct = `${name} (${count} قطع)`; }
+        }
+        document.getElementById('trendingProductBadge').innerText = "🔥 الأكثر طلباً: " + bestProduct;
     }
 
     async function populateAdminForm() {
         const u = await (await fetch('/api/me')).json();
         document.getElementById('adminName').value = u.name;
         document.getElementById('adminEmail').value = u.email;
-    }
-
-    function renderStats(s) {
-        document.getElementById('totalUsers').innerText = s.totalUsers || 0;
-        document.getElementById('totalProducts').innerText = s.totalProducts || 0;
-        document.getElementById('totalOrders').innerText = s.totalOrders || 0;
-        document.getElementById('totalProfit').innerText = (s.totalRevenue || 0) + ' SR';
-        document.getElementById('todayProfit').innerText = (s.todayRevenue || 0) + ' SR';
-        document.getElementById('lowStock').innerText = s.lowStock || 0;
     }
 
     function renderWarehouseReportTable() {
@@ -281,7 +338,7 @@
             const val = p.price * p.stock;
             grandValue += val;
             return `<tr><td>${p.name}</td><td>${p.category}</td><td>${p.stock}</td><td>${p.price} ريال</td><td>${val} ريال</td></tr>`;
-        }).join('') + `<tr style="font-weight:900; background:#f8fafc;"><td colspan="4">القيمة المالية الكلية للمستودع:</td><td>${grandValue} ريال يمني</td></tr>`;
+        }).join('') + `<tr style="font-weight:900; background:rgba(255,255,255,0.03);"><td colspan="4">القيمة المالية الكلية للمستودع:</td><td>${grandValue} ريال يمني</td></tr>`;
         
         const sel = document.getElementById('warehouseFilterCategory');
         if (sel.options.length <= 1) {
@@ -304,7 +361,7 @@
     }
 
     function exportOrdersToCSV() {
-        if (orders.length === 0) { alert("لا توجد مبيعات لتصديرها."); return; }
+        if (orders.length === 0) { showToast("لا توجد مبيعات لتصديرها.", true); return; }
         let csvContent = "\ufeff";
         csvContent += "رقم الفاتورة,العميل,الهاتف,العنوان,المجموع الفرعي,الشحن,الإجمالي الكلي,الحالة,التاريخ\n";
         orders.forEach(o => { csvContent += `"${o.orderNumber}","${o.customer}","${o.phone}","${o.address}","${o.subtotal}","${o.shipping}","${o.total}","${o.status}","${o.dateFormatted || o.date}"\n`; });
@@ -313,6 +370,7 @@
         link.href = URL.createObjectURL(blob);
         link.setAttribute("download", `تقرير_مبيعات_الرعدي_${Date.now()}.csv`);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        showToast("✅ تم تصدير التقرير المالي لملف Excel بنجاح");
     }
 
     function renderSalesChart() {
@@ -330,12 +388,12 @@
 
     async function addProduct() {
         const p = { name: document.getElementById('productName').value, category: document.getElementById('productCat').value, price: parseFloat(document.getElementById('productPrice').value), oldPrice: parseFloat(document.getElementById('productOldPrice').value)||0, discount: parseInt(document.getElementById('productDiscount').value)||0, color: document.getElementById('productColor').value, features: document.getElementById('productFeatures').value, image: document.getElementById('productImage').value, stock: parseInt(document.getElementById('productStock').value)||0 };
-        if(!p.name || !p.price || !p.category) { alert("الحقول الأساسية مطلوبة"); return; }
+        if(!p.name || !p.price || !p.category) { showToast("الحقول الأساسية مطلوبة", true); return; }
         const res = await fetch('/api/products', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
-        if(res.ok) { alert("✅ تم إضافة المنتج الجديد بنجاح"); loadAll(); clearForm(); }
+        if(res.ok) { showToast("✅ تم إضافة المنتج بنجاح"); loadAll(); clearForm(); }
     }
     function clearForm() { ['productName', 'productPrice', 'productOldPrice', 'productDiscount', 'productColor', 'productFeatures', 'productImage', 'productStock'].forEach(id => document.getElementById(id).value=''); }
-    async function deleteProduct(id) { if(confirm("حذف المنتج؟")) { await fetch(`/api/products/${id}`, { method:'DELETE' }); loadAll(); } }
+    async function deleteProduct(id) { if(confirm("حذف المنتج؟")) { await fetch(`/api/products/${id}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف المنتج"); } }
 
     function renderProductsTable() {
         document.querySelector('#productsTable tbody').innerHTML = products.map(p => `
@@ -345,7 +403,7 @@
                 <td>${p.category}</td>
                 <td>${p.price} SR</td>
                 <td>${p.discount}%</td>
-                <td><input type="number" value="${p.stock}" onchange="updateProductStock(${p.id}, this.value)" style="width:70px; padding:5px; margin:0;"></td>
+                <td><input type="number" value="${p.stock}" onchange="updateProductStock(${p.id}, this.value)" style="width:70px; padding:5px; margin:0; background:rgba(0,0,0,0.2); border:1.5px solid var(--border); color:white; text-align:center;"></td>
                 <td><button class="delete-btn" onclick="deleteProduct(${p.id})">حذف</button></td>
             </tr>
         `).join('');
@@ -356,6 +414,7 @@
         if (p) {
             p.stock = parseInt(val);
             await fetch(`/api/products/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
+            showToast(`⚙️ تم تحديث كمية المنتج #${id} بنجاح`);
         }
     }
 
@@ -363,18 +422,18 @@
         const name = document.getElementById('newCategory').value.trim();
         if(!name) return;
         const res = await fetch('/api/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name}) });
-        if(res.ok) { alert("تم حفظ القسم"); document.getElementById('newCategory').value=''; loadAll(); }
+        if(res.ok) { showToast("تم حفظ القسم الجديد"); document.getElementById('newCategory').value=''; loadAll(); }
     }
     function renderCategoriesList() {
         document.getElementById('categoriesList').innerHTML = categories.map(cat => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.15); padding:12px; border-radius:12px; margin-bottom:8px; border:1px solid var(--border);">
                 <span>📂 ${cat}</span><button class="delete-btn" onclick="deleteCategory('${cat}')">حذف</button>
             </div>
         `).join('');
         const sel = document.getElementById('productCat');
         if(sel) sel.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
-    async function deleteCategory(cat) { if(confirm("حذف القسم سيمسح جميع منتجاته، تأكيد؟")) { await fetch(`/api/categories/${encodeURIComponent(cat)}`, { method:'DELETE' }); loadAll(); } }
+    async function deleteCategory(cat) { if(confirm("حذف القسم سيمسح جميع منتجاته، تأكيد؟")) { await fetch(`/api/categories/${encodeURIComponent(cat)}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف القسم بالكامل"); } }
 
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
@@ -393,18 +452,18 @@
             </div>
         `).join('');
     }
-    async function updateStatus(id, status) { await fetch(`/api/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); loadAll(); }
+    async function updateStatus(id, status) { await fetch(`/api/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); loadAll(); showToast("✅ تم تحديث حالة الشحن بنجاح"); }
 
     async function createGroup() {
         const name = document.getElementById('newGroupName').value.trim();
         if (!name) return;
         const res = await fetch('/api/groups', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name }) });
-        if (res.ok) { alert("تم إنشاء المجموعة"); document.getElementById('newGroupName').value = ''; loadAll(); }
+        if (res.ok) { showToast("✅ تم إنشاء المجموعة بنجاح"); document.getElementById('newGroupName').value = ''; loadAll(); }
     }
 
     function renderGroupsList() {
         document.getElementById('groupsList').innerHTML = groups.map(g => `
-            <div style="background:#f1f5f9; padding:15px; border-radius:15px; margin-bottom:12px;">
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:15px; border-radius:15px; margin-bottom:12px;">
                 <strong>👥 مجموعة: ${g.name}</strong>
                 <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
                     <button onclick="sendGroupAnnouncement(${g.id})" style="background:#3b82f6; font-size:0.8rem; padding:6px 12px;">📢 بث إعلان للمجموعة</button>
@@ -418,6 +477,7 @@
         if(confirm("هل تريد حذف المجموعة؟")) {
             await fetch(`/api/groups/${id}`, { method:'DELETE' });
             loadAll();
+            showToast("🗑️ تم حذف المجموعة");
         }
     }
 
@@ -429,13 +489,13 @@
         for(const userId of members) {
             await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ text: `[إعلان مجموعة ${grp.name}]: ${text}`, isAdmin:true, targetUserId: userId }) });
         }
-        alert("📢 تم بث الإعلان بنجاح!");
+        showToast("📢 تم بث الإعلان الجماعي بنجاح!");
         loadAll();
     }
 
     function renderUsersList() {
         document.getElementById('usersList').innerHTML = users.map(u => `
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:15px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div>
                     <strong>${u.name}</strong> (${u.email})<br>
                     هاتف: ${u.phone || 'غير مسجل'} | عنوان: ${u.address || 'غير مسجل'}
@@ -443,7 +503,7 @@
                 <div style="display:flex; gap:10px;">
                     <button onclick="viewClientReport(${u.id})" style="background:#10b981; font-size:0.8rem; padding:6px 12px;">📊 تقرير المشتريات</button>
                     <button onclick="openAdminDirectChat(${u.id}, '${u.name}')" style="background:#e67e22; font-size:0.8rem; padding:6px 12px;">💬 مراسلة</button>
-                    <select onchange="addUserToGroup(${u.id}, this.value)" style="width:auto; margin:0; padding:5px; font-size:0.8rem;">
+                    <select onchange="addUserToGroup(${u.id}, this.value)" style="width:auto; margin:0; padding:5px; font-size:0.8rem; background:#0f2c4a; color:white;">
                         <option value="">➕ أضف لمجموعة</option>
                         ${groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
                     </select>
@@ -453,20 +513,6 @@
 
         const sel = document.getElementById('chatTargetUser');
         sel.innerHTML = users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    }
-
-    async function addUserToGroup(userId, groupId) {
-        if (!groupId) return;
-        const grp = groups.find(g => g.id === parseInt(groupId));
-        const members = JSON.parse(grp.members);
-        if (!members.includes(userId)) {
-            members.push(userId);
-            await fetch(`/api/groups/${groupId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ members }) });
-            alert("✅ تم إضافة العميل للمجموعة بنجاح");
-        } else {
-            alert("العميل مضاف مسبقاً لهذه المجموعة");
-        }
-        loadAll();
     }
 
     function viewClientReport(userId) {
@@ -516,16 +562,16 @@
         const code = document.getElementById('couponCode').value.trim().toUpperCase(), value = parseInt(document.getElementById('couponValue').value);
         if(!code || isNaN(value)) return;
         const res = await fetch('/api/coupons', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, value}) });
-        if(res.ok) { alert("تم الحفظ"); document.getElementById('couponCode').value=''; document.getElementById('couponValue').value=''; loadAll(); }
+        if(res.ok) { showToast("✅ تم حفظ الكوبون"); document.getElementById('couponCode').value=''; document.getElementById('couponValue').value=''; loadAll(); }
     }
     function renderCouponsList() {
         document.getElementById('couponsList').innerHTML = coupons.map(c => `
-            <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px; border-radius:12px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; margin-bottom:8px; border:1px solid var(--border);">
                 <span>🎟️ <strong>${c.code}</strong> - خصم ${c.value}%</span><button class="delete-btn" onclick="deleteCoupon('${c.code}')">حذف</button>
             </div>
         `).join('');
     }
-    async function deleteCoupon(code) { if(confirm("حذف الكوبون؟")) { await fetch(`/api/coupons/${code}`, { method:'DELETE' }); loadAll(); } }
+    async function deleteCoupon(code) { if(confirm("حذف الكوبون؟")) { await fetch(`/api/coupons/${code}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف الكوبون"); } }
 
     async function loadSettings() {
         const s = await (await fetch('/api/settings')).json();
@@ -556,7 +602,7 @@
         const payload = { name, email, password, phone: '', address: '', avatar: '' };
         await fetch('/api/profile/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
 
-        alert("✅ تم حفظ كافة الإعدادات والملف الشخصي للمسؤول بنجاح");
+        showToast("✅ تم حفظ كافة الإعدادات والبيانات الشخصية للمسؤول بنجاح");
         loadAll();
     }
 
@@ -571,7 +617,7 @@
         const text = inp.value.trim();
         if(!text || !selectedChatUserId) return;
         await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, isAdmin:true, targetUserId: selectedChatUserId}) });
-        inp.value = ''; loadAll(); alert("تم إرسال الرسالة بنجاح!");
+        inp.value = ''; loadAll(); showToast("✅ تم إرسال الرسالة للعميل");
     }
 
     async function logout() { await fetch('/api/logout', { method:'POST' }); window.location.href='/'; }

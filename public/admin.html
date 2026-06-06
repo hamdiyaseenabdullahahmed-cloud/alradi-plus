@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المدير - الرعدي أونلاين</title>
+    <title>لوحة القيادة العليا - الرعدي أونلاين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -72,7 +72,6 @@
         .close-modal { position: absolute; top: 20px; left: 25px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
         .close-modal:hover { color: var(--accent); }
 
-        /* الشارات والتنبيهات المضيئة العائمة */
         .premium-badge { background: linear-gradient(135deg, var(--accent), #f3e5ab); color: #0a192f; padding: 8px 18px; border-radius: 50px; font-size: 0.85rem; font-weight: 800; display: inline-block; margin-top: 10px; box-shadow: var(--btn-glow); }
 
         @media (max-width: 991px) { .dashboard-container { flex-direction: column; } .sidebar { width: 100%; } }
@@ -129,7 +128,6 @@
                 <div class="stat-card"><h3>⚠️ نقص بالمخزون</h3><div class="value" id="lowStock">0</div></div>
             </div>
             
-            <!-- رصد ذكي عائم للمنتج الأكثر مبيعاً بمشروعك -->
             <div style="margin-bottom: 25px; text-align: left;">
                 <div id="trendingProductBadge" class="premium-badge">🔥 الأكثر طلباً: جاري الحساب...</div>
             </div>
@@ -139,7 +137,7 @@
                 <canvas id="salesChart" style="max-height:280px; width:100%;"></canvas>
             </div>
             
-            <!-- تقرير جرد المستودع التفصيلي القابل للطباعة والمزامنة -->
+            <!-- تقرير جرد المستودع -->
             <div class="section" id="warehouseReportSection">
                 <div class="section-title">
                     <span>📦 تقرير جرد المستودع والمخزون الكلي للمالية</span>
@@ -210,7 +208,6 @@
         <div id="users-tab" class="tab-content" style="display: none;">
             <div class="section">
                 <div class="section-title">👥 العملاء والمشتركين وإدارة المجموعات</div>
-                <!-- لوحة إنشاء وإدارة المجموعات وبث الإشعارات -->
                 <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
                     <input type="text" id="newGroupName" placeholder="اسم مجموعة جديدة للمشتركين" style="width: auto; flex:1;">
                     <button onclick="createGroup()" style="background:#3b82f6;">إنشاء مجموعة</button>
@@ -245,7 +242,7 @@
                     <option value="female">صوت أنثى (رقيق ولبق)</option>
                     <option value="male">صوت ذكر (وقور ومرحب)</option>
                 </select>
-                <label>نص الترحيب الصوتي الآلي:</label><input type="text" id="voiceText">
+                <label>نص الترحيب الصوتي عند دخول الزوار:</label><input type="text" id="voiceText">
                 
                 <label>سياسة المتجر الصارمة للإرجاع والاستبدال (شروط الفاتورة):</label><textarea id="returnPolicy" rows="4"></textarea>
                 
@@ -263,14 +260,13 @@
                 <div class="section-title" id="chatTitleAdmin">💬 محادثات ودردشة العملاء</div>
                 <select id="chatTargetUser" onchange="loadAdminChatWithUser()" style="margin-bottom:15px;"></select>
                 <div id="chatMessagesAdmin" class="chat-area" style="margin-bottom:15px;">لا توجد رسائل جديدة</div>
-                <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
+                <textarea id="replyMsg" placeholder="اكتب ردك ومراسلتك المباشرة هنا..."></textarea>
                 <button onclick="sendAdminReply()">إرسال الرسالة للعميل</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- نافذة عرض كشف حساب العميل القابل للطباعة -->
 <div id="clientReportModal" class="modal-overlay">
     <div class="checkout-modal" style="width:700px;">
         <i class="fas fa-times close-modal" onclick="closeClientReportModal()"></i>
@@ -307,7 +303,6 @@
         } catch (e) { console.error("خطأ بتحميل البيانات الإدارية:", e); }
     }
 
-    // حساب ومعاينة السلعة الأكثر طلباً ديناميكياً
     function calculateTrendingProduct() {
         const counts = {};
         orders.forEach(o => {
@@ -649,4 +644,4 @@
     loadSettings();
 </script>
 </body>
-        </html>
+    </html>

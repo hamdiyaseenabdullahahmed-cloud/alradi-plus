@@ -7,11 +7,18 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// إعداد هام جداً لمنصات الرفع السحابية مثل Render للوثوق ببروتوكول الأمان وتأمين الجلسات
+app.set('trust proxy', 1);
+
 app.use(session({
     secret: 'raadi-emperor-falcon-secure-key-2026',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
+    cookie: { 
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        secure: process.env.NODE_ENV === 'production', // تفعيل جدار الحماية للجلسات في بيئة الإنتاج السحابية
+        sameSite: 'lax'
+    }
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -246,6 +253,9 @@ app.get('/api/stats', async (req, res) => {
         res.json({ totalUsers: u.count, totalProducts: p.count, totalOrders: o.count, totalRevenue: rev.sum || 0, todayRevenue: todayRev.sum || 0, lowStock: low.count });
     } catch { res.status(500).json({}); }
 });
+
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.listen(PORT, () => {
     console.log(`========================================`);

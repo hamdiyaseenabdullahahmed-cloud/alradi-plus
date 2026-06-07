@@ -41,7 +41,7 @@
         .light-mode .search-box { background: rgba(0,0,0,0.05); }
         .search-box input { background: none; border: none; outline: none; width: 100%; font-size: 1rem; color: inherit; }
         
-        /* اقتراحات البحث الفوري المطور */
+        /* اقتراحات البحث الفوري */
         .suggestions-box { position: absolute; top: 55px; left: 0; width: 100%; background: var(--card); border: 1.5px solid var(--accent); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 1000; display: none; overflow: hidden; }
         .suggestion-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--border); color: inherit; }
         .suggestion-item:hover { background: var(--accent); color: #0a192f !important; }
@@ -49,8 +49,8 @@
 
         .user-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         
-        /* أزرار ميكانيكية تفاعلية ثلاثية الأبعاد بتأثير حسي وتوهج ملكي هادئ */
-        .icon-btn, .action-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); font-size: 1.25rem; color: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        /* أزرار تفاعلية حقيقية ثلاثية الأبعاد بتأثير حسي وتوهج ملكي هادئ */
+        .icon-btn, .action-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1); font-size: 1.25rem; color: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .light-mode .icon-btn { background: rgba(0,0,0,0.03); }
         .icon-btn:hover, .action-btn:hover { border-color: var(--accent); box-shadow: var(--btn-glow); transform: scale(1.05); }
         .icon-btn:active, .action-btn:active { transform: scale(0.92) translateY(2px); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); border-color: var(--accent); }
@@ -120,7 +120,7 @@
         .add-to-cart-btn:hover { background: linear-gradient(135deg, #f3e5ab, var(--accent)); transform: translateY(-2px); box-shadow: var(--btn-glow); }
         .add-to-cart-btn:active { transform: scale(0.95) translateY(2px); }
 
-        /* النوافذ واللوحات الجانبية الفخمة */
+        /* اللوحات الجانبية الفخمة */
         .cart-sidebar, .orders-sidebar { position: fixed; top: 0; width: 480px; height: 100%; background: var(--card); z-index: 1200; transition: 0.4s; padding: 30px; overflow-y: auto; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
         .cart-sidebar { right: -500px; border-left: 2px solid var(--accent); }
         .cart-sidebar.open { right: 0; }
@@ -129,7 +129,6 @@
 
         .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 18px; margin-bottom: 20px; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--border); }
-        .cart-item h4 { font-weight: 800; margin-bottom: 5px; }
         .cart-item-actions { display: flex; gap: 12px; align-items: center; }
         .cart-item-actions button { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: 700; color: #000; }
         body.dark-mode .cart-item-actions button { background: #0f172a; color: white; }
@@ -146,10 +145,8 @@
         .checkout-modal button, .auth-card button { background: var(--accent); color: #000; border: none; padding: 16px; border-radius: 50px; width: 100%; margin-top: 20px; font-weight: 800; cursor: pointer; transition: 0.3s; }
         .order-summary { background: #f8fafc; padding: 20px; border-radius: 20px; margin: 20px 0; border: 1px solid var(--border); color: #1e293b; }
         body.dark-mode .order-summary { background: #0f172a; color: white; }
-        .close-modal { position: absolute; top: 20px; left: 25px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; transition: 0.2s; }
-        .close-modal:hover { color: var(--accent); }
 
-        /* جرس تنبيه المراسلات المباشرة المضيء */
+        /* جرس تنبيه المراسلات المباشرة المضيء والفقاعات المتطورة */
         .notification-bell { position: relative; cursor: pointer; font-size: 1.4rem; color: inherit; }
         .bell-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; border-radius: 50%; width: 10px; height: 10px; display: none; }
         .bell-badge.active { display: block; animation: pulse 1s infinite; }
@@ -159,13 +156,18 @@
         .chat-window { position: fixed; bottom: 120px; right: 30px; width: 400px; height: 550px; background: var(--card); border-radius: 35px; display: none; flex-direction: column; z-index: 1001; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; border: 2px solid var(--accent); }
         .chat-window.open { display: flex; }
         .chat-header { background: #1e293b; color: white; padding: 18px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
         body.dark-mode .chat-messages { background: #0f172a; }
-        .chat-message { margin-bottom: 15px; padding: 10px 16px; border-radius: 20px; max-width: 85%; word-wrap: break-word; font-weight: 600; }
-        .chat-message.user { background: linear-gradient(135deg, var(--accent), #b58d12); color: #0a192f; margin-right: auto; border-bottom-right-radius: 5px; }
-        .chat-message.admin { background: #e2e8f0; color: #0f172a; margin-left: auto; border-bottom-left-radius: 5px; }
-        body.dark-mode .chat-message.admin { background: #334155; color: white; }
+        
+        .chat-message { max-width: 80%; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; word-wrap: break-word; font-weight: 600; }
+        /* تصميم الفقاعات الفخم: اليمين للمستخدم الحالي واليسار للمرسل الآخر */
+        .chat-message.right-bubble { margin-right: auto; margin-left: 0; background: linear-gradient(135deg, var(--accent), #b58d12); color: #0a192f; border-bottom-right-radius: 2px; }
+        .chat-message.left-bubble { margin-left: auto; margin-right: 0; background: #203c56; color: white; border-bottom-left-radius: 2px; }
+        body.dark-mode .chat-message.left-bubble { background: #1e3d5a; }
+
         .chat-input { display: flex; padding: 15px; border-top: 1px solid var(--border); background: var(--card); gap: 10px; }
+        .chat-input input { flex: 1; padding: 12px; border: 1.5px solid var(--border); border-radius: 40px; outline: none; background: var(--bg); color: inherit; }
+        .chat-input button { background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; color: #0a192f; cursor: pointer; }
 
         .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
         .auth-card { width: 500px; }
@@ -188,7 +190,7 @@
             <path d="M48 62 L38 68 L42 62 Z" fill="#d4af37"/>
             <circle cx="52" cy="45" r="4" fill="#d4af37"/>
         </svg>
-        <span>الرعدي <span style="color:var(--txt);">أونلاين</span></span>
+        <span>الرعدي <span style="color:var(--accent);">أونلاين</span></span>
     </div>
     
     <div class="search-area">
@@ -204,8 +206,10 @@
         <button id="currencyBtn" class="action-btn" style="width:auto; padding: 0 16px; border-radius:50px; background:var(--border); font-weight:800; border:none;" onclick="toggleCurrency(true)">🇸🇦 SAR</button>
         <!-- مفتاح تبديل اللغة المدمج الفوري -->
         <button id="langBtn" class="action-btn" style="width:auto; padding: 0 16px; border-radius:50px; background:var(--border); font-weight:800; border:none;" onclick="toggleLanguage(true)">العربية</button>
-        <div class="icon-btn" onclick="toggleDarkMode(true)" id="darkModeBtn" title="تغيير المظهر"><i class="fas fa-moon"></i></div>
+
+        <div class="icon-btn" onclick="toggleDarkMode(true)" id="darkModeBtn" title="الوضع الليلي"><i class="fas fa-moon"></i></div>
         
+        <!-- جرس إشعارات المراسلات المباشرة -->
         <div class="notification-bell" onclick="toggleChat(true)" title="صندوق الرسائل">
             <i class="fas fa-bell"></i>
             <div id="bellBadge" class="bell-badge"></div>
@@ -213,6 +217,7 @@
 
         <span id="userWelcome" class="auth-indicator"></span>
         
+        <!-- صورة الملف الشخصي للعميل -->
         <div id="userAvatarContainer" onclick="openProfileModal(true)" style="display:none; cursor:pointer;">
             <img id="userAvatarImg" src="" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
         </div>
@@ -641,6 +646,11 @@
         if (s) {
             shippingSettings.domestic = parseFloat(s.domesticShipping) || 15;
             shippingSettings.international = parseFloat(s.internationalShipping) || 50;
+            
+            // تطبيق الألوان ديناميكياً من السيرفر بمجرد تحميل الإعدادات لضمان الهوية البصرية الملكية
+            if (s.primaryColor) document.documentElement.style.setProperty('--card', s.primaryColor);
+            if (s.accentColor) document.documentElement.style.setProperty('--accent', s.accentColor);
+            if (s.bgColor) document.documentElement.style.setProperty('--bg', s.bgColor);
         }
     }
 
@@ -709,10 +719,19 @@
 
     function addToCart(e, id) {
         e.stopPropagation();
+        if (!currentUser) { alert("🔐 الرجاء تسجيل الدخول أولاً لإكمال عملياتك الشراء."); toggleAuthModal(true); return; }
         const p = products.find(prod => prod.id === id);
         if (p && p.stock <= 0) { alert("❌ المنتج غير متوفر"); return; }
         const qty = quantities[id] || 1;
+        
+        // التحقق من توافر الكمية المطلوبة بدقة من المخزن
         const exist = cart.find(i => i.id === id);
+        const currentQtyInCart = exist ? exist.quantity : 0;
+        if (p && (currentQtyInCart + qty) > p.stock) {
+            alert(`⚠️ لا يتوفر سوى ${p.stock} قطع فقط في مخازننا`);
+            return;
+        }
+
         if (exist) exist.quantity += qty;
         else cart.push({ id, name: p.name, price: p.price, quantity: qty, image: p.image });
         
@@ -802,346 +821,4 @@
             if (list) {
                 const container = document.getElementById('myOrdersList');
                 if (list.length === 0) { container.innerHTML = '<p style="text-align:center; padding:20px;">لا توجد طلبات سابقة</p>'; return; }
-                container.innerHTML = list.map(o => `
-                    <div style="background:var(--bg); border:1px solid var(--border); padding:15px; border-radius:15px; margin-bottom:12px; border-right:4px solid var(--accent);">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>🧾 طلب #${o.id}</span><span style="font-size:0.75rem;">${o.status}</span></div>
-                        <div style="font-size:0.8rem; margin:8px 0; opacity:0.9;">${o.items.map(i => `${i.name} (${i.quantity})`).join(', ')}</div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700;"><span>الإجمالي: ${formatPrice(o.total)}</span><span>${o.dateFormatted || ''}</span></div>
-                    </div>
-                `).join('');
-            }
-        } catch { console.error("خطأ بالطلبات"); }
-    }
-
-    function openCheckoutModal(s) {
-        if (!currentUser) { alert("🔐 سجل دخولك أولاً"); toggleAuthModal(true); return; }
-        if (cart.length === 0) { alert("السلة فارغة"); return; }
-        
-        // منع حظر النوافذ المنبثقة عبر تهيئة الفاتورة متزامناً مع النقر
-        const invoiceWin = window.open('', '_blank');
-        if (!invoiceWin) {
-            alert("⚠️ يرجى تفعيل النوافذ المنبثقة لإصدار الفاتورة");
-            return;
-        }
-        invoiceWin.document.write("<h3>جاري معالجة وتوليد الفاتورة الملكية الفاخرة...</h3>");
-
-        document.getElementById('fullName').value = currentUser.name;
-        document.getElementById('email').value = currentUser.email || '';
-        document.getElementById('phone').value = currentUser.phone || '';
-        document.getElementById('address').value = currentUser.address || '';
-        updateShippingCost();
-        document.getElementById('checkoutModal').style.display = s ? 'flex' : 'none';
-        
-        window.activeInvoiceWindow = invoiceWin;
-    }
-
-    function updateShippingCost() {
-        const c = document.getElementById('country').value;
-        const sub = cart.reduce((s,i) => s + (i.price * i.quantity), 0);
-        const disc = sub * (couponDiscount/100);
-        let ship = c === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
-        document.getElementById('orderSummary').innerHTML = `
-            <strong>المنتجات:</strong><br>${cart.map(i => `${i.name} × ${i.quantity}`).join('<br>')}<hr>
-            المجموع: ${formatPrice(sub)}<br>${couponDiscount > 0 ? `الخصم: -${formatPrice(disc)}<br>` : ''}الشحن: ${formatPrice(ship)}<br>
-            <strong style="color:var(--accent);">الإجمالي النهائي: ${formatPrice(sub - disc + ship)}</strong>
-        `;
-    }
-
-    async function submitOrder() {
-        const name = document.getElementById('fullName').value.trim();
-        const mail = document.getElementById('email').value.trim();
-        const ph = document.getElementById('phone').value.trim();
-        const adr = document.getElementById('address').value.trim();
-        const country = document.getElementById('country').value;
-        if (!name || !ph || !adr) { alert("يرجى ملء الحقول المطلوبة"); if(window.activeInvoiceWindow) window.activeInvoiceWindow.close(); return; }
-        const sub = cart.reduce((s,i) => s + i.price*i.quantity, 0);
-        const disc = sub * (couponDiscount/100);
-        const ship = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
-        const totalAmount = sub - disc + ship;
-        const order = { customer: name, email: mail, phone: ph, address: adr, country, items: cart, subtotal: sub, discount: couponDiscount, discountAmount: disc, shipping: ship, total: totalAmount };
-        try {
-            const res = await safeFetch('/api/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(order) });
-            if (res && res.success) {
-                Sound.success();
-                generateInvoice(order, window.activeInvoiceWindow);
-                sendWhatsAppReceipt(order);
-                cart = []; couponDiscount = 0;
-                saveCart(); updateCartUI(); closeCheckoutModal();
-                alert("🎉 تم تسجيل طلبك بنجاح وجارٍ التوجيه لإرساله عبر واتساب الإدارة!");
-                loadProducts();
-            } else {
-                if(window.activeInvoiceWindow) window.activeInvoiceWindow.close();
-            }
-        } catch { 
-            alert("خطأ بالاتصال"); 
-            if(window.activeInvoiceWindow) window.activeInvoiceWindow.close();
-        }
-    }
-
-    async function sendWhatsAppReceipt(o) {
-        const s = await safeFetch('/api/settings');
-        if (s) {
-            const num = s.whatsappNumber || '+967781723532';
-            const formattedNum = num.replace('+', '');
-            const text = `🦅 *فاتورة جديدة - متجر الرعدي أونلاين* 🦅\n\n*العميل:* ${o.customer}\n*رقم الجوال:* ${o.phone}\n*العنوان:* ${o.address}\n\n*الطلبات:* \n${o.items.map(i => `- ${i.name} (${i.quantity})`).join('\n')}\n\n*الإجمالي الكلي:* ${o.total} ريال يمني\n\n_شكراً لتسوقكم معنا!_`;
-            const link = `https://api.whatsapp.com/send?phone=${formattedNum}&text=${encodeURIComponent(text)}`;
-            window.open(link, '_blank');
-        }
-    }
-
-    async function generateInvoice(o, targetWindow) {
-        const s = await safeFetch('/api/settings');
-        if (s) {
-            const policy = s.returnPolicy || 'شروط الإرجاع المعتمدة للمتجر.';
-            const win = targetWindow || window.open();
-            win.document.title = `فاتورة_الرعدي_${o.customer.replace(/\s+/g, '_')}`;
-            win.document.body.innerHTML = ""; 
-            win.document.write(`
-                <html dir="rtl">
-                <head>
-                    <title>فاتورة الرعدي أونلاين</title>
-                    <style>
-                        body { font-family: 'Cairo', Arial; padding: 40px; color: #0f172a; line-height: 1.6; background:#fff; }
-                        .invoice-box { border: 2px solid #d4af37; padding: 40px; border-radius: 24px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); }
-                        .invoice-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d4af37; padding-bottom: 25px; margin-bottom: 30px; }
-                        .logo-title { display: flex; align-items: center; gap: 15px; }
-                        .logo-svg { fill: #d4af37; width: 60px; height: 60px; }
-                        .store-name { font-size: 2.2rem; font-weight: 900; color: #0d253f; }
-                        .meta-info { text-align: left; }
-                        table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-                        th, td { padding: 14px; border-bottom: 1.5px solid #cbd5e1; text-align: right; }
-                        th { background: #f8fafc; color: #0d253f; font-weight: 800; }
-                        .policy-section { background: #f8fafc; border-right: 4px solid #d4af37; padding: 20px; border-radius: 12px; margin-top: 30px; font-size: 0.85rem; }
-                        .signature-field { display: flex; justify-content: space-between; margin-top: 40px; border-top: 1px dashed #cbd5e1; padding-top: 20px; }
-                        .btn-print { background: #d4af37; color: #000; border: none; padding: 12px 25px; border-radius: 30px; font-weight: 800; cursor: pointer; margin-top: 20px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="invoice-box">
-                        <div class="invoice-header">
-                            <div class="logo-title">
-                                <svg class="logo-svg" viewBox="0 0 100 100">
-                                    <path d="M50 15 C65 25 78 40 85 55 C70 58 58 48 48 62 C38 74 25 80 15 75 C30 70 35 55 18 42 Z" fill="none" stroke="#d4af37" stroke-width="4"/>
-                                    <path d="M48 62 L38 68 L42 62 Z" fill="#d4af37"/>
-                                    <circle cx="52" cy="45" r="4" fill="#d4af37"/>
-                                </svg>
-                                <span class="store-name">الرعدي أونلاين</span>
-                            </div>
-                            <div class="meta-info">
-                                <h3>فاتورة شراء معتمدة</h3>
-                                <p>رقم الفاتورة الموحد: <strong>RAD-${Date.now()}</strong></p>
-                                <p>التاريخ: ${new Date().toLocaleDateString('ar-EG')}</p>
-                            </div>
-                        </div>
-                        <p><strong>اسم العميل الرباعي:</strong> ${o.customer}</p>
-                        <p><strong>رقم الهاتف المعتمد:</strong> ${o.phone}</p>
-                        <p><strong>عنوان التوصيل:</strong> ${o.address}</p>
-                        <p><strong>تاريخ الطلب:</strong> ${new Date().toLocaleDateString('ar-EG')}</p>
-                        <p><strong>موعد التسليم المتوقع:</strong> ${new Date(Date.now() + 259200000).toLocaleDateString('ar-EG')}</p>
-                        
-                        <table>
-                            <thead>
-                                <tr><th>اسم المنتج الفاخر</th><th>الكمية</th><th>السعر الفردي</th><th>الإجمالي</th></tr>
-                            </thead>
-                            <tbody>
-                                ${o.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${formatPrice(i.price)}</td><td>${formatPrice(i.price * i.quantity)}</td></tr>`).join('')}
-                            </tbody>
-                        </table>
-                        
-                        <h3 style="text-align: left; color:#d4af37;">الإجمالي الكلي شامل الضريبة والشحن: ${formatPrice(o.total)}</h3>
-                        
-                        <div class="policy-section">
-                            <h4>⚖️ شروط وقوانين الاستبدال والاسترجاع المعتمدة للمتجر:</h4>
-                            <p>${policy.replace(/\n/g, '<br>')}</p>
-                        </div>
-
-                        <div class="signature-field">
-                            <div>توقيع المستلم المعتمد: ............................</div>
-                            <div>التاريخ: ${new Date().toLocaleDateString('ar-EG')}</div>
-                        </div>
-                        <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة وحفظها PDF</button>
-                    </div>
-                </body>
-                </html>
-            `);
-        }
-    }
-
-    function closeCheckoutModal() { document.getElementById('checkoutModal').style.display='none'; }
-
-    function openProfileModal(s) {
-        if (!currentUser) return;
-        document.getElementById('profName').value = currentUser.name;
-        document.getElementById('profEmail').value = currentUser.email;
-        document.getElementById('profPhone').value = currentUser.phone || '';
-        document.getElementById('profAddress').value = currentUser.address || '';
-        document.getElementById('profAvatar').value = currentUser.avatar || '';
-        document.getElementById('profileModal').style.display = s ? 'flex' : 'none';
-    }
-
-    async function updateProfile() {
-        const payload = {
-            name: document.getElementById('profName').value.trim(),
-            email: document.getElementById('profEmail').value.trim(),
-            password: document.getElementById('profPass').value,
-            phone: document.getElementById('profPhone').value.trim(),
-            address: document.getElementById('profAddress').value.trim(),
-            avatar: document.getElementById('profAvatar').value.trim()
-        };
-        const res = await safeFetch('/api/profile/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-        if (res && res.success) {
-            currentUser = res.user;
-            localStorage.setItem('raadi_user', JSON.stringify(currentUser));
-            updateAuthUI();
-            openProfileModal(false);
-            alert("✅ تم تحديث بياناتك بنجاح");
-        } else {
-            alert("حدث خطأ أثناء تعديل الملف الشخصي");
-        }
-    }
-
-    async function sendChatMessage() {
-        const inp = document.getElementById('chatInput');
-        const text = inp.value.trim();
-        if (!text) return;
-        try {
-            await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ text, isAdmin:false }) });
-            inp.value = ''; loadMessages();
-        } catch { console.error("خطأ بالإرسال"); }
-    }
-
-    async function loadMessages() {
-        if (!currentUser) return;
-        try {
-            const list = await safeFetch('/api/messages');
-            if (list) {
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = list.map(m => `<div class="chat-message ${m.isAdmin ? 'admin' : 'user'}"><strong>${m.sender}:</strong> ${m.text}</div>`).join('');
-                container.scrollTop = container.scrollHeight;
-                
-                const hasUnread = list.some(m => m.isAdmin === 1 && m.isRead === 0);
-                if (hasUnread) document.getElementById('bellBadge').classList.add('active');
-                else document.getElementById('bellBadge').classList.remove('active');
-            }
-        } catch { console.error("خطأ بالرسائل"); }
-    }
-
-    function toggleChat(s) {
-        const win = document.getElementById('chatWindow');
-        if(s) win.classList.toggle('open');
-        else win.classList.remove('open');
-        if (win.classList.contains('open')) {
-            if (!currentUser) { alert("سجل دخولك أولاً لفتح المحادثات"); win.classList.remove('open'); toggleAuthModal(true); return; }
-            loadMessages();
-            document.getElementById('bellBadge').classList.remove('active');
-            if (!chatPollInterval) chatPollInterval = setInterval(loadMessages, 4000);
-        } else { if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; } }
-    }
-
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('raadi_dark_mode', isDark ? 'enabled' : 'disabled');
-        document.getElementById('darkModeBtn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    }
-
-    function toggleAuthModal(s) { document.getElementById('authModal').style.display = s ? 'flex' : 'none'; }
-    async function login() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        if (!email || !password) { alert("يرجى إدخال البريد الإلكتروني وكلمة المرور"); return; }
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await response.json();
-            if (response.ok && data.success) {
-                currentUser = data.user;
-                localStorage.setItem('raadi_user', JSON.stringify(currentUser));
-                toggleAuthModal(false);
-                updateAuthUI();
-                await loadProducts();
-            } else {
-                alert(data.error || 'خطأ في البيانات');
-            }
-        } catch {
-            alert('❌ خطأ في الاتصال بالخادم');
-        }
-    }
-    async function register() {
-        const name = document.getElementById('regName').value.trim(), email = document.getElementById('regEmail').value.trim(), password = document.getElementById('regPassword').value, phone = document.getElementById('regPhone').value.trim(), address = document.getElementById('regAddress').value.trim();
-        if(!name || !email || !password) { alert("يرجى تعبئة الحقول الأساسية"); return; }
-        try {
-            const res = await (await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, email, password, phone, address}) })).json();
-            if (res.success) { alert('تم التسجيل بنجاح'); showLogin(); } else alert(res.error);
-        } catch {
-            alert('❌ خطأ في الاتصال بالخادم');
-        }
-    }
-    async function logout() { await fetch('/api/logout', { method:'POST' }); currentUser=null; localStorage.removeItem('raadi_user'); location.reload(); }
-    
-    function updateAuthUI() {
-        if (currentUser) {
-            document.getElementById('userWelcome').innerText = currentLanguage === 'ar' ? `مرحباً، ${currentUser.name}` : `Welcome, ${currentUser.name}`;
-            document.getElementById('userWelcome').style.display = 'block';
-            document.getElementById('authTriggerBtn').style.display = 'none';
-            document.getElementById('logoutTriggerBtn').style.display = 'block';
-            document.getElementById('adminBtn').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
-            
-            if (currentUser.avatar) {
-                document.getElementById('userAvatarImg').src = currentUser.avatar;
-                document.getElementById('userAvatarContainer').style.display = 'block';
-                document.getElementById('userWelcome').style.display = 'none';
-            } else {
-                document.getElementById('userAvatarContainer').style.display = 'none';
-            }
-        } else {
-            // نمط الزائر المقيد بالكامل لحفظ سلامة العمليات التجارية
-            document.getElementById('userWelcome').innerText = dict[currentLanguage].guest;
-            document.getElementById('userWelcome').style.display = 'block';
-            document.getElementById('userAvatarContainer').style.display = 'none';
-            document.getElementById('authTriggerBtn').style.display = 'block';
-            document.getElementById('logoutTriggerBtn').style.display = 'none';
-            document.getElementById('adminBtn').style.display = 'none';
-        }
-    }
-    function showRegister() { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; }
-    function showLogin() { document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; }
-
-    async function init() {
-        if (localStorage.getItem('raadi_dark_mode') === 'enabled') {
-            document.body.classList.add('dark-mode');
-            document.getElementById('darkModeBtn').innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-            document.body.classList.remove('dark-mode');
-            document.getElementById('darkModeBtn').innerHTML = '<i class="fas fa-moon"></i>';
-        }
-
-        const s = await safeFetch('/api/settings');
-        if (s && s.marqueeText) document.getElementById('marqueeContainer').innerText = s.marqueeText;
-
-        currentLanguage = localStorage.getItem('raadi_lang') || 'ar';
-        currentCurrency = localStorage.getItem('raadi_currency') || 'SAR';
-        toggleLanguage(false);
-        toggleCurrency(false);
-
-        await loadSettings(); loadCart();
-        const saved = localStorage.getItem('raadi_user');
-        if (saved) {
-            currentUser = JSON.parse(saved);
-            const check = await fetch('/api/me');
-            if (check.ok) { currentUser = await check.json(); localStorage.setItem('raadi_user', JSON.stringify(currentUser)); }
-            else { currentUser = null; localStorage.removeItem('raadi_user'); }
-        }
-        updateAuthUI(); loadProducts(); startSlider();
-        
-        if (s) welcomeVoice(s.voiceGender || 'female', s.voiceText || '');
-
-        window.addEventListener('click', () => { document.getElementById('suggestionsBox').style.display = 'none'; });
-    }
-    init();
-</script>
-</body>
-                </html>
+                container.innerHT

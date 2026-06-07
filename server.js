@@ -8,7 +8,6 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// إعدادات السيرفر
 app.use(session({
     secret: 'raadi-ultimate-super-secret-2026-enterprise',
     resave: false,
@@ -19,11 +18,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// قاعدة البيانات
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'raadi.db');
 const db = new sqlite3.Database(dbPath);
 
-// دوال مساعدة
 function runQuery(sql, params = []) {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function(err) {
@@ -51,7 +48,6 @@ function allQuery(sql, params = []) {
     });
 }
 
-// إنشاء الجداول
 const createTables = async () => {
     try {
         await runQuery(`CREATE TABLE IF NOT EXISTS categories (
@@ -143,9 +139,16 @@ const createTables = async () => {
             updatedAt TEXT
         )`);
 
+        await runQuery(`CREATE TABLE IF NOT EXISTS reserved_stock (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            productId INTEGER,
+            quantity INTEGER,
+            sessionId TEXT,
+            expiresAt TEXT
+        )`);
+
         console.log('✅ جميع الجداول تم إنشاؤها بنجاح');
 
-        // البيانات الأولية
         const catCount = await getQuery("SELECT COUNT(*) as count FROM categories");
         if (catCount.count === 0) {
             await runQuery("INSERT INTO categories (name_ar, name_en, icon, createdAt) VALUES (?, ?, ?, ?)", ['هواتف', 'Phones', 'fa-mobile-alt', new Date().toISOString()]);
@@ -167,6 +170,8 @@ const createTables = async () => {
                 ['هاتف الرعدي برو X', 'Raadi Phone Pro X', 'هواتف', 2999, 3499, 15, 'أسود تيتانيوم', 'كاميرا 200 ميجابكسل، شاشة 6.8 بوصة', '200MP Camera, 6.8" Screen', 10, 'https://picsum.photos/id/0/300/300', new Date().toISOString()]);
             await runQuery(`INSERT INTO products (name_ar, name_en, category, price, oldPrice, discount, color, features_ar, features_en, stock, image, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
                 ['سامسونج جالكسي S24', 'Samsung Galaxy S24', 'هواتف', 4940, 5200, 12, 'رمادي تيتانيوم', 'قلم S-Pen، سعة 512 جيجا', 'S-Pen, 512GB', 7, 'https://picsum.photos/id/1/300/300', new Date().toISOString()]);
+            await runQuery(`INSERT INTO products (name_ar, name_en, category, price, oldPrice, discount, color, features_ar, features_en, stock, image, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+                ['سماعة أبل إيربودز', 'Apple AirPods Pro', 'إكسسوارات', 899, 1099, 18, 'أبيض', 'عزل ضوضاء، صوت محيطي', 'Noise Cancellation', 15, 'https://picsum.photos/id/3/300/300', new Date().toISOString()]);
             console.log('✅ تم إضافة منتجات افتراضية');
         }
 
@@ -177,6 +182,15 @@ const createTables = async () => {
             console.log('✅ تم إضافة كوبونات افتراضية');
         }
 
+        const setCount = await getQuery("SELECT COUNT(*) as count FROM settings");
+        if (setCount.count === 0) {
+            await runQuery("INSERT INTO settings (key, value_ar, value_en, updatedAt) VALUES (?, ?, ?, ?)", ['siteName', 'الرعدي أونلاين', 'Raadi Online', new Date().toISOString()]);
+            await runQuery("INSERT INTO settings (key, value_ar, value_en, updatedAt) VALUES (?, ?, ?, ?)", ['domesticShipping', '15', '15', new Date().toISOString()]);
+            await runQuery("INSERT INTO settings (key, value_ar, value_en, updatedAt) VALUES (?, ?, ?, ?)", ['internationalShipping', '50', '50', new Date().toISOString()]);
+            await runQuery("INSERT INTO settings (key, value_ar, value_en, updatedAt) VALUES (?, ?, ?, ?)", ['whatsappNumber', '966500000000', '966500000000', new Date().toISOString()]);
+            console.log('✅ تم إضافة الإعدادات الافتراضية');
+        }
+
     } catch (error) {
         console.error('❌ خطأ في إنشاء الجداول:', error.message);
     }
@@ -184,7 +198,9 @@ const createTables = async () => {
 
 createTables();
 
-// ==================== مسارات API ====================
+setInterval(async () => {
+    await runQuery("DELETE FROM reserved_stock WHERE expiresAt < datetime('now')");
+}, 60 * 1000);
 
 app.get('/api/products', async (req, res) => {
     try {
@@ -265,6 +281,7 @@ app.post('/api/login', async (req, res) => {
         if (!match) return res.status(401).json({ error: 'كلمة المرور غير صحيحة' });
         req.session.userId = user.id;
         req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role };
+        await runQuery("UPDATE users SET lastLogin = ? WHERE id = ?", [new Date().toISOString(), user.id]);
         res.json({ success: true, user: req.session.user });
     } catch (error) {
         res.status(500).json({ error: 'حدث خطأ' });

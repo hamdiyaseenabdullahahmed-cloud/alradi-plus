@@ -137,7 +137,7 @@
                 <canvas id="salesChart" style="max-height:280px; width:100%;"></canvas>
             </div>
             
-            <!-- تقرير جرد المستودع -->
+            <!-- تقرير جرد المستودع التفصيلي القابل للطباعة والمزامنة -->
             <div class="section" id="warehouseReportSection">
                 <div class="section-title">
                     <span>📦 تقرير جرد المستودع والمخزون الكلي للمالية</span>
@@ -242,7 +242,7 @@
                     <option value="female">صوت أنثى (رقيق ولبق)</option>
                     <option value="male">صوت ذكر (وقور ومرحب)</option>
                 </select>
-                <label>نص الترحيب الصوتي عند دخول الزوار:</label><input type="text" id="voiceText">
+                <label>نص الترحيب الصوتي الآلي:</label><input type="text" id="voiceText">
                 
                 <label>سياسة المتجر الصارمة للإرجاع والاستبدال (شروط الفاتورة):</label><textarea id="returnPolicy" rows="4"></textarea>
                 
@@ -267,6 +267,7 @@
     </div>
 </div>
 
+<!-- كشف حساب العميل القابل للطباعة والتحميل -->
 <div id="clientReportModal" class="modal-overlay">
     <div class="checkout-modal" style="width:700px;">
         <i class="fas fa-times close-modal" onclick="closeClientReportModal()"></i>
@@ -279,6 +280,18 @@
 <script>
     let products = [], categories = [], orders = [], users = [], coupons = [], messages = [], groups = [], salesChartInstance = null;
     let selectedChatUserId = null;
+
+    // ---------------------------- الجلب والاتصال الآمن لمنع الانهيارات تماماً ----------------------------
+    async function safeFetch(url, options = {}) {
+        try {
+            const res = await fetch(url, options);
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            console.error("رابط الاستجابة تعذر جلبه أو حدث خطأ فني:", e);
+            return null;
+        }
+    }
 
     // ---------------------------- نظام التنبيهات المضيئة التفاعلية (Toast) ----------------------------
     function showToast(msg, isError = false) {
@@ -303,6 +316,7 @@
         } catch (e) { console.error("خطأ بتحميل البيانات الإدارية:", e); }
     }
 
+    // حساب ومعاينة السلعة الأكثر طلباً ديناميكياً
     function calculateTrendingProduct() {
         const counts = {};
         orders.forEach(o => {
@@ -318,9 +332,11 @@
     }
 
     async function populateAdminForm() {
-        const u = await (await fetch('/api/me')).json();
-        document.getElementById('adminName').value = u.name;
-        document.getElementById('adminEmail').value = u.email;
+        const u = await safeFetch('/api/me');
+        if (u) {
+            document.getElementById('adminName').value = u.name;
+            document.getElementById('adminEmail').value = u.email;
+        }
     }
 
     function renderWarehouseReportTable() {
@@ -342,6 +358,10 @@
 
     function printWarehouseReport() {
         const win = window.open();
+        if (!win) {
+            alert("⚠️ يرجى تفعيل النوافذ المنبثقة لطباعة جرد المستودع");
+            return;
+        }
         win.document.write(`
             <html dir="rtl"><head><title>تقرير جرد المستودع والمخازن</title><style>body { font-family: 'Cairo', Arial; padding: 40px; } table { width:100%; border-collapse:collapse; margin-top:30px; } th, td { padding:12px; border-bottom:1.5px solid #000; text-align:right; } th { background:#f1f5f9; }</style></head>
             <body>
@@ -383,11 +403,11 @@
     async function addProduct() {
         const p = { name: document.getElementById('productName').value, category: document.getElementById('productCat').value, price: parseFloat(document.getElementById('productPrice').value), oldPrice: parseFloat(document.getElementById('productOldPrice').value)||0, discount: parseInt(document.getElementById('productDiscount').value)||0, color: document.getElementById('productColor').value, features: document.getElementById('productFeatures').value, image: document.getElementById('productImage').value, stock: parseInt(document.getElementById('productStock').value)||0 };
         if(!p.name || !p.price || !p.category) { showToast("الحقول الأساسية مطلوبة", true); return; }
-        const res = await fetch('/api/products', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
-        if(res.ok) { showToast("✅ تم إضافة المنتج بنجاح"); loadAll(); clearForm(); }
+        const res = await safeFetch('/api/products', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
+        if(res && res.success) { showToast("✅ تم إضافة المنتج بنجاح"); loadAll(); clearForm(); }
     }
     function clearForm() { ['productName', 'productPrice', 'productOldPrice', 'productDiscount', 'productColor', 'productFeatures', 'productImage', 'productStock'].forEach(id => document.getElementById(id).value=''); }
-    async function deleteProduct(id) { if(confirm("حذف المنتج؟")) { await fetch(`/api/products/${id}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف المنتج"); } }
+    async function deleteProduct(id) { if(confirm("حذف المنتج؟")) { await safeFetch(`/api/products/${id}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف المنتج"); } }
 
     function renderProductsTable() {
         document.querySelector('#productsTable tbody').innerHTML = products.map(p => `
@@ -407,7 +427,7 @@
         const p = products.find(prod => prod.id === id);
         if (p) {
             p.stock = parseInt(val);
-            await fetch(`/api/products/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
+            await safeFetch(`/api/products/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
             showToast(`⚙️ تم تحديث كمية المنتج #${id} بنجاح`);
         }
     }
@@ -415,8 +435,8 @@
     async function addCategory() {
         const name = document.getElementById('newCategory').value.trim();
         if(!name) return;
-        const res = await fetch('/api/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name}) });
-        if(res.ok) { showToast("تم حفظ القسم الجديد"); document.getElementById('newCategory').value=''; loadAll(); }
+        const res = await safeFetch('/api/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name}) });
+        if(res && res.success) { showToast("تم حفظ القسم الجديد"); document.getElementById('newCategory').value=''; loadAll(); }
     }
     function renderCategoriesList() {
         document.getElementById('categoriesList').innerHTML = categories.map(cat => `
@@ -427,7 +447,7 @@
         const sel = document.getElementById('productCat');
         if(sel) sel.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
-    async function deleteCategory(cat) { if(confirm("حذف القسم سيمسح جميع منتجاته، تأكيد؟")) { await fetch(`/api/categories/${encodeURIComponent(cat)}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف القسم بالكامل"); } }
+    async function deleteCategory(cat) { if(confirm("حذف القسم سيمسح جميع منتجاته، تأكيد؟")) { await safeFetch(`/api/categories/${encodeURIComponent(cat)}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف القسم بالكامل"); } }
 
     function renderOrdersList() {
         const container = document.getElementById('ordersList');
@@ -437,7 +457,7 @@
                 <div><strong>🧾 فاتورة #${o.id}</strong> | العميل: ${o.customer} | الهواتف: ${o.phone} | العنوان: ${o.address}</div>
                 <div>الإجمالي: ${o.total} ريال | الحالة: <span class="status-badge status-${o.status==='قيد المعالجة'?'processing':(o.status==='تم الشحن'?'shipped':'delivered')}">${o.status}</span></div>
                 <div style="margin-top:15px; display:flex; gap:10px;">
-                    <select onchange="updateStatus(${o.id}, this.value)" style="width:auto; margin:0;">
+                    <select onchange="updateStatus(${o.id}, this.value)" style="width:auto; margin:0; background:#0f2c4a; color:white;">
                         <option value="قيد المعالجة" ${o.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option>
                         <option value="تم الشحن" ${o.status==='تم الشحن'?'selected':''}>تم الشحن</option>
                         <option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option>
@@ -446,13 +466,13 @@
             </div>
         `).join('');
     }
-    async function updateStatus(id, status) { await fetch(`/api/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); loadAll(); showToast("✅ تم تحديث حالة الشحن بنجاح"); }
+    async function updateStatus(id, status) { await safeFetch(`/api/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status}) }); loadAll(); showToast("✅ تم تحديث حالة الشحن بنجاح"); }
 
     async function createGroup() {
         const name = document.getElementById('newGroupName').value.trim();
         if (!name) return;
-        const res = await fetch('/api/groups', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name }) });
-        if (res.ok) { showToast("✅ تم إنشاء المجموعة بنجاح"); document.getElementById('newGroupName').value = ''; loadAll(); }
+        const res = await safeFetch('/api/groups', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name }) });
+        if (res && res.success) { showToast("✅ تم إنشاء المجموعة بنجاح"); document.getElementById('newGroupName').value = ''; loadAll(); }
     }
 
     function renderGroupsList() {
@@ -469,7 +489,7 @@
 
     async function deleteGroup(id) {
         if(confirm("هل تريد حذف المجموعة؟")) {
-            await fetch(`/api/groups/${id}`, { method:'DELETE' });
+            await safeFetch(`/api/groups/${id}`, { method:'DELETE' });
             loadAll();
             showToast("🗑️ تم حذف المجموعة");
         }
@@ -481,7 +501,7 @@
         const grp = groups.find(g => g.id === groupId);
         const members = JSON.parse(grp.members);
         for(const userId of members) {
-            await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ text: `[إعلان مجموعة ${grp.name}]: ${text}`, isAdmin:true, targetUserId: userId }) });
+            await safeFetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ text: `[إعلان مجموعة ${grp.name}]: ${text}`, isAdmin:true, targetUserId: userId }) });
         }
         showToast("📢 تم بث الإعلان الجماعي بنجاح!");
         loadAll();
@@ -509,20 +529,6 @@
         sel.innerHTML = users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     }
 
-    async function addUserToGroup(userId, groupId) {
-        if (!groupId) return;
-        const grp = groups.find(g => g.id === parseInt(groupId));
-        const members = JSON.parse(grp.members);
-        if (!members.includes(userId)) {
-            members.push(userId);
-            await fetch(`/api/groups/${groupId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ members }) });
-            showToast("✅ تم إضافة العميل للمجموعة بنجاح");
-        } else {
-            showToast("العميل مضاف مسبقاً لهذه المجموعة", true);
-        }
-        loadAll();
-    }
-
     function viewClientReport(userId) {
         const u = users.find(usr => usr.id === userId);
         const uOrders = orders.filter(o => o.userId === userId);
@@ -540,7 +546,7 @@
             </ul>
             <hr style="margin:15px 0;">
             <p><strong>إجمالي الأموال المنفقة:</strong> ${totalSpent} ريال يمني</p>
-            <p><strong>إجمالي عدد القطع المشتراة:</strong> ${totalItems} قطع</p>
+            <p><strong>إجمالي عدد القطع المشتраة:</strong> ${totalItems} قطع</p>
         `;
         document.getElementById('clientReportModal').style.display = 'flex';
     }
@@ -569,8 +575,8 @@
     async function addCoupon() {
         const code = document.getElementById('couponCode').value.trim().toUpperCase(), value = parseInt(document.getElementById('couponValue').value);
         if(!code || isNaN(value)) return;
-        const res = await fetch('/api/coupons', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, value}) });
-        if(res.ok) { showToast("✅ تم حفظ الكوبون"); document.getElementById('couponCode').value=''; document.getElementById('couponValue').value=''; loadAll(); }
+        const res = await safeFetch('/api/coupons', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, value}) });
+        if(res && res.success) { showToast("✅ تم حفظ الكوبون"); document.getElementById('couponCode').value=''; document.getElementById('couponValue').value=''; loadAll(); }
     }
     function renderCouponsList() {
         document.getElementById('couponsList').innerHTML = coupons.map(c => `
@@ -579,17 +585,19 @@
             </div>
         `).join('');
     }
-    async function deleteCoupon(code) { if(confirm("حذف الكوبون؟")) { await fetch(`/api/coupons/${code}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف الكوبون"); } }
+    async function deleteCoupon(code) { if(confirm("حذف الكوبون؟")) { await safeFetch(`/api/coupons/${code}`, { method:'DELETE' }); loadAll(); showToast("🗑️ تم حذف الكوبون"); } }
 
     async function loadSettings() {
-        const s = await (await fetch('/api/settings')).json();
-        document.getElementById('domesticShipping').value = s.domesticShipping || 15;
-        document.getElementById('internationalShipping').value = s.internationalShipping || 50;
-        document.getElementById('whatsappNumber').value = s.whatsappNumber || '+967781723532';
-        document.getElementById('marqueeText').value = s.marqueeText || '';
-        document.getElementById('voiceGender').value = s.voiceGender || 'female';
-        document.getElementById('voiceText').value = s.voiceText || '';
-        document.getElementById('returnPolicy').value = s.returnPolicy || "";
+        const s = await safeFetch('/api/settings');
+        if (s) {
+            document.getElementById('domesticShipping').value = s.domesticShipping || 15;
+            document.getElementById('internationalShipping').value = s.internationalShipping || 50;
+            document.getElementById('whatsappNumber').value = s.whatsappNumber || '+967781723532';
+            document.getElementById('marqueeText').value = s.marqueeText || '';
+            document.getElementById('voiceGender').value = s.voiceGender || 'female';
+            document.getElementById('voiceText').value = s.voiceText || '';
+            document.getElementById('returnPolicy').value = s.returnPolicy || "";
+        }
     }
     
     async function saveSettings() {
@@ -602,13 +610,13 @@
             voiceText: document.getElementById('voiceText').value.trim(),
             returnPolicy: document.getElementById('returnPolicy').value 
         };
-        await fetch('/api/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s) });
+        await safeFetch('/api/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s) });
         
         const name = document.getElementById('adminName').value.trim();
         const email = document.getElementById('adminEmail').value.trim();
         const password = document.getElementById('adminPass').value;
         const payload = { name, email, password, phone: '', address: '', avatar: '' };
-        await fetch('/api/profile/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        await safeFetch('/api/profile/update', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
 
         showToast("✅ تم حفظ كافة الإعدادات والملف الشخصي للمسؤول بنجاح");
         loadAll();
@@ -624,8 +632,10 @@
         const inp = document.getElementById('replyMsg');
         const text = inp.value.trim();
         if(!text || !selectedChatUserId) return;
-        await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, isAdmin:true, targetUserId: selectedChatUserId}) });
-        inp.value = ''; loadAll(); showToast("✅ تم إرسال الرسالة للعميل");
+        const res = await safeFetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, isAdmin:true, targetUserId: selectedChatUserId}) });
+        if (res && res.success) {
+            inp.value = ''; loadAll(); showToast("✅ تم إرسال الرسالة للعميل");
+        }
     }
 
     async function logout() { await fetch('/api/logout', { method:'POST' }); window.location.href='/'; }
@@ -644,4 +654,4 @@
     loadSettings();
 </script>
 </body>
-    </html>
+</html>

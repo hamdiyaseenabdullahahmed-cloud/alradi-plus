@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>الرعدي أونلاين | المتجر العالمي الأسطوري</title>
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/48/eagle.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
@@ -22,7 +23,6 @@
             --dark: #0f172a;
             --light: #f8fafc;
             --gray: #64748b;
-            --gray-light: #94a3b8;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
@@ -32,10 +32,10 @@
             --border: #e2e8f0;
             --text: #0f172a;
             --text-muted: #64748b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
             --radius-sm: 0.5rem;
             --radius-md: 1rem;
             --radius-lg: 1.5rem;
@@ -54,10 +54,9 @@
             color: var(--text);
             transition: var(--transition);
             overflow-x: hidden;
-            line-height: 1.5;
         }
         /* شريط الإعلانات المتحرك */
-        .top-bar {
+        .announcement-bar {
             background: linear-gradient(90deg, var(--dark), var(--secondary));
             color: var(--primary-light);
             text-align: center;
@@ -71,17 +70,16 @@
             white-space: nowrap;
             box-shadow: var(--shadow-sm);
         }
-        .top-bar span {
+        .announcement-bar span {
             display: inline-block;
-            animation: scrollText 25s linear infinite;
+            animation: scrollText 30s linear infinite;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
         @keyframes scrollText {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
         }
-        /* الهيدر الرئيسي */
+        /* الهيدر */
         .header {
             margin-top: 52px;
             background: var(--card);
@@ -105,10 +103,6 @@
             background-clip: text;
             color: transparent;
             cursor: pointer;
-            transition: var(--transition);
-        }
-        .logo:hover {
-            transform: scale(1.02);
         }
         .logo span {
             color: var(--text);
@@ -127,14 +121,13 @@
         }
         .search-box:focus-within {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
         }
         .search-box input {
             background: none;
             border: none;
             outline: none;
             width: 100%;
-            font-size: 0.9rem;
             color: var(--text);
         }
         .controls {
@@ -150,10 +143,6 @@
             color: var(--text);
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-        }
-        .lang-select:hover, .currency-select:hover {
-            border-color: var(--primary);
         }
         .user-actions {
             display: flex;
@@ -182,9 +171,6 @@
             color: white;
             position: relative;
         }
-        .cart-icon:hover {
-            background: var(--primary-dark);
-        }
         .cart-count {
             position: absolute;
             top: -5px;
@@ -207,69 +193,111 @@
             border-radius: 40px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-        }
-        .auth-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
         }
         .logout-btn {
             background: var(--danger);
         }
-        .logout-btn:hover {
-            background: #dc2626;
-        }
-        /* الأقسام */
-        .categories-section {
+        /* شريط الأقسام المتحرك (Carousel) */
+        .categories-carousel {
             background: var(--card);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 120px;
             z-index: 98;
-        }
-        .categories-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 30px;
-            flex-wrap: wrap;
             gap: 15px;
+            scroll-behavior: smooth;
         }
-        .categories {
-            display: flex;
-            gap: 25px;
-            flex-wrap: wrap;
+        .categories-carousel::-webkit-scrollbar {
+            height: 4px;
         }
-        .category-item {
-            font-weight: 700;
-            cursor: pointer;
-            padding: 8px 0;
-            color: var(--text-muted);
-            position: relative;
-            transition: var(--transition);
+        .categories-carousel::-webkit-scrollbar-track {
+            background: var(--border);
+            border-radius: 10px;
         }
-        .category-item.active, .category-item:hover {
-            color: var(--primary);
-        }
-        .category-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 100%;
-            height: 3px;
+        .categories-carousel::-webkit-scrollbar-thumb {
             background: var(--primary);
-            border-radius: 3px;
+            border-radius: 10px;
         }
-        .sort-box select {
+        .category-carousel-item {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
             padding: 8px 15px;
-            border-radius: 50px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            font-weight: 600;
+            border-radius: var(--radius-lg);
             cursor: pointer;
-            outline: none;
+            transition: var(--transition);
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .category-carousel-item.active, .category-carousel-item:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        /* السلايدر */
+        .hero-slider {
+            margin: 20px 30px;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            position: relative;
+            height: 350px;
+        }
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .slider-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            background-size: cover;
+            background-position: center;
+        }
+        .slider-slide.active {
+            opacity: 1;
+        }
+        .slider-content {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.7), transparent);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            color: white;
+        }
+        .slider-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+        }
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+        .slider-dot.active {
+            background: var(--primary);
+            width: 25px;
+            border-radius: 10px;
         }
         /* عداد العرض السريع */
         .flash-sale-timer {
@@ -280,18 +308,17 @@
             border-radius: var(--radius-md);
             margin: 20px 30px;
             font-weight: 800;
-            font-size: 1.1rem;
-            animation: pulse 2s infinite;
             display: none;
+            animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
+            0%,100% { transform: scale(1); }
             50% { transform: scale(1.01); }
         }
-        /* شبكة المنتجات */
+        /* المنتجات */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 30px;
             padding: 40px;
             max-width: 1400px;
@@ -303,7 +330,6 @@
             overflow: hidden;
             transition: var(--transition);
             border: 1px solid var(--border);
-            position: relative;
             cursor: pointer;
         }
         .product-card:hover {
@@ -327,7 +353,6 @@
             font-weight: 800;
             font-size: 1.2rem;
             margin-bottom: 8px;
-            color: var(--text);
         }
         .product-category {
             font-size: 0.7rem;
@@ -335,7 +360,6 @@
             margin-bottom: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .product-rating {
             display: flex;
@@ -346,18 +370,6 @@
         .stars {
             color: #fbbf24;
             font-size: 0.9rem;
-        }
-        .rating-count {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        .rate-icon {
-            color: var(--warning);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .rate-icon:hover {
-            transform: scale(1.1);
         }
         .product-price {
             display: flex;
@@ -384,33 +396,27 @@
             font-size: 0.7rem;
             font-weight: 700;
         }
-        .product-features {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin: 10px 0;
-            line-height: 1.4;
-        }
         .stock-status {
             font-size: 0.7rem;
             margin: 10px 0;
         }
         .in-stock {
             color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16,185,129,0.1);
             padding: 3px 10px;
             border-radius: 20px;
             display: inline-block;
         }
         .low-stock {
             color: var(--warning);
-            background: rgba(245, 158, 11, 0.1);
+            background: rgba(245,158,11,0.1);
             padding: 3px 10px;
             border-radius: 20px;
             display: inline-block;
         }
         .out-stock {
             color: var(--danger);
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239,68,68,0.1);
             padding: 3px 10px;
             border-radius: 20px;
             display: inline-block;
@@ -431,18 +437,11 @@
             cursor: pointer;
             font-size: 1.1rem;
             font-weight: 700;
-            transition: var(--transition);
-            color: var(--text);
         }
         .quantity-control button:hover {
             background: var(--primary);
             color: white;
             transform: scale(1.05);
-        }
-        .quantity-control span {
-            font-weight: 700;
-            min-width: 40px;
-            text-align: center;
         }
         .add-to-cart-btn {
             width: 100%;
@@ -453,12 +452,6 @@
             border-radius: 50px;
             font-weight: 800;
             cursor: pointer;
-            transition: var(--transition);
-            font-size: 1rem;
-        }
-        .add-to-cart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(230, 126, 34, 0.4);
         }
         /* السلة الجانبية */
         .cart-sidebar {
@@ -469,11 +462,11 @@
             height: 100%;
             background: var(--card);
             z-index: 1200;
-            transition: 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: 0.4s;
             padding: 25px;
             overflow-y: auto;
             border-left: 1px solid var(--border);
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.1);
         }
         .cart-sidebar.open {
             right: 0;
@@ -486,18 +479,6 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-        .cart-header h3 {
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-        .cart-header i {
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: var(--transition);
-        }
-        .cart-header i:hover {
-            color: var(--danger);
-        }
         .cart-timer {
             background: #fef3c7;
             color: #d97706;
@@ -508,27 +489,12 @@
             font-weight: bold;
             display: none;
         }
-        body.dark-mode .cart-timer {
-            background: #78350f;
-            color: #fbbf24;
-        }
         .cart-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 0;
             border-bottom: 1px solid var(--border);
-        }
-        .cart-item-info {
-            flex: 1;
-        }
-        .cart-item-info h4 {
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        .cart-item-info p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
         }
         .cart-item-actions {
             display: flex;
@@ -542,19 +508,10 @@
             height: 32px;
             border-radius: 50%;
             cursor: pointer;
-            font-weight: 700;
-            transition: var(--transition);
         }
         .cart-item-actions button:hover {
             background: var(--primary);
             color: white;
-        }
-        .cart-item-actions .remove-btn {
-            background: var(--danger);
-            color: white;
-        }
-        .cart-item-actions .remove-btn:hover {
-            background: #dc2626;
         }
         .cart-total {
             margin-top: 20px;
@@ -573,9 +530,6 @@
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 50px;
-            font-size: 0.9rem;
-            background: var(--card);
-            color: var(--text);
         }
         .coupon-input button {
             background: var(--secondary);
@@ -583,28 +537,23 @@
             padding: 12px 20px;
             border-radius: 50px;
             color: white;
-            font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
         }
-        .coupon-input button:hover {
-            background: var(--primary);
-        }
-        /* نافذة الطلب */
-        .checkout-modal-overlay {
+        /* النوافذ المنبثقة */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.85);
             z-index: 1300;
             display: none;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(12px);
         }
-        .checkout-card {
+        .modal-card {
             background: var(--card);
             width: 550px;
             max-width: 95%;
@@ -614,23 +563,20 @@
             overflow-y: auto;
             position: relative;
         }
-        .checkout-card h3 {
+        .modal-card h3 {
             font-size: 1.5rem;
             margin-bottom: 20px;
             border-right: 4px solid var(--primary);
             padding-right: 15px;
         }
-        .checkout-card input, .checkout-card select, .checkout-card textarea {
+        .modal-card input, .modal-card select, .modal-card textarea {
             width: 100%;
             padding: 14px;
             margin: 10px 0;
             border: 1px solid var(--border);
             border-radius: 12px;
-            font-size: 1rem;
-            background: var(--card);
-            color: var(--text);
         }
-        .checkout-card button {
+        .modal-card button {
             width: 100%;
             background: var(--primary);
             color: white;
@@ -638,14 +584,8 @@
             padding: 14px;
             border-radius: 50px;
             font-weight: 800;
-            font-size: 1rem;
             margin-top: 15px;
             cursor: pointer;
-            transition: var(--transition);
-        }
-        .checkout-card button:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
         }
         .close-modal {
             position: absolute;
@@ -653,99 +593,6 @@
             left: 25px;
             font-size: 1.5rem;
             cursor: pointer;
-            color: var(--text-muted);
-            transition: var(--transition);
-        }
-        .close-modal:hover {
-            color: var(--danger);
-        }
-        /* نافذة التقييم */
-        .rating-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1400;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(12px);
-        }
-        .rating-card {
-            background: var(--card);
-            width: 450px;
-            max-width: 95%;
-            border-radius: 35px;
-            padding: 35px;
-            text-align: center;
-        }
-        .rating-stars {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            font-size: 2rem;
-            color: #cbd5e1;
-        }
-        .rating-stars i {
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .rating-stars i.active, .rating-stars i:hover {
-            color: #fbbf24;
-            transform: scale(1.1);
-        }
-        .rating-card textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            margin: 15px 0;
-            resize: vertical;
-        }
-        .rating-card button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            margin: 5px;
-        }
-        /* نافذة الأمنيات */
-        .wishlist-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1500;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(12px);
-        }
-        .wishlist-card {
-            background: var(--card);
-            width: 500px;
-            max-width: 95%;
-            border-radius: 35px;
-            padding: 35px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .wishlist-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
         }
         /* الدردشة */
         .chat-btn {
@@ -760,15 +607,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(230, 126, 34, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(230,126,34,0.4);
             z-index: 1000;
             color: white;
             font-size: 1.8rem;
-            transition: var(--transition);
             animation: chatPulse 2s infinite;
         }
         @keyframes chatPulse {
-            0%, 100% { transform: scale(1); }
+            0%,100% { transform: scale(1); }
             50% { transform: scale(1.08); }
         }
         .chat-window {
@@ -782,7 +628,6 @@
             display: none;
             flex-direction: column;
             z-index: 1001;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             border: 1px solid var(--primary);
         }
@@ -790,12 +635,11 @@
             display: flex;
         }
         .chat-header {
-            background: linear-gradient(135deg, var(--dark), var(--secondary));
+            background: var(--dark);
             color: white;
             padding: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
         .chat-messages {
             flex: 1;
@@ -803,15 +647,8 @@
             padding: 15px;
             background: var(--bg);
         }
-        .chat-message {
-            margin-bottom: 12px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            max-width: 85%;
-            word-wrap: break-word;
-        }
         .chat-message.user {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: var(--primary);
             color: white;
             margin-right: auto;
             border-bottom-right-radius: 5px;
@@ -826,7 +663,6 @@
             display: flex;
             padding: 12px;
             border-top: 1px solid var(--border);
-            background: var(--card);
             gap: 8px;
         }
         .chat-input input {
@@ -834,9 +670,6 @@
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 50px;
-            outline: none;
-            background: var(--bg);
-            color: var(--text);
         }
         .chat-input button {
             background: var(--primary);
@@ -846,20 +679,15 @@
             border-radius: 50%;
             color: white;
             cursor: pointer;
-            transition: var(--transition);
         }
-        .chat-input button:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-        }
-        /* نافذة المصادقة */
+        /* المصادقة */
         .auth-modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0,0,0,0.95);
             z-index: 2000;
             display: none;
             align-items: center;
@@ -872,11 +700,8 @@
             max-width: 95%;
             border-radius: 45px;
             padding: 40px;
-            position: relative;
-        }
-        .auth-card h2 {
             text-align: center;
-            margin-bottom: 25px;
+            position: relative;
         }
         .auth-card input {
             width: 100%;
@@ -884,9 +709,6 @@
             margin: 10px 0;
             border: 1px solid var(--border);
             border-radius: 50px;
-            font-size: 1rem;
-            background: var(--bg);
-            color: var(--text);
         }
         .auth-card button {
             width: 100%;
@@ -896,26 +718,21 @@
             padding: 15px;
             border-radius: 50px;
             font-weight: 800;
-            font-size: 1rem;
             margin-top: 15px;
             cursor: pointer;
         }
         .auth-card .switch {
-            text-align: center;
             margin-top: 20px;
             color: var(--primary);
             cursor: pointer;
         }
-        /* الإشعارات */
         .toast-notification {
             position: fixed;
             bottom: 30px;
             left: 30px;
             background: var(--card);
-            color: var(--text);
             padding: 12px 24px;
             border-radius: 50px;
-            box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -927,10 +744,6 @@
         .toast-notification.show {
             transform: translateX(0);
         }
-        .toast-notification i {
-            font-size: 1.2rem;
-        }
-        /* الفوتر */
         .footer {
             background: var(--dark);
             color: #94a3b8;
@@ -938,79 +751,25 @@
             padding: 40px;
             margin-top: 60px;
         }
-        .footer p {
-            margin: 5px 0;
-        }
-        /* وسائط الاستجابة */
         @media (max-width: 768px) {
-            .header {
-                padding: 15px;
-            }
-            .search-box {
-                width: 100%;
-                order: 3;
-            }
-            .controls {
-                order: 2;
-            }
-            .user-actions {
-                order: 1;
-            }
-            .products-grid {
-                padding: 20px;
-                gap: 20px;
-            }
-            .cart-sidebar {
-                width: 100%;
-                right: -100%;
-            }
-            .checkout-card, .auth-card, .rating-card, .wishlist-card {
-                width: 95%;
-                padding: 20px;
-            }
-            .flash-sale-timer {
-                margin: 15px;
-                font-size: 0.9rem;
-            }
-            .categories-container {
-                padding: 10px 15px;
-            }
-            .categories {
-                gap: 15px;
-            }
-            .category-item {
-                font-size: 0.85rem;
-            }
-        }
-        @media (max-width: 480px) {
-            .logo {
-                font-size: 1.4rem;
-            }
-            .product-title {
-                font-size: 1rem;
-            }
-            .current-price {
-                font-size: 1.2rem;
-            }
-            .chat-window {
-                width: 95%;
-                right: 2.5%;
-                bottom: 80px;
-            }
+            .search-box { width: 100%; order: 3; }
+            .cart-sidebar { width: 100%; right: -100%; }
+            .hero-slider { height: 200px; margin: 15px; }
+            .products-grid { padding: 20px; }
         }
     </style>
 </head>
 <body>
 
-<div class="top-bar">
-    <span id="marqueeText">⚡ عروض الصيف تصل إلى 70% | كود WELCOME20 خصم 20% | شحن مجاني للطلبات فوق 300 ريال | خدمة العملاء على مدار الساعة | تقييمات حقيقية من العملاء ⚡</span>
+<div class="announcement-bar" id="announcementBar">
+    <span>⚡ عروض الصيف تصل إلى 70% | كود WELCOME20 خصم 20% | شحن مجاني للطلبات فوق 300 ريال ⚡</span>
 </div>
 
 <div class="header">
     <div class="logo" onclick="location.reload()">🦅 الرعدي <span id="logoText">أونلاين</span></div>
     <div class="search-box">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="ابحث عن منتج..." autocomplete="off">
+        <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
     </div>
     <div class="controls">
         <select id="langSelect" class="lang-select">
@@ -1018,42 +777,25 @@
             <option value="en">🇬🇧 English</option>
         </select>
         <select id="currencySelect" class="currency-select">
-            <option value="SAR">🇸🇦 ريال سعودي</option>
-            <option value="USD">🇺🇸 دولار أمريكي</option>
+            <option value="SAR">🇸🇦 ريال</option>
+            <option value="USD">🇺🇸 دولار</option>
         </select>
     </div>
     <div class="user-actions">
-        <div class="icon-btn" id="darkModeBtn" onclick="toggleDarkMode()" title="تغيير الوضع المظلم">
-            <i class="fas fa-moon"></i>
-        </div>
-        <div class="icon-btn" id="wishlistBtn" onclick="openWishlistModal()" title="قائمة الأمنيات">
-            <i class="fas fa-heart"></i>
-        </div>
-        <div class="icon-btn cart-icon" onclick="toggleCart()" title="سلة التسوق">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="cart-count" id="cartCount">0</span>
-        </div>
+        <div class="icon-btn" id="darkModeBtn" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></div>
+        <div class="icon-btn" id="wishlistBtn" onclick="openWishlistModal()"><i class="fas fa-heart"></i></div>
+        <div class="icon-btn cart-icon" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></div>
         <button id="adminBtn" class="auth-btn" onclick="location.href='/admin'" style="display: none;">👑 لوحة التحكم</button>
         <button id="loginBtn" class="auth-btn" onclick="openAuthModal()">دخول</button>
         <button id="logoutBtn" class="auth-btn logout-btn" onclick="logout()" style="display: none;">خروج</button>
     </div>
 </div>
 
-<div class="categories-section">
-    <div class="categories-container">
-        <div class="categories" id="categoriesList">
-            <div class="category-item active" data-cat="all">الكل</div>
-        </div>
-        <div class="sort-box">
-            <select id="sortInput" onchange="renderProducts()">
-                <option value="default">↕️ الترتيب الافتراضي</option>
-                <option value="price-asc">💵 السعر: من الأقل للأعلى</option>
-                <option value="price-desc">📈 السعر: من الأعلى للأقل</option>
-                <option value="discount">🔥 الأعلى خصماً</option>
-                <option value="rating">⭐ الأعلى تقييماً</option>
-            </select>
-        </div>
-    </div>
+<div class="categories-carousel" id="categoriesCarousel"></div>
+
+<div class="hero-slider" id="heroSlider">
+    <div class="slider-container" id="sliderContainer"></div>
+    <div class="slider-dots" id="sliderDots"></div>
 </div>
 
 <div id="flashSaleTimer" class="flash-sale-timer"></div>
@@ -1061,1210 +803,369 @@
 <div class="products-grid" id="productsList"></div>
 
 <div id="cartSidebar" class="cart-sidebar">
-    <div class="cart-header">
-        <h3 id="cartTitle">🛍️ سلة المشتريات</h3>
-        <i class="fas fa-times" onclick="toggleCart()"></i>
-    </div>
+    <div class="cart-header"><h3 id="cartTitle">🛍️ سلة المشتريات</h3><i class="fas fa-times" onclick="toggleCart()"></i></div>
     <div id="cartTimer" class="cart-timer"></div>
     <div id="cartItems"></div>
-    <div class="coupon-input">
-        <input type="text" id="couponCode" placeholder="رمز الخصم">
-        <button onclick="applyCoupon()">تطبيق</button>
-    </div>
+    <div class="coupon-input"><input type="text" id="couponCode" placeholder="رمز الخصم"><button onclick="applyCoupon()">تطبيق</button></div>
     <div id="cartTotal" class="cart-total"></div>
-    <button onclick="openCheckoutModal()" style="width: 100%; margin-top: 15px;">✅ إتمام الطلب</button>
+    <button onclick="openCheckoutModal()">✅ إتمام الطلب</button>
 </div>
 
-<div id="checkoutModal" class="checkout-modal-overlay">
-    <div class="checkout-card">
-        <i class="fas fa-times close-modal" onclick="closeCheckoutModal()"></i>
+<div id="checkoutModal" class="modal-overlay">
+    <div class="modal-card"><i class="fas fa-times close-modal" onclick="closeCheckoutModal()"></i>
         <h3 id="checkoutTitle">📝 استكمال الطلب</h3>
-        <input type="text" id="fullName" placeholder="الاسم الكامل" required>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="tel" id="phone" placeholder="رقم الهاتف" required>
-        <input type="text" id="address" placeholder="العنوان بالتفصيل" required>
-        <select id="country">
-            <option value="saudi">🇸🇦 السعودية (شحن داخلي)</option>
-            <option value="other">🌍 خارج المملكة (شحن دولي)</option>
-        </select>
-        <div id="orderSummary"></div>
-        <button onclick="submitOrder()">💰 تأكيد الطلب وإصدار الفاتورة</button>
+        <input type="text" id="fullName" placeholder="الاسم الكامل"><input type="email" id="email" placeholder="البريد"><input type="tel" id="phone" placeholder="رقم الهاتف"><input type="text" id="address" placeholder="العنوان"><select id="country"><option value="saudi">🇸🇦 السعودية (شحن 15 ريال)</option><option value="other">🌍 خارج المملكة (شحن 50 ريال)</option></select>
+        <div id="orderSummary"></div><button onclick="submitOrder()">💰 تأكيد الطلب</button>
     </div>
 </div>
 
-<div id="ratingModal" class="rating-modal-overlay">
-    <div class="rating-card">
-        <i class="fas fa-times close-modal" onclick="closeRatingModal()"></i>
+<div id="ratingModal" class="modal-overlay">
+    <div class="modal-card"><i class="fas fa-times close-modal" onclick="closeRatingModal()"></i>
         <h3>⭐ تقييم المنتج</h3>
-        <div class="rating-stars" id="ratingStars">
-            <i class="far fa-star" data-rate="1"></i>
-            <i class="far fa-star" data-rate="2"></i>
-            <i class="far fa-star" data-rate="3"></i>
-            <i class="far fa-star" data-rate="4"></i>
-            <i class="far fa-star" data-rate="5"></i>
-        </div>
-        <textarea id="ratingReview" placeholder="اكتب مراجعتك (اختياري)" rows="3"></textarea>
+        <div class="rating-stars" id="ratingStars"><i class="far fa-star" data-rate="1"></i><i class="far fa-star" data-rate="2"></i><i class="far fa-star" data-rate="3"></i><i class="far fa-star" data-rate="4"></i><i class="far fa-star" data-rate="5"></i></div>
+        <textarea id="ratingReview" rows="3" placeholder="اكتب مراجعتك..."></textarea>
         <button onclick="submitRating()">إرسال التقييم</button>
         <button onclick="closeRatingModal()">إلغاء</button>
     </div>
 </div>
 
-<div id="wishlistModal" class="wishlist-modal-overlay">
-    <div class="wishlist-card">
-        <i class="fas fa-times close-modal" onclick="closeWishlistModal()"></i>
-        <h3>❤️ قائمة أمنياتي</h3>
-        <div id="wishlistItems"></div>
-    </div>
+<div id="wishlistModal" class="modal-overlay">
+    <div class="modal-card"><i class="fas fa-times close-modal" onclick="closeWishlistModal()"></i><h3>❤️ قائمة أمنياتي</h3><div id="wishlistItems"></div></div>
 </div>
 
-<div class="chat-btn" onclick="toggleChat()">
-    <i class="fas fa-comments"></i>
-</div>
+<div class="chat-btn" onclick="toggleChat()"><i class="fas fa-comments"></i></div>
 <div id="chatWindow" class="chat-window">
-    <div class="chat-header">
-        <span>💬 الدعم الفني - الرعدي أونلاين</span>
-        <i class="fas fa-times" onclick="toggleChat()"></i>
-    </div>
+    <div class="chat-header"><span>💬 الدعم الفني</span><i class="fas fa-times" onclick="toggleChat()"></i></div>
     <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="اكتب رسالتك...">
-        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-    </div>
+    <div class="chat-input"><input type="text" id="chatInput" placeholder="اكتب رسالتك..."><button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div>
 </div>
 
 <div id="authModal" class="auth-modal-overlay">
-    <div class="auth-card">
-        <i class="fas fa-times close-modal" onclick="closeAuthModal()" style="position: absolute; top: 20px; left: 25px; cursor: pointer;"></i>
-        <div id="loginForm">
-            <h2>🔐 تسجيل الدخول</h2>
-            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
-            <input type="password" id="loginPassword" placeholder="كلمة المرور">
-            <div id="loginError" style="color: var(--danger); margin-bottom: 10px; text-align: center;"></div>
-            <button onclick="login()">دخول</button>
-            <div class="switch" onclick="showRegister()">✨ ليس لديك حساب؟ سجل الآن</div>
-        </div>
-        <div id="registerForm" style="display: none;">
-            <h2>📝 إنشاء حساب جديد</h2>
-            <input type="text" id="regName" placeholder="الاسم الكامل">
-            <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
-            <input type="password" id="regPassword" placeholder="كلمة المرور">
-            <input type="tel" id="regPhone" placeholder="رقم الجوال">
-            <input type="text" id="regAddress" placeholder="العنوان">
-            <div id="registerError" style="color: var(--danger); margin-bottom: 10px; text-align: center;"></div>
-            <button onclick="register()">تسجيل</button>
-            <div class="switch" onclick="showLogin()">🔙 عودة لتسجيل الدخول</div>
-        </div>
+    <div class="auth-card"><i class="fas fa-times close-modal" onclick="closeAuthModal()"></i>
+        <div id="loginForm"><h2>🔐 تسجيل الدخول</h2><input type="email" id="loginEmail" placeholder="البريد"><input type="password" id="loginPassword" placeholder="كلمة المرور"><div id="loginError" style="color:#ef4444;"></div><button onclick="login()">دخول</button><div class="switch" onclick="showRegister()">✨ إنشاء حساب</div></div>
+        <div id="registerForm" style="display:none;"><h2>📝 إنشاء حساب</h2><input type="text" id="regName" placeholder="الاسم"><input type="email" id="regEmail" placeholder="البريد"><input type="password" id="regPassword" placeholder="كلمة المرور"><input type="tel" id="regPhone" placeholder="الجوال"><input type="text" id="regAddress" placeholder="العنوان"><div id="registerError" style="color:#ef4444;"></div><button onclick="register()">تسجيل</button><div class="switch" onclick="showLogin()">🔙 عودة للدخول</div></div>
     </div>
 </div>
 
-<div id="toast" class="toast-notification">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMsg"></span>
-</div>
+<div id="toast" class="toast-notification"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
 
-<div class="footer">
-    <p id="footerText">© 2026 الرعدي أونلاين - تجربة تسوق فائقة وآمنة</p>
-    <p style="font-size: 0.8rem; margin-top: 10px;">شحن سريع | دعم فني على مدار الساعة | ضمان استرجاع 14 يوماً</p>
-</div>
+<div class="footer"><p id="footerText">© 2026 الرعدي أونلاين - تجربة تسوق فائقة وآمنة</p></div>
 
 <script>
     // ====================================================================
-    // المتغيرات العامة والتخزين المحلي
+    // المتغيرات العامة
     // ====================================================================
-    let products = [];
-    let cart = [];
-    let currentUser = null;
-    let couponDiscount = 0;
-    let quantities = {};
-    let activeCategory = 'all';
-    let shippingSettings = { domestic: 15, international: 50 };
-    let wishlist = [];
-    let flashSaleEnd = Date.now() + 3600000;
-    let flashSaleInterval = null;
-    let cartTimerInterval = null;
-    let chatInterval = null;
-    let currentRatingProduct = null;
-    let selectedRating = 0;
+    let products = [], cart = [], currentUser = null, wishlist = [], quantities = {}, activeCategory = 'all', couponDiscount = 0;
+    let currentLang = localStorage.getItem('lang') || 'ar', currentCurrency = localStorage.getItem('currency') || 'SAR';
+    let exchangeRate = 3.75, shippingSettings = { domestic: 15, international: 50 };
+    let flashSaleEnd = Date.now() + 3600000, flashSaleInterval = null, cartTimerInterval = null, chatInterval = null;
+    let currentRatingProduct = null, selectedRating = 0;
+    let banners = [], currentSlide = 0, slideInterval = null;
     
-    // إعدادات اللغات والعملات
-    let currentLang = localStorage.getItem('lang') || 'ar';
-    let currentCurrency = localStorage.getItem('currency') || 'SAR';
-    let exchangeRate = 3.75;
+    // الأصوات
+    let welcomeSound, addToCartSound, orderSound, messageSound;
+    function initSounds() {
+        try {
+            welcomeSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'] });
+            addToCartSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/cart-drop-01.mp3'] });
+            orderSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/coins-2.mp3'] });
+            messageSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/notification-01.mp3'] });
+        } catch(e) { console.warn('صوت غير متاح'); }
+    }
+    function playWelcome() { if(welcomeSound) welcomeSound.play(); }
+    function playAddToCart() { if(addToCartSound) addToCartSound.play(); }
+    function playOrder() { if(orderSound) orderSound.play(); }
+    function playMessage() { if(messageSound) messageSound.play(); }
     
-    // ملف الترجمة
-    const translations = {
-        ar: {
-            siteName: "الرعدي أونلاين", cart: "سلة المشتريات", checkout: "إتمام الطلب", addToCart: "أضف للسلة",
-            outOfStock: "غير متوفر", login: "دخول", logout: "خروج", register: "تسجيل", total: "الإجمالي",
-            discount: "الخصم", shipping: "الشحن", apply: "تطبيق", close: "إغلاق", wishlist: "قائمة الأمنيات",
-            flashSale: "🔥 عرض الخصم السريع ينتهي بعد", minute: "دقيقة", minutes: "دقائق", second: "ثانية", seconds: "ثواني",
-            cartReserve: "حجز المنتجات ينتهي بعد", welcome: "مرحباً بك في الرعدي أونلاين", addedToCart: "تمت إضافة المنتج إلى السلة",
-            orderPlaced: "تم إرسال الطلب بنجاح", loginRequired: "الرجاء تسجيل الدخول أولاً", invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-            emailExists: "البريد الإلكتروني مسجل بالفعل", registrationSuccess: "تم التسجيل بنجاح، سجل الدخول الآن",
-            fillAllFields: "الرجاء ملء جميع الحقول المطلوبة", outOfStockMsg: "المنتج غير متوفر حالياً",
-            couponApplied: "تم تطبيق خصم", invalidCoupon: "كود الخصم غير صالح", orderError: "حدث خطأ في إرسال الطلب",
-            serverError: "حدث خطأ في الاتصال بالخادم"
-        },
-        en: {
-            siteName: "Raadi Online", cart: "Shopping Cart", checkout: "Checkout", addToCart: "Add to Cart",
-            outOfStock: "Out of Stock", login: "Login", logout: "Logout", register: "Register", total: "Total",
-            discount: "Discount", shipping: "Shipping", apply: "Apply", close: "Close", wishlist: "Wishlist",
-            flashSale: "🔥 Flash Sale ends in", minute: "minute", minutes: "minutes", second: "second", seconds: "seconds",
-            cartReserve: "Cart reservation expires in", welcome: "Welcome to Raadi Online", addedToCart: "Product added to cart",
-            orderPlaced: "Order placed successfully", loginRequired: "Please login first", invalidCredentials: "Invalid email or password",
-            emailExists: "Email already registered", registrationSuccess: "Registration successful, please login",
-            fillAllFields: "Please fill all required fields", outOfStockMsg: "Product is out of stock",
-            couponApplied: "Coupon applied", invalidCoupon: "Invalid coupon code", orderError: "Error placing order",
-            serverError: "Server connection error"
-        }
+    // الترجمة والعملات
+    const trans = {
+        ar: { siteName:"الرعدي أونلاين", cart:"سلة المشتريات", checkout:"إتمام الطلب", addToCart:"أضف للسلة", total:"الإجمالي", discount:"الخصم", shipping:"الشحن", flashSale:"🔥 عرض الخصم السريع ينتهي بعد", minute:"دقيقة", minutes:"دقائق", second:"ثانية", seconds:"ثواني", cartReserve:"حجز المنتجات ينتهي بعد", welcome:"مرحباً بك", addedToCart:"تمت الإضافة", orderPlaced:"تم إرسال الطلب", loginRequired:"سجل دخولك أولاً", invalidCredentials:"بيانات غير صحيحة", emailExists:"البريد مسجل", registrationSuccess:"تم التسجيل", fillAllFields:"املأ الحقول", outOfStockMsg:"غير متوفر", couponApplied:"تم تطبيق خصم", invalidCoupon:"كود غير صالح", orderError:"خطأ في الطلب", serverError:"خطأ في الخادم" },
+        en: { siteName:"Raadi Online", cart:"Shopping Cart", checkout:"Checkout", addToCart:"Add to Cart", total:"Total", discount:"Discount", shipping:"Shipping", flashSale:"🔥 Flash Sale ends in", minute:"minute", minutes:"minutes", second:"second", seconds:"seconds", cartReserve:"Cart reservation expires in", welcome:"Welcome", addedToCart:"Added to cart", orderPlaced:"Order placed", loginRequired:"Please login", invalidCredentials:"Invalid credentials", emailExists:"Email exists", registrationSuccess:"Registration success", fillAllFields:"Fill all fields", outOfStockMsg:"Out of stock", couponApplied:"Coupon applied", invalidCoupon:"Invalid coupon", orderError:"Order error", serverError:"Server error" }
     };
-    
-    // الأصوات التفاعلية
-    const welcomeSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'] });
-    const addToCartSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/cart-drop-01.mp3'] });
-    const orderSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/coins-2.mp3'] });
-    const messageSound = new Howl({ src: ['https://www.soundjay.com/misc/sounds/notification-01.mp3'] });
-    
-    // ====================================================================
-    // دوال الترجمة والعملات
-    // ====================================================================
-    function applyTranslation() {
-        document.getElementById('logoText').innerText = translations[currentLang].siteName;
-        document.getElementById('cartTitle').innerText = translations[currentLang].cart;
-        document.getElementById('checkoutTitle').innerText = translations[currentLang].checkout;
-        document.getElementById('footerText').innerHTML = `© 2026 ${translations[currentLang].siteName} - ${currentLang === 'ar' ? 'تجربة تسوق فائقة وآمنة' : 'Premium Shopping Experience'}`;
-        if (currentUser) {
-            document.getElementById('logoutBtn').innerText = translations[currentLang].logout;
-        } else {
-            document.getElementById('loginBtn').innerText = translations[currentLang].login;
-        }
-    }
-    
-    function convertPrice(priceSAR) {
-        if (currentCurrency === 'USD') {
-            return (priceSAR / exchangeRate).toFixed(2);
-        }
-        return priceSAR;
-    }
-    
-    function formatPrice(price) {
-        if (currentCurrency === 'USD') {
-            return `$${price}`;
-        }
-        return `${price} ريال`;
-    }
-    
-    // ====================================================================
-    // الأصوات التفاعلية
-    // ====================================================================
-    function playWelcomeSound() { welcomeSound.play(); }
-    function playAddToCartSound() { addToCartSound.play(); }
-    function playOrderSound() { orderSound.play(); }
-    function playMessageSound() { messageSound.play(); }
-    
-    // ====================================================================
-    // الإشعارات المنبثقة
-    // ====================================================================
-    let toastTimeout = null;
-    
-    function showToast(message, isError = false) {
+    function t(key) { return trans[currentLang][key] || key; }
+    function convertPrice(p) { return currentCurrency === 'USD' ? (p / exchangeRate).toFixed(2) : p; }
+    function formatPrice(p) { return currentCurrency === 'USD' ? `$${p}` : `${p} ريال`; }
+    function showToast(msg, isError=false) {
         const toast = document.getElementById('toast');
-        const icon = toast.querySelector('i');
-        const msgSpan = document.getElementById('toastMsg');
-        
-        msgSpan.innerText = message;
-        
-        if (isError) {
-            icon.style.color = '#ef4444';
-            icon.classList.remove('fa-check-circle');
-            icon.classList.add('fa-exclamation-circle');
-        } else {
-            icon.style.color = '#10b981';
-            icon.classList.remove('fa-exclamation-circle');
-            icon.classList.add('fa-check-circle');
-        }
-        
+        toast.querySelector('#toastMsg').innerText = msg;
+        toast.querySelector('i').style.color = isError ? '#ef4444' : '#10b981';
         toast.classList.add('show');
-        
-        if (toastTimeout) clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
+        setTimeout(() => toast.classList.remove('show'), 3000);
     }
-    
-    // ====================================================================
-    // الوضع المظلم
-    // ====================================================================
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('raadi_dark_mode', isDark);
-        const btn = document.getElementById('darkModeBtn');
-        btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        localStorage.setItem('raadi_dark', document.body.classList.contains('dark-mode'));
+        document.getElementById('darkModeBtn').innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     }
     
-    // ====================================================================
-    // العداد التنازلي للعرض السريع
-    // ====================================================================
-    function updateFlashSaleTimer() {
-        const now = Date.now();
-        const diff = flashSaleEnd - now;
-        
-        if (diff <= 0) {
-            const timerDiv = document.getElementById('flashSaleTimer');
-            timerDiv.style.display = 'none';
-            if (flashSaleInterval) clearInterval(flashSaleInterval);
-            return;
-        }
-        
-        const minutes = Math.floor(diff / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-        
-        const timerDiv = document.getElementById('flashSaleTimer');
-        timerDiv.innerHTML = `${translations[currentLang].flashSale} ${minutes} ${translations[currentLang].minutes} ${seconds} ${translations[currentLang].seconds}`;
-        timerDiv.style.display = 'block';
-    }
-    
-    function startFlashSaleTimer() {
-        updateFlashSaleTimer();
-        if (flashSaleInterval) clearInterval(flashSaleInterval);
-        flashSaleInterval = setInterval(updateFlashSaleTimer, 1000);
-    }
-    
-    // ====================================================================
-    // جلب البيانات من الخادم
-    // ====================================================================
+    // تحميل البيانات
     async function loadProducts() {
         try {
-            const response = await fetch(`/api/products?lang=${currentLang}`);
-            products = await response.json();
+            const res = await fetch(`/api/products?lang=${currentLang}`);
+            products = await res.json();
             renderProducts();
-            loadCategories();
-        } catch (error) {
-            console.error('خطأ في تحميل المنتجات:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
+        } catch(e) { showToast(t('serverError'), true); }
     }
-    
     async function loadCategories() {
         try {
-            const response = await fetch(`/api/categories?lang=${currentLang}`);
-            const categories = await response.json();
-            
-            const container = document.getElementById('categoriesList');
-            container.innerHTML = `
-                <div class="category-item active" data-cat="all">${currentLang === 'ar' ? 'الكل' : 'All'}</div>
-                ${categories.map(c => `<div class="category-item" data-cat="${c.name}">${c.name}</div>`).join('')}
-            `;
-            
-            document.querySelectorAll('.category-item').forEach(el => {
+            const res = await fetch(`/api/categories?lang=${currentLang}`);
+            const cats = await res.json();
+            const container = document.getElementById('categoriesCarousel');
+            container.innerHTML = cats.map(c => `<div class="category-carousel-item" data-name="${c.name}"><i class="fas ${c.icon || 'fa-tag'}"></i><span>${c.name}</span></div>`).join('');
+            document.querySelectorAll('.category-carousel-item').forEach(el => {
                 el.addEventListener('click', () => {
-                    activeCategory = el.dataset.cat;
-                    document.querySelectorAll('.category-item').forEach(c => c.classList.remove('active'));
+                    activeCategory = el.dataset.name;
+                    document.querySelectorAll('.category-carousel-item').forEach(c => c.classList.remove('active'));
                     el.classList.add('active');
                     renderProducts();
                 });
             });
-        } catch (error) {
-            console.error('خطأ في تحميل الأقسام:', error);
-        }
+        } catch(e) { console.error(e); }
     }
-    
+    async function loadBanners() {
+        try {
+            const res = await fetch(`/api/banners?lang=${currentLang}`);
+            banners = await res.json();
+            renderSlider();
+        } catch(e) { console.error(e); }
+    }
+    async function loadAnnouncement() {
+        try {
+            const res = await fetch(`/api/announcements?lang=${currentLang}`);
+            const data = await res.json();
+            if(data.text) document.getElementById('announcementBar').innerHTML = `<span>${data.text}</span>`;
+        } catch(e) { console.error(e); }
+    }
     async function loadSettings() {
         try {
-            const response = await fetch('/api/settings');
-            const settings = await response.json();
-            shippingSettings.domestic = parseFloat(settings.domesticShipping?.[currentLang] || 15);
-            shippingSettings.international = parseFloat(settings.internationalShipping?.[currentLang] || 50);
-        } catch (error) {
-            console.error('خطأ في تحميل الإعدادات:', error);
-        }
+            const res = await fetch('/api/settings');
+            const s = await res.json();
+            shippingSettings.domestic = parseFloat(s.domesticShipping?.[currentLang] || 15);
+            shippingSettings.international = parseFloat(s.internationalShipping?.[currentLang] || 50);
+        } catch(e) { console.error(e); }
     }
-    
     async function loadWishlist() {
-        if (!currentUser) return;
+        if(!currentUser) return;
         try {
-            const response = await fetch('/api/wishlist');
-            wishlist = await response.json();
+            const res = await fetch('/api/wishlist');
+            wishlist = await res.json();
             renderProducts();
-        } catch (error) {
-            console.error('خطأ في تحميل الأمنيات:', error);
-        }
+        } catch(e) { console.error(e); }
     }
     
-    // ====================================================================
+    // السلايدر
+    function renderSlider() {
+        if(!banners.length) { document.getElementById('heroSlider').style.display = 'none'; return; }
+        const container = document.getElementById('sliderContainer');
+        const dotsContainer = document.getElementById('sliderDots');
+        container.innerHTML = banners.map((b,i) => `<div class="slider-slide ${i===0?'active':''}" style="background-image:url('${b.image}')"><div class="slider-content"><h2>${b.title}</h2><a href="${b.link}" style="color:white;background:var(--primary);padding:8px20px;border-radius:40px;display:inline-block;">تسوق الآن →</a></div></div>`).join('');
+        dotsContainer.innerHTML = banners.map((_,i) => `<div class="slider-dot ${i===0?'active':''}" data-slide="${i}"></div>`).join('');
+        document.querySelectorAll('.slider-dot').forEach(d => d.addEventListener('click', () => goToSlide(parseInt(d.dataset.slide))));
+        startAutoSlide();
+    }
+    function goToSlide(i) {
+        const slides = document.querySelectorAll('.slider-slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+        currentSlide = i;
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+    }
+    function nextSlide() { goToSlide((currentSlide+1)%banners.length); }
+    function startAutoSlide() { if(slideInterval) clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 5000); }
+    
     // عرض المنتجات
-    // ====================================================================
     function renderProducts() {
-        let filtered = [...products];
-        
-        if (activeCategory !== 'all') {
-            filtered = filtered.filter(p => p.category === activeCategory);
-        }
-        
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        if (searchTerm) {
-            filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
-        }
-        
-        const sortBy = document.getElementById('sortInput').value;
-        if (sortBy === 'price-asc') filtered.sort((a, b) => a.price - b.price);
-        else if (sortBy === 'price-desc') filtered.sort((a, b) => b.price - a.price);
-        else if (sortBy === 'discount') filtered.sort((a, b) => b.discount - a.discount);
-        else if (sortBy === 'rating') filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        else filtered.sort((a, b) => b.id - a.id);
-        
+        let filtered = products.filter(p => activeCategory === 'all' || p.category === activeCategory);
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        if(search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
         const container = document.getElementById('productsList');
-        
-        if (filtered.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 60px;">📦 ${currentLang === 'ar' ? 'لا توجد منتجات في هذا القسم' : 'No products in this category'}</div>`;
-            return;
-        }
-        
-        container.innerHTML = filtered.map(product => {
-            const price = convertPrice(product.price);
-            const oldPrice = product.oldPrice ? convertPrice(product.oldPrice) : null;
-            const stockClass = product.stock > 10 ? 'in-stock' : (product.stock > 0 ? 'low-stock' : 'out-stock');
-            const stockText = product.stock > 10 
-                ? (currentLang === 'ar' ? 'متوفر' : 'In Stock')
-                : (product.stock > 0 
-                    ? `${currentLang === 'ar' ? `متبقي ${product.stock} قطع` : `${product.stock} left`}`
-                    : (currentLang === 'ar' ? 'غير متوفر' : 'Out of Stock'));
-            const fullStars = Math.floor(product.rating || 0);
-            const halfStar = (product.rating % 1) >= 0.5;
-            const inWishlist = wishlist.includes(product.id);
-            
-            return `
-                <div class="product-card" data-id="${product.id}">
-                    <img src="${product.image}" class="product-img" onerror="this.src='https://picsum.photos/id/20/300/300'">
-                    <div class="product-info">
-                        <div class="product-title">${product.name}</div>
-                        <div class="product-category"><i class="fas fa-tag"></i> ${product.category}</div>
-                        <div class="product-rating">
-                            <div class="stars">${'★'.repeat(fullStars)}${halfStar ? '½' : ''}${'☆'.repeat(5 - Math.ceil(product.rating || 0))}</div>
-                            <span class="rating-count">(${product.ratingCount || 0})</span>
-                            <i class="fas fa-star rate-icon" onclick="event.stopPropagation(); openRatingModal(${product.id})"></i>
-                            <i class="fas fa-heart ${inWishlist ? 'active' : ''}" style="color: ${inWishlist ? '#ef4444' : 'var(--text-muted)'}; cursor: pointer;" onclick="event.stopPropagation(); toggleWishlist(${product.id})"></i>
-                        </div>
-                        <div class="product-price">
-                            <span class="current-price">${formatPrice(price)}</span>
-                            ${oldPrice ? `<span class="old-price">${formatPrice(oldPrice)}</span>` : ''}
-                            ${product.discount ? `<span class="discount-badge">-${product.discount}%</span>` : ''}
-                        </div>
-                        <div class="product-features"><i class="fas fa-palette"></i> ${product.color || (currentLang === 'ar' ? 'ألوان متعددة' : 'Multiple colors')} | <i class="fas fa-microchip"></i> ${product.features || (currentLang === 'ar' ? 'مواصفات عالية الجودة' : 'High quality features')}</div>
-                        <div class="stock-status"><span class="${stockClass}">📦 ${stockText}</span></div>
-                        <div class="quantity-control">
-                            <button onclick="event.stopPropagation(); changeQuantity(${product.id}, -1)">-</button>
-                            <span id="qty_${product.id}">1</span>
-                            <button onclick="event.stopPropagation(); changeQuantity(${product.id}, 1)">+</button>
-                        </div>
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${product.id})">
-                            <span class="add-to-cart-text">${translations[currentLang].addToCart}</span> 🛒
-                        </button>
-                    </div>
-                </div>
-            `;
+        if(!filtered.length) { container.innerHTML = '<div style="text-align:center;padding:60px;">📦 لا توجد منتجات</div>'; return; }
+        container.innerHTML = filtered.map(p => {
+            const price = convertPrice(p.price);
+            const oldPrice = p.oldPrice ? convertPrice(p.oldPrice) : null;
+            const stockClass = p.stock > 10 ? 'in-stock' : (p.stock > 0 ? 'low-stock' : 'out-stock');
+            const stockText = p.stock > 10 ? (currentLang==='ar'?'متوفر':'In Stock') : (p.stock>0 ? (currentLang==='ar'?`متبقي ${p.stock}`:`${p.stock} left`) : (currentLang==='ar'?'غير متوفر':'Out of Stock'));
+            const inWish = wishlist.some(w => w.id === p.id);
+            return `<div class="product-card"><img src="${p.image}" class="product-img" onerror="this.src='https://picsum.photos/id/20/300/300'"><div class="product-info"><div class="product-title">${p.name}</div><div class="product-category">${p.category}</div><div class="product-rating"><div class="stars">${'★'.repeat(Math.floor(p.rating||0))}${'☆'.repeat(5-Math.floor(p.rating||0))}</div><span>(${p.ratingCount||0})</span><i class="fas fa-star rate-icon" onclick="event.stopPropagation(); openRatingModal(${p.id})"></i><i class="fas fa-heart" style="color:${inWish?'#ef4444':'var(--text-muted)'};cursor:pointer;" onclick="event.stopPropagation(); toggleWishlist(${p.id})"></i></div><div class="product-price"><span class="current-price">${formatPrice(price)}</span>${oldPrice?`<span class="old-price">${formatPrice(oldPrice)}</span>`:''}${p.discount?`<span class="discount-badge">-${p.discount}%</span>`:''}</div><div class="product-features">${p.color?`🎨 ${p.color} | `:''}⚙️ ${p.features||''}</div><div class="stock-status"><span class="${stockClass}">📦 ${stockText}</span></div><div class="quantity-control"><button onclick="event.stopPropagation(); changeQty(${p.id},-1)">-</button><span id="qty_${p.id}">1</span><button onclick="event.stopPropagation(); changeQty(${p.id},1)">+</button></div><button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${p.id})">🛒 ${t('addToCart')}</button></div></div>`;
         }).join('');
     }
+    function changeQty(id,d) { const span = document.getElementById(`qty_${id}`); let newVal = Math.max(1, (quantities[id]||1)+d); span.innerText = newVal; quantities[id]=newVal; }
     
-    function changeQuantity(id, delta) {
-        const span = document.getElementById(`qty_${id}`);
-        let newVal = Math.max(1, (quantities[id] || 1) + delta);
-        span.innerText = newVal;
-        quantities[id] = newVal;
-    }
-    
-    // ====================================================================
-    // إدارة السلة
-    // ====================================================================
+    // السلة
     async function addToCart(id) {
-        if (!currentUser) {
-            showToast(translations[currentLang].loginRequired, true);
-            openAuthModal();
-            return;
-        }
-        
-        const product = products.find(p => p.id === id);
-        if (!product || product.stock <= 0) {
-            showToast(translations[currentLang].outOfStockMsg, true);
-            return;
-        }
-        
-        const qty = quantities[id] || 1;
-        if (qty > product.stock) {
-            showToast(`${currentLang === 'ar' ? `لا يتوفر سوى ${product.stock} قطع` : `Only ${product.stock} left`}`, true);
-            return;
-        }
-        
-        const existingItem = cart.find(item => item.id === id);
-        if (existingItem) {
-            if (existingItem.quantity + qty > product.stock) {
-                showToast(`${currentLang === 'ar' ? `لا يتوفر سوى ${product.stock} قطع` : `Only ${product.stock} left`}`, true);
-                return;
-            }
-            existingItem.quantity += qty;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                quantity: qty,
-                image: product.image
-            });
-        }
-        
-        try {
-            await fetch('/api/reserve-stock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: [{ id, quantity: qty }] })
-            });
-        } catch (error) {
-            console.error('خطأ في حجز المخزون:', error);
-        }
-        
-        saveCart();
-        updateCartUI();
-        playAddToCartSound();
-        showToast(translations[currentLang].addedToCart);
+        if(!currentUser) { showToast(t('loginRequired'), true); openAuthModal(); return; }
+        const p = products.find(p=>p.id===id);
+        if(!p || p.stock<=0) { showToast(t('outOfStockMsg'), true); return; }
+        const qty = quantities[id]||1;
+        if(qty > p.stock) { showToast(`${currentLang==='ar'?`لا يتوفر سوى ${p.stock} قطع`:`Only ${p.stock} left`}`, true); return; }
+        const exist = cart.find(i=>i.id===id);
+        if(exist) exist.quantity += qty;
+        else cart.push({ id, name:p.name, price:p.price, quantity:qty, image:p.image });
+        saveCart(); updateCartUI(); playAddToCart(); showToast(t('addedToCart'));
+        startCartTimer();
+        await fetch('/api/reserve-stock', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ items:[{id, quantity:qty}] }) });
     }
-    
     function updateCartUI() {
-        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const count = cart.reduce((s,i)=>s+i.quantity,0);
         document.getElementById('cartCount').innerText = count;
-        
         const container = document.getElementById('cartItems');
-        
-        if (cart.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 30px;">${currentLang === 'ar' ? 'السلة فارغة' : 'Cart is empty'}</div>`;
-            document.getElementById('cartTotal').innerHTML = '';
-            return;
-        }
-        
-        let subtotal = 0;
-        container.innerHTML = cart.map(item => {
-            const itemTotal = item.price * item.quantity;
-            subtotal += itemTotal;
-            const priceFormatted = formatPrice(convertPrice(item.price));
-            const totalFormatted = formatPrice(convertPrice(itemTotal));
-            
-            return `
-                <div class="cart-item">
-                    <div class="cart-item-info">
-                        <h4>${item.name}</h4>
-                        <p>${priceFormatted} × ${item.quantity} = ${totalFormatted}</p>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button onclick="updateCartItem(${item.id}, -1)">-</button>
-                        <span>${item.quantity}</span>
-                        <button onclick="updateCartItem(${item.id}, 1)">+</button>
-                        <button class="remove-btn" onclick="removeFromCart(${item.id})">🗑️</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        const discountAmount = subtotal * (couponDiscount / 100);
-        const total = subtotal - discountAmount;
-        
-        document.getElementById('cartTotal').innerHTML = `
-            <div>${translations[currentLang].total}: ${formatPrice(convertPrice(total))}</div>
-            ${couponDiscount > 0 ? `<div style="color: var(--success);">${translations[currentLang].discount} (${couponDiscount}%): -${formatPrice(convertPrice(discountAmount))}</div>` : ''}
-        `;
+        if(!cart.length) { container.innerHTML = '<div style="text-align:center;padding:30px;">السلة فارغة</div>'; document.getElementById('cartTotal').innerHTML=''; return; }
+        let sub = 0;
+        container.innerHTML = cart.map(i => { sub += i.price * i.quantity; return `<div class="cart-item"><div class="cart-item-info"><h4>${i.name}</h4><p>${formatPrice(convertPrice(i.price))} × ${i.quantity} = ${formatPrice(convertPrice(i.price*i.quantity))}</p></div><div class="cart-item-actions"><button onclick="updateCartItem(${i.id},-1)">-</button><span>${i.quantity}</span><button onclick="updateCartItem(${i.id},1)">+</button><button class="remove-btn" onclick="removeFromCart(${i.id})">🗑️</button></div></div>`; }).join('');
+        const disc = sub * (couponDiscount/100);
+        document.getElementById('cartTotal').innerHTML = `<div>${t('total')}: ${formatPrice(convertPrice(sub-disc))}</div>${couponDiscount>0?`<div>${t('discount')} (${couponDiscount}%): -${formatPrice(convertPrice(disc))}</div>`:''}`;
     }
-    
-    function updateCartItem(id, delta) {
-        const item = cart.find(i => i.id === id);
-        if (item) {
-            const product = products.find(p => p.id === id);
-            const newQty = item.quantity + delta;
-            
-            if (newQty < 1) {
-                removeFromCart(id);
-                return;
-            }
-            
-            if (product && newQty > product.stock) {
-                showToast(`${currentLang === 'ar' ? `لا يتوفر سوى ${product.stock} قطع` : `Only ${product.stock} left`}`, true);
-                return;
-            }
-            
-            item.quantity = newQty;
-            saveCart();
-            updateCartUI();
-        }
-    }
-    
-    function removeFromCart(id) {
-        cart = cart.filter(item => item.id !== id);
-        saveCart();
-        updateCartUI();
-    }
-    
-    function saveCart() {
-        localStorage.setItem('raadi_cart', JSON.stringify(cart));
-    }
-    
-    function loadCart() {
-        const savedCart = localStorage.getItem('raadi_cart');
-        if (savedCart) {
-            cart = JSON.parse(savedCart);
-            updateCartUI();
-        }
-    }
-    
-    function toggleCart() {
-        document.getElementById('cartSidebar').classList.toggle('open');
-    }
-    
+    function updateCartItem(id,d) { const item = cart.find(i=>i.id===id); if(item) { const newQty = item.quantity + d; if(newQty<1) removeFromCart(id); else { item.quantity = newQty; saveCart(); updateCartUI(); } } }
+    function removeFromCart(id) { cart = cart.filter(i=>i.id!==id); saveCart(); updateCartUI(); }
+    function saveCart() { localStorage.setItem('raadi_cart', JSON.stringify(cart)); }
+    function loadCart() { const saved = localStorage.getItem('raadi_cart'); if(saved) cart = JSON.parse(saved); updateCartUI(); }
+    function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
     async function applyCoupon() {
         const code = document.getElementById('couponCode').value.trim().toUpperCase();
-        
         try {
-            const response = await fetch('/api/coupons');
-            const coupons = await response.json();
-            const coupon = coupons.find(c => c.code === code);
-            
-            if (coupon) {
-                couponDiscount = coupon.value;
-                showToast(`${translations[currentLang].couponApplied} ${couponDiscount}%`);
-                updateCartUI();
-            } else {
-                showToast(translations[currentLang].invalidCoupon, true);
-            }
-        } catch (error) {
-            console.error('خطأ في تطبيق الكوبون:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
+            const res = await fetch('/api/coupons');
+            const coupons = await res.json();
+            const c = coupons.find(c=>c.code===code);
+            if(c) { couponDiscount = c.value; showToast(`${t('couponApplied')} ${c.value}%`); updateCartUI(); }
+            else showToast(t('invalidCoupon'), true);
+        } catch(e) { showToast(t('serverError'), true); }
     }
-    
-    // ====================================================================
-    // نافذة الطلب والفاتورة
-    // ====================================================================
-    function openCheckoutModal() {
-        if (!currentUser) {
-            showToast(translations[currentLang].loginRequired, true);
-            openAuthModal();
-            return;
-        }
-        
-        if (cart.length === 0) {
-            showToast(currentLang === 'ar' ? 'السلة فارغة' : 'Cart is empty', true);
-            return;
-        }
-        
-        document.getElementById('fullName').value = currentUser.name || '';
-        document.getElementById('email').value = currentUser.email || '';
-        document.getElementById('phone').value = currentUser.phone || '';
-        document.getElementById('address').value = currentUser.address || '';
-        
-        updateOrderSummary();
-        document.getElementById('checkoutModal').style.display = 'flex';
-    }
-    
-    function updateOrderSummary() {
-        const country = document.getElementById('country').value;
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const discountAmount = subtotal * (couponDiscount / 100);
-        const shipping = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
-        const total = subtotal - discountAmount + shipping;
-        
-        document.getElementById('orderSummary').innerHTML = `
-            <div style="margin: 10px 0;"><strong>${currentLang === 'ar' ? 'المنتجات' : 'Products'}:</strong></div>
-            ${cart.map(item => `<div style="margin: 5px 0;">${item.name} × ${item.quantity}</div>`).join('')}
-            <hr>
-            <div>${translations[currentLang].total}: ${formatPrice(convertPrice(subtotal))}</div>
-            ${couponDiscount > 0 ? `<div>${translations[currentLang].discount} (${couponDiscount}%): -${formatPrice(convertPrice(discountAmount))}</div>` : ''}
-            <div>${translations[currentLang].shipping}: ${formatPrice(convertPrice(shipping))}</div>
-            <div style="font-size: 1.2rem; font-weight: 800; margin-top: 10px;">${translations[currentLang].total}: ${formatPrice(convertPrice(total))}</div>
-        `;
-    }
-    
-    async function submitOrder() {
-        const name = document.getElementById('fullName').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const address = document.getElementById('address').value.trim();
-        const country = document.getElementById('country').value;
-        
-        if (!name || !phone || !address) {
-            showToast(translations[currentLang].fillAllFields, true);
-            return;
-        }
-        
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const discountAmount = subtotal * (couponDiscount / 100);
-        const shipping = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
-        const total = subtotal - discountAmount + shipping;
-        
-        const orderData = {
-            customer: name,
-            email: email,
-            phone: phone,
-            address: address,
-            country: country,
-            items: cart.map(item => ({
-                id: item.id,
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            subtotal: subtotal,
-            discount: couponDiscount,
-            discountAmount: discountAmount,
-            shipping: shipping,
-            total: total,
-            currency: currentCurrency,
-            notes: ''
-        };
-        
-        try {
-            const response = await fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                generateInvoice(orderData);
-                playOrderSound();
-                showToast(translations[currentLang].orderPlaced);
-                
-                cart = [];
-                couponDiscount = 0;
-                saveCart();
-                updateCartUI();
-                closeCheckoutModal();
-                loadProducts();
-            } else {
-                showToast(translations[currentLang].orderError, true);
-            }
-        } catch (error) {
-            console.error('خطأ في إرسال الطلب:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
-    }
-    
-    function generateInvoice(order) {
-        const win = window.open();
-        win.document.write(`
-            <html dir="rtl">
-            <head>
-                <title>فاتورة الرعدي أونلاين - ${Date.now()}</title>
-                <style>
-                    body {
-                        font-family: 'Cairo', Arial, sans-serif;
-                        padding: 30px;
-                        max-width: 800px;
-                        margin: auto;
-                        direction: rtl;
-                        background: white;
-                        color: #1a1a2e;
-                    }
-                    .header {
-                        text-align: center;
-                        border-bottom: 2px solid #e67e22;
-                        padding-bottom: 15px;
-                        margin-bottom: 20px;
-                    }
-                    .logo {
-                        color: #e67e22;
-                        font-size: 1.8rem;
-                        font-weight: bold;
-                    }
-                    .qr {
-                        text-align: center;
-                        margin: 20px 0;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
-                    }
-                    th, td {
-                        padding: 12px;
-                        border-bottom: 1px solid #ddd;
-                        text-align: right;
-                    }
-                    th {
-                        background: #f5f5f5;
-                    }
-                    .total {
-                        font-size: 1.2rem;
-                        font-weight: bold;
-                        color: #e67e22;
-                        text-align: left;
-                    }
-                    .footer {
-                        margin-top: 30px;
-                        font-size: 0.8rem;
-                        color: #666;
-                        text-align: center;
-                        border-top: 1px solid #ddd;
-                        padding-top: 15px;
-                    }
-                    button {
-                        background: #e67e22;
-                        color: white;
-                        padding: 10px 20px;
-                        border: none;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        margin-top: 20px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div class="logo">🦅 الرعدي أونلاين</div>
-                    <div>فاتورة شراء معتمدة رقم: RAD-${Date.now()}</div>
-                </div>
-                <div class="qr">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(JSON.stringify(order))}" alt="QR Code">
-                </div>
-                <p><strong>${currentLang === 'ar' ? 'تاريخ الإصدار' : 'Date'}:</strong> ${new Date().toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}</p>
-                <p><strong>${currentLang === 'ar' ? 'اسم العميل' : 'Customer'}:</strong> ${order.customer}</p>
-                <p><strong>${currentLang === 'ar' ? 'رقم الهاتف' : 'Phone'}:</strong> ${order.phone}</p>
-                <p><strong>${currentLang === 'ar' ? 'عنوان التوصيل' : 'Address'}:</strong> ${order.address}</p>
-                <p><strong>${currentLang === 'ar' ? 'نوع الشحن' : 'Shipping'}:</strong> ${order.country === 'saudi' ? (currentLang === 'ar' ? 'شحن داخلي' : 'Domestic') : (currentLang === 'ar' ? 'شحن دولي' : 'International')}</p>
-                
-                <table>
-                    <thead>
-                        <tr><th>${currentLang === 'ar' ? 'المنتج' : 'Product'}</th><th>${currentLang === 'ar' ? 'الكمية' : 'Quantity'}</th><th>${currentLang === 'ar' ? 'السعر' : 'Price'}</th><th>${currentLang === 'ar' ? 'الإجمالي' : 'Total'}</th></tr>
-                    </thead>
-                    <tbody>
-                        ${order.items.map(item => `
-                            <tr>
-                                <td>${item.name}</td>
-                                <td>${item.quantity}</td>
-                                <td>${currentCurrency === 'USD' ? '$' + (item.price / 3.75).toFixed(2) : item.price + ' ريال'}</td>
-                                <td>${currentCurrency === 'USD' ? '$' + ((item.price * item.quantity) / 3.75).toFixed(2) : (item.price * item.quantity) + ' ريال'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <div class="total">
-                    <div>${currentLang === 'ar' ? 'المجموع الفرعي' : 'Subtotal'}: ${currentCurrency === 'USD' ? '$' + (order.subtotal / 3.75).toFixed(2) : order.subtotal + ' ريال'}</div>
-                    ${order.discount > 0 ? `<div>${currentLang === 'ar' ? 'الخصم' : 'Discount'} (${order.discount}%): ${currentCurrency === 'USD' ? '-$' + (order.discountAmount / 3.75).toFixed(2) : '-' + order.discountAmount + ' ريال'}</div>` : ''}
-                    <div>${currentLang === 'ar' ? 'رسوم الشحن' : 'Shipping'}: ${currentCurrency === 'USD' ? '$' + (order.shipping / 3.75).toFixed(2) : order.shipping + ' ريال'}</div>
-                    <div style="font-size: 1.4rem;">${currentLang === 'ar' ? 'الإجمالي النهائي' : 'Grand Total'}: ${currentCurrency === 'USD' ? '$' + (order.total / 3.75).toFixed(2) : order.total + ' ريال'}</div>
-                </div>
-                
-                <div class="footer">
-                    <small>${currentLang === 'ar' ? 'سياسة الإرجاع: يمكن استرجاع المنتج خلال 14 يوماً في حالة وجود عيب صناعي.' : 'Return policy: 14 days return for manufacturing defects.'}<br>
-                    ${currentLang === 'ar' ? 'شكراً لتسوقكم مع الرعدي أونلاين' : 'Thank you for shopping at Raadi Online'}</small><br>
-                    <button onclick="window.print()">🖨️ ${currentLang === 'ar' ? 'طباعة الفاتورة' : 'Print Invoice'}</button>
-                </div>
-            </body>
-            </html>
-        `);
-    }
-    
-    function closeCheckoutModal() {
-        document.getElementById('checkoutModal').style.display = 'none';
-    }
-    
-    // ====================================================================
-    // نافذة التقييم
-    // ====================================================================
-    function openRatingModal(productId) {
-        if (!currentUser) {
-            showToast(translations[currentLang].loginRequired, true);
-            openAuthModal();
-            return;
-        }
-        
-        currentRatingProduct = productId;
-        selectedRating = 0;
-        
-        document.querySelectorAll('#ratingStars i').forEach(star => {
-            star.classList.remove('active');
-        });
-        
-        document.getElementById('ratingReview').value = '';
-        document.getElementById('ratingModal').style.display = 'flex';
-    }
-    
-    function closeRatingModal() {
-        document.getElementById('ratingModal').style.display = 'none';
-        currentRatingProduct = null;
-    }
-    
-    async function submitRating() {
-        if (selectedRating === 0) {
-            showToast(currentLang === 'ar' ? 'الرجاء اختيار تقييم للمنتج' : 'Please select a rating', true);
-            return;
-        }
-        
-        const review = document.getElementById('ratingReview').value;
-        
-        try {
-            const response = await fetch(`/api/products/${currentRatingProduct}/rate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    rating: selectedRating,
-                    review_ar: currentLang === 'ar' ? review : '',
-                    review_en: currentLang === 'en' ? review : ''
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showToast(currentLang === 'ar' ? 'شكراً لتقييمك!' : 'Thank you for your rating!');
-                closeRatingModal();
-                loadProducts();
-            } else {
-                showToast(currentLang === 'ar' ? 'حدث خطأ في إرسال التقييم' : 'Error submitting rating', true);
-            }
-        } catch (error) {
-            console.error('خطأ في إرسال التقييم:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
-    }
-    
-    document.querySelectorAll('#ratingStars i').forEach(star => {
-        star.addEventListener('click', () => {
-            selectedRating = parseInt(star.dataset.rate);
-            document.querySelectorAll('#ratingStars i').forEach(s => {
-                if (parseInt(s.dataset.rate) <= selectedRating) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.remove('active');
-                }
-            });
-        });
-    });
-    
-    // ====================================================================
-    // نافذة الأمنيات
-    // ====================================================================
-    async function toggleWishlist(productId) {
-        if (!currentUser) {
-            showToast(translations[currentLang].loginRequired, true);
-            openAuthModal();
-            return;
-        }
-        
-        try {
-            if (wishlist.includes(productId)) {
-                await fetch('/api/wishlist/remove', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId })
-                });
-                wishlist = wishlist.filter(id => id !== productId);
-                showToast(currentLang === 'ar' ? 'تمت إزالة المنتج من الأمنيات' : 'Product removed from wishlist');
-            } else {
-                await fetch('/api/wishlist/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId })
-                });
-                wishlist.push(productId);
-                showToast(currentLang === 'ar' ? 'تمت إضافة المنتج إلى الأمنيات' : 'Product added to wishlist');
-            }
-            renderProducts();
-        } catch (error) {
-            console.error('خطأ في تحديث الأمنيات:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
-    }
-    
-    function openWishlistModal() {
-        if (!currentUser) {
-            showToast(translations[currentLang].loginRequired, true);
-            openAuthModal();
-            return;
-        }
-        
-        const container = document.getElementById('wishlistItems');
-        const wishlistProducts = products.filter(p => wishlist.includes(p.id));
-        
-        if (wishlistProducts.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 30px;">${currentLang === 'ar' ? 'لا توجد منتجات في قائمة الأمنيات' : 'No products in wishlist'}</div>`;
-        } else {
-            container.innerHTML = wishlistProducts.map(product => `
-                <div class="wishlist-item">
-                    <div>
-                        <strong>${product.name}</strong><br>
-                        ${formatPrice(convertPrice(product.price))}
-                    </div>
-                    <button onclick="addToCart(${product.id}); closeWishlistModal()" style="background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 30px; cursor: pointer;">${translations[currentLang].addToCart}</button>
-                </div>
-            `).join('');
-        }
-        
-        document.getElementById('wishlistModal').style.display = 'flex';
-    }
-    
-    function closeWishlistModal() {
-        document.getElementById('wishlistModal').style.display = 'none';
-    }
-    
-    // ====================================================================
-    // الدردشة الحية
-    // ====================================================================
-    async function loadMessages() {
-        if (!currentUser) return;
-        
-        try {
-            const response = await fetch('/api/messages');
-            const messages = await response.json();
-            
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = messages.map(msg => `
-                <div class="chat-message ${msg.isAdmin ? 'admin' : 'user'}">
-                    <strong>${msg.sender}:</strong> ${msg.text_ar || msg.text_en}
-                    <div style="font-size: 0.7rem; opacity: 0.7;">${msg.timestamp}</div>
-                </div>
-            `).join('');
-            
-            container.scrollTop = container.scrollHeight;
-        } catch (error) {
-            console.error('خطأ في تحميل الرسائل:', error);
-        }
-    }
-    
-    async function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const text = input.value.trim();
-        
-        if (!text || !currentUser) return;
-        
-        try {
-            await fetch('/api/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text_ar: currentLang === 'ar' ? text : '',
-                    text_en: currentLang === 'en' ? text : '',
-                    isAdmin: false
-                })
-            });
-            
-            input.value = '';
-            loadMessages();
-            playMessageSound();
-            showToast(currentLang === 'ar' ? 'تم إرسال رسالتك' : 'Message sent');
-        } catch (error) {
-            console.error('خطأ في إرسال الرسالة:', error);
-            showToast(translations[currentLang].serverError, true);
-        }
-    }
-    
-    function toggleChat() {
-        const chatWindow = document.getElementById('chatWindow');
-        chatWindow.classList.toggle('open');
-        
-        if (chatWindow.classList.contains('open')) {
-            if (!currentUser) {
-                showToast(translations[currentLang].loginRequired, true);
-                chatWindow.classList.remove('open');
-                openAuthModal();
-                return;
-            }
-            loadMessages();
-            if (chatInterval) clearInterval(chatInterval);
-            chatInterval = setInterval(loadMessages, 5000);
-        } else {
-            if (chatInterval) {
-                clearInterval(chatInterval);
-                chatInterval = null;
-            }
-        }
-    }
-    
-    // ====================================================================
-    // المصادقة (تسجيل الدخول والتسجيل)
-    // ====================================================================
-    function openAuthModal() {
-        document.getElementById('authModal').style.display = 'flex';
-        document.getElementById('loginError').innerText = '';
-        document.getElementById('registerError').innerText = '';
-    }
-    
-    function closeAuthModal() {
-        document.getElementById('authModal').style.display = 'none';
-    }
-    
-    async function login() {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        
-        if (!email || !password) {
-            document.getElementById('loginError').innerText = translations[currentLang].fillAllFields;
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                currentUser = data.user;
-                localStorage.setItem('raadi_user', JSON.stringify(currentUser));
-                closeAuthModal();
-                updateAuthUI();
-                loadProducts();
-                loadWishlist();
-                showToast(`${translations[currentLang].welcome}, ${currentUser.name}`);
-                playWelcomeSound();
-            } else {
-                document.getElementById('loginError').innerText = data.error || translations[currentLang].invalidCredentials;
-            }
-        } catch (error) {
-            console.error('خطأ في تسجيل الدخول:', error);
-            document.getElementById('loginError').innerText = translations[currentLang].serverError;
-        }
-    }
-    
-    async function register() {
-        const name = document.getElementById('regName').value;
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const phone = document.getElementById('regPhone').value;
-        const address = document.getElementById('regAddress').value;
-        
-        if (!name || !email || !password) {
-            document.getElementById('registerError').innerText = translations[currentLang].fillAllFields;
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, phone, address })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                showToast(translations[currentLang].registrationSuccess);
-                showLogin();
-            } else {
-                document.getElementById('registerError').innerText = data.error || translations[currentLang].emailExists;
-            }
-        } catch (error) {
-            console.error('خطأ في التسجيل:', error);
-            document.getElementById('registerError').innerText = translations[currentLang].serverError;
-        }
-    }
-    
-    async function logout() {
-        await fetch('/api/logout', { method: 'POST' });
-        currentUser = null;
-        localStorage.removeItem('raadi_user');
-        updateAuthUI();
-        loadProducts();
-        wishlist = [];
-        showToast(currentLang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
-        
-        if (chatInterval) {
-            clearInterval(chatInterval);
-            chatInterval = null;
-            document.getElementById('chatWindow').classList.remove('open');
-        }
-    }
-    
-    function updateAuthUI() {
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        
-        if (currentUser) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            adminBtn.style.display = currentUser.role === 'admin' ? 'block' : 'none';
-        } else {
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            adminBtn.style.display = 'none';
-        }
-    }
-    
-    function showRegister() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-    }
-    
-    function showLogin() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('registerForm').style.display = 'none';
-    }
-    
-    // ====================================================================
-    // تهيئة الصفحة وتحميل البيانات
-    // ====================================================================
-    async function init() {
-        const savedDark = localStorage.getItem('raadi_dark_mode');
-        if (savedDark === 'true') {
-            document.body.classList.add('dark-mode');
-            document.getElementById('darkModeBtn').innerHTML = '<i class="fas fa-sun"></i>';
-        }
-        
-        document.getElementById('langSelect').value = currentLang;
-        document.getElementById('currencySelect').value = currentCurrency;
-        
-        applyTranslation();
-        
-        await loadSettings();
-        loadCart();
-        
-        const savedUser = localStorage.getItem('raadi_user');
-        if (savedUser) {
-            try {
-                const response = await fetch('/api/me');
-                if (response.ok) {
-                    currentUser = await response.json();
-                    localStorage.setItem('raadi_user', JSON.stringify(currentUser));
-                    updateAuthUI();
-                    loadWishlist();
-                } else {
-                    currentUser = null;
-                    localStorage.removeItem('raadi_user');
-                }
-            } catch (error) {
-                currentUser = null;
-            }
-        }
-        
-        loadProducts();
-        startFlashSaleTimer();
-        
-        document.getElementById('searchInput').addEventListener('input', () => renderProducts());
-        document.getElementById('langSelect').addEventListener('change', (e) => {
-            currentLang = e.target.value;
-            localStorage.setItem('lang', currentLang);
-            applyTranslation();
-            loadProducts();
-        });
-        document.getElementById('currencySelect').addEventListener('change', (e) => {
-            currentCurrency = e.target.value;
-            localStorage.setItem('currency', currentCurrency);
-            renderProducts();
-            updateCartUI();
-        });
-        document.getElementById('country').addEventListener('change', () => updateOrderSummary());
-        
-        setTimeout(() => {
-            if (currentUser) {
-                playWelcomeSound();
-            }
+    function startCartTimer() {
+        if(cartTimerInterval) clearInterval(cartTimerInterval);
+        let timeLeft = 600;
+        const timerDiv = document.getElementById('cartTimer');
+        timerDiv.style.display = 'block';
+        cartTimerInterval = setInterval(() => {
+            if(timeLeft <= 0) { clearInterval(cartTimerInterval); timerDiv.style.display = 'none'; cart = []; saveCart(); updateCartUI(); showToast('انتهت صلاحية الحجز', true); }
+            const mins = Math.floor(timeLeft/60), secs = timeLeft%60;
+            timerDiv.innerHTML = `⏰ ${t('cartReserve')} ${mins}:${secs<10?'0'+secs:secs}`;
+            timeLeft--;
         }, 1000);
     }
     
-    init();
+    // الطلب والفاتورة
+    function openCheckoutModal() {
+        if(!currentUser) { showToast(t('loginRequired'), true); openAuthModal(); return; }
+        if(!cart.length) { showToast('السلة فارغة', true); return; }
+        document.getElementById('fullName').value = currentUser.name||'';
+        document.getElementById('email').value = currentUser.email||'';
+        document.getElementById('phone').value = currentUser.phone||'';
+        document.getElementById('address').value = currentUser.address||'';
+        updateOrderSummary();
+        document.getElementById('checkoutModal').style.display = 'flex';
+    }
+    function updateOrderSummary() {
+        const country = document.getElementById('country').value;
+        const sub = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+        const disc = sub * (couponDiscount/100);
+        const ship = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
+        document.getElementById('orderSummary').innerHTML = `<div><strong>المنتجات:</strong></div>${cart.map(i=>`<div>${i.name} × ${i.quantity}</div>`).join('')}<hr><div>${t('total')}: ${formatPrice(convertPrice(sub))}</div>${couponDiscount>0?`<div>${t('discount')}: -${formatPrice(convertPrice(disc))}</div>`:''}<div>${t('shipping')}: ${formatPrice(convertPrice(ship))}</div><div style="font-size:1.2rem;">${t('total')}: ${formatPrice(convertPrice(sub-disc+ship))}</div>`;
+    }
+    async function submitOrder() {
+        const name = document.getElementById('fullName').value.trim(), phone = document.getElementById('phone').value.trim(), address = document.getElementById('address').value.trim(), country = document.getElementById('country').value;
+        if(!name || !phone || !address) { showToast(t('fillAllFields'), true); return; }
+        const sub = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+        const disc = sub * (couponDiscount/100);
+        const ship = country === 'saudi' ? shippingSettings.domestic : shippingSettings.international;
+        const order = { customer:name, email:document.getElementById('email').value, phone, address, country, items:cart.map(i=>({id:i.id,name:i.name,quantity:i.quantity,price:i.price})), subtotal:sub, discount:couponDiscount, discountAmount:disc, shipping:ship, total:sub-disc+ship, currency:currentCurrency };
+        const res = await fetch('/api/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(order) });
+        const data = await res.json();
+        if(data.success) {
+            generateInvoice(order); playOrder(); showToast(t('orderPlaced'));
+            cart = []; couponDiscount = 0; saveCart(); updateCartUI(); closeCheckoutModal(); loadProducts();
+        } else showToast(t('orderError'), true);
+    }
+    function generateInvoice(o) {
+        const win = window.open();
+        win.document.write(`<html dir="rtl"><head><title>فاتورة الرعدي</title><style>body{font-family:Arial;padding:30px;max-width:800px;margin:auto;direction:rtl;}</style></head><body><div style="text-align:center;border-bottom:2px solid #e67e22;"><h1>🦅 الرعدي أونلاين</h1><p>فاتورة شراء</p></div><p><strong>التاريخ:</strong> ${new Date().toLocaleDateString()}</p><p><strong>العميل:</strong> ${o.customer}</p><p><strong>الهاتف:</strong> ${o.phone}</p><p><strong>العنوان:</strong> ${o.address}</p><p><strong>نوع الشحن:</strong> ${o.country==='saudi'?'شحن داخلي':'شحن دولي'}</p><table border="1" width="100%"><thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${formatPrice(convertPrice(i.price))}</td><td>${formatPrice(convertPrice(i.price*i.quantity))}</td></tr>`).join('')}</tbody></table><div><strong>المجموع الفرعي:</strong> ${formatPrice(convertPrice(o.subtotal))}</div>${o.discount>0?`<div><strong>الخصم:</strong> -${formatPrice(convertPrice(o.discountAmount))}</div>`:''}<div><strong>الشحن:</strong> ${formatPrice(convertPrice(o.shipping))}</div><div style="font-size:1.3rem;"><strong>الإجمالي النهائي:</strong> ${formatPrice(convertPrice(o.total))}</div><button onclick="window.print()">🖨️ طباعة</button></body></html>`);
+    }
+    function closeCheckoutModal() { document.getElementById('checkoutModal').style.display = 'none'; }
+    
+    // التقييمات
+    function openRatingModal(id) { if(!currentUser) { showToast(t('loginRequired'), true); openAuthModal(); return; } currentRatingProduct = id; selectedRating = 0; document.querySelectorAll('#ratingStars i').forEach(s=>s.classList.remove('active')); document.getElementById('ratingModal').style.display = 'flex'; }
+    function closeRatingModal() { document.getElementById('ratingModal').style.display = 'none'; }
+    document.querySelectorAll('#ratingStars i').forEach(star => star.addEventListener('click', () => { selectedRating = parseInt(star.dataset.rate); document.querySelectorAll('#ratingStars i').forEach(s => parseInt(s.dataset.rate) <= selectedRating ? s.classList.add('active') : s.classList.remove('active')); }));
+    async function submitRating() { if(selectedRating===0) { showToast('اختر تقييماً', true); return; } await fetch(`/api/products/${currentRatingProduct}/rate`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ rating:selectedRating, review_ar:document.getElementById('ratingReview').value }) }); showToast('شكراً لتقييمك'); closeRatingModal(); loadProducts(); }
+    
+    // الأمنيات
+    async function toggleWishlist(id) {
+        if(!currentUser) { showToast(t('loginRequired'), true); openAuthModal(); return; }
+        const exists = wishlist.some(w=>w.id===id);
+        if(exists) { await fetch('/api/wishlist/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ productId:id }) }); showToast('تمت الإزالة'); }
+        else { await fetch('/api/wishlist/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ productId:id }) }); showToast('تمت الإضافة'); }
+        await loadWishlist();
+    }
+    async function openWishlistModal() {
+        if(!currentUser) { showToast(t('loginRequired'), true); openAuthModal(); return; }
+        const container = document.getElementById('wishlistItems');
+        if(!wishlist.length) container.innerHTML = '<div style="text-align:center;padding:30px;">لا توجد منتجات</div>';
+        else container.innerHTML = wishlist.map(w => `<div class="wishlist-item"><div><strong>${w.name}</strong><br>${formatPrice(convertPrice(w.price))}</div><button onclick="addToCart(${w.id}); closeWishlistModal()">${t('addToCart')}</button></div>`).join('');
+        document.getElementById('wishlistModal').style.display = 'flex';
+    }
+    function closeWishlistModal() { document.getElementById('wishlistModal').style.display = 'none'; }
+    
+    // الدردشة
+    async function loadMessages() { if(!currentUser) return; const res = await fetch('/api/messages'); const msgs = await res.json(); document.getElementById('chatMessages').innerHTML = msgs.map(m => `<div class="chat-message ${m.isAdmin?'admin':'user'}"><strong>${m.sender}:</strong> ${m.text_ar||m.text_en}<div style="font-size:0.7rem;">${m.timestamp}</div></div>`).join(''); }
+    async function sendMessage() { const inp = document.getElementById('chatInput'); const text = inp.value.trim(); if(!text) return; await fetch('/api/messages', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ text_ar:text, text_en:text, isAdmin:false }) }); inp.value = ''; loadMessages(); playMessage(); showToast('تم الإرسال'); }
+    function toggleChat() {
+        const win = document.getElementById('chatWindow');
+        win.classList.toggle('open');
+        if(win.classList.contains('open')) {
+            if(!currentUser) { showToast(t('loginRequired'), true); win.classList.remove('open'); openAuthModal(); return; }
+            loadMessages(); if(chatInterval) clearInterval(chatInterval); chatInterval = setInterval(loadMessages, 5000);
+        } else { if(chatInterval) clearInterval(chatInterval); }
+    }
+    
+    // المصادقة
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+    async function login() {
+        const email = document.getElementById('loginEmail').value, pass = document.getElementById('loginPassword').value;
+        if(!email||!pass) { document.getElementById('loginError').innerText = t('fillAllFields'); return; }
+        const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email, password:pass }) });
+        const data = await res.json();
+        if(data.success) { currentUser = data.user; localStorage.setItem('raadi_user', JSON.stringify(currentUser)); closeAuthModal(); updateAuthUI(); loadProducts(); loadWishlist(); showToast(`${t('welcome')}, ${currentUser.name}`); playWelcome(); }
+        else document.getElementById('loginError').innerText = data.error || t('invalidCredentials');
+    }
+    async function register() {
+        const data = { name: document.getElementById('regName').value, email: document.getElementById('regEmail').value, password: document.getElementById('regPassword').value, phone: document.getElementById('regPhone').value, address: document.getElementById('regAddress').value };
+        if(!data.name||!data.email||!data.password) { document.getElementById('registerError').innerText = t('fillAllFields'); return; }
+        const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+        const result = await res.json();
+        if(result.success) { showToast(t('registrationSuccess')); showLogin(); }
+        else document.getElementById('registerError').innerText = result.error || t('emailExists');
+    }
+    async function logout() { await fetch('/api/logout', { method:'POST' }); currentUser = null; localStorage.removeItem('raadi_user'); updateAuthUI(); showToast('تم تسجيل الخروج'); loadProducts(); if(chatInterval) clearInterval(chatInterval); }
+    function updateAuthUI() {
+        document.getElementById('loginBtn').style.display = currentUser ? 'none' : 'block';
+        document.getElementById('logoutBtn').style.display = currentUser ? 'block' : 'none';
+        document.getElementById('adminBtn').style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
+    }
+    function showRegister() { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; }
+    function showLogin() { document.getElementById('loginForm').style.display = 'block'; document.getElementById('registerForm').style.display = 'none'; }
+    
+    // العداد التنازلي
+    function updateFlashSaleTimer() {
+        const diff = flashSaleEnd - Date.now();
+        if(diff <= 0) { document.getElementById('flashSaleTimer').style.display = 'none'; clearInterval(flashSaleInterval); return; }
+        const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
+        document.getElementById('flashSaleTimer').innerHTML = `${t('flashSale')} ${m} ${m===1?t('minute'):t('minutes')} ${s} ${t('seconds')}`;
+        document.getElementById('flashSaleTimer').style.display = 'block';
+    }
+    function startFlashSaleTimer() { updateFlashSaleTimer(); flashSaleInterval = setInterval(updateFlashSaleTimer, 1000); }
+    
+    // التهيئة
+    document.getElementById('langSelect').addEventListener('change', (e) => { currentLang = e.target.value; localStorage.setItem('lang', currentLang); loadProducts(); loadCategories(); loadBanners(); loadAnnouncement(); });
+    document.getElementById('currencySelect').addEventListener('change', (e) => { currentCurrency = e.target.value; localStorage.setItem('currency', currentCurrency); renderProducts(); updateCartUI(); });
+    document.getElementById('searchInput').addEventListener('input', () => renderProducts());
+    if(localStorage.getItem('raadi_dark') === 'true') toggleDarkMode();
+    initSounds();
+    loadSettings(); loadBanners(); loadAnnouncement(); loadCart();
+    const savedUser = localStorage.getItem('raadi_user');
+    if(savedUser) { try { fetch('/api/me').then(r=>r.json()).then(u=>{ if(u) { currentUser = u; updateAuthUI(); loadWishlist(); } }).catch(()=>{}); } catch(e){} }
+    loadProducts(); loadCategories(); startFlashSaleTimer();
 </script>
 </body>
-    </html>
+                                                                                        </html>

@@ -1,45 +1,227 @@
-async function login() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorDiv = document.getElementById('errorMsg');
-    const loadingDiv = document.getElementById('loadingMsg');
-    
-    errorDiv.style.display = 'none';
-    
-    if (!email || !password) {
-        errorDiv.innerHTML = '❌ الرجاء إدخال البريد الإلكتروني وكلمة المرور';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    loadingDiv.style.display = 'block';
-    
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        
-        const data = await response.json();
-        loadingDiv.style.display = 'none';
-        
-        if (data.success && data.user) {
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            
-            // التوجيه حسب الدور (role)
-            if (data.user.role === 'admin') {
-                window.location.href = '/admin.html';
-            } else {
-                window.location.href = '/dashboard.html';
-            }
-        } else {
-            errorDiv.innerHTML = '❌ ' + (data.error || 'بيانات الدخول غير صحيحة');
-            errorDiv.style.display = 'block';
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - الرعدي أونلاين</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', system-ui; }
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #0f1724);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
-    } catch (err) {
-        loadingDiv.style.display = 'none';
-        errorDiv.innerHTML = '❌ خطأ في الاتصال: ' + err.message;
-        errorDiv.style.display = 'block';
-    }
-}
+        .login-card {
+            background: white;
+            border-radius: 48px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        h1 { color: #b87333; text-align: center; margin-bottom: 10px; }
+        .logo { font-size: 3rem; text-align: center; margin-bottom: 15px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab.active { background: #b87333; color: white; }
+        .form-group { margin-bottom: 18px; }
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #ddd;
+            border-radius: 60px;
+            font-size: 1rem;
+        }
+        button {
+            background: #b87333;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 30px;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .error { background: #fee2e2; color: #ef4444; }
+        .success { background: #dcfce7; color: #22c55e; }
+        hr { margin: 20px 0; border: none; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">🛍️</div>
+        <h1>الرعدي أونلاين</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('login')">تسجيل دخول</div>
+            <div class="tab" onclick="showTab('register')">حساب جديد</div>
+        </div>
+        
+        <div id="messageBox" class="message"></div>
+        
+        <!-- نموذج تسجيل الدخول -->
+        <div id="loginForm">
+            <div class="form-group">
+                <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+            </div>
+            <div class="form-group">
+                <input type="password" id="loginPassword" placeholder="كلمة المرور">
+            </div>
+            <button onclick="login()">دخول</button>
+        </div>
+        
+        <!-- نموذج تسجيل حساب جديد -->
+        <div id="registerForm" style="display:none;">
+            <div class="form-group">
+                <input type="text" id="regName" placeholder="الاسم الكامل">
+            </div>
+            <div class="form-group">
+                <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
+            </div>
+            <div class="form-group">
+                <input type="tel" id="regPhone" placeholder="رقم الهاتف (اختياري)">
+            </div>
+            <div class="form-group">
+                <input type="password" id="regPassword" placeholder="كلمة المرور">
+            </div>
+            <div class="form-group">
+                <input type="password" id="regConfirmPassword" placeholder="تأكيد كلمة المرور">
+            </div>
+            <button onclick="register()">إنشاء حساب</button>
+        </div>
+        
+        <hr>
+        <p style="font-size: 0.7rem; text-align: center; color: #94a3b8;">
+            🔐 أول مستخدم يسجل يصبح مدير النظام
+        </p>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (tab === 'login') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+            hideMessage();
+        }
+        
+        function showMessage(text, type) {
+            const msg = document.getElementById('messageBox');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 4000);
+        }
+        
+        function hideMessage() {
+            document.getElementById('messageBox').style.display = 'none';
+        }
+        
+        async function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!email || !password) {
+                showMessage('❌ الرجاء إدخال البريد الإلكتروني وكلمة المرور', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    if (data.user.role === 'admin') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                } else {
+                    showMessage('❌ ' + data.error, 'error');
+                }
+            } catch(err) {
+                showMessage('❌ خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        async function register() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            
+            if (!name || !email || !password) {
+                showMessage('❌ الاسم والبريد وكلمة المرور مطلوبة', 'error');
+                return;
+            }
+            if (password !== confirm) {
+                showMessage('❌ كلمة المرور غير متطابقة', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showMessage('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, phone, role: 'client' })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showMessage('✅ ' + data.message, 'success');
+                    if (data.isAdmin) {
+                        setTimeout(() => window.location.href = '/client.html', 2000);
+                    } else {
+                        setTimeout(() => showTab('login'), 2000);
+                    }
+                    document.getElementById('regName').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regPhone').value = '';
+                    document.getElementById('regPassword').value = '';
+                    document.getElementById('regConfirmPassword').value = '';
+                } else {
+                    showMessage('❌ ' + data.error, 'error');
+                }
+            } catch(err) {
+                showMessage('❌ خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

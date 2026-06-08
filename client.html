@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - الرعدي أونلاين</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', system-ui; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Segoe UI', system-ui;
+        }
         body {
             background: linear-gradient(135deg, #1a2a3a, #0f1724);
             min-height: 100vh;
@@ -32,7 +37,7 @@
             border: 1px solid #ddd;
             border-radius: 60px;
             font-size: 1rem;
-            direction: rtl;
+            text-align: right;
         }
         button {
             background: #b87333;
@@ -54,6 +59,7 @@
             border-radius: 30px;
             margin: 15px 0;
             font-size: 0.85rem;
+            display: none;
         }
         .demo-box {
             background: #f8fafc;
@@ -64,6 +70,12 @@
             text-align: right;
         }
         hr { margin: 20px 0; border: none; border-top: 1px solid #eee; }
+        .loading {
+            display: none;
+            margin: 10px 0;
+            font-size: 0.8rem;
+            color: #b87333;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +84,8 @@
         <h1>الرعدي أونلاين</h1>
         <p style="margin-bottom: 25px;">تسجيل الدخول إلى حسابك</p>
         
-        <div id="errorMsg" class="error" style="display: none;"></div>
+        <div id="errorMsg" class="error"></div>
+        <div id="loadingMsg" class="loading">⏳ جاري التحقق...</div>
         
         <input type="email" id="email" placeholder="البريد الإلكتروني" value="admin@system.com">
         <input type="password" id="password" placeholder="كلمة المرور" value="admin123">
@@ -90,9 +103,10 @@
 
     <script>
         async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('errorMsg');
+            const loadingDiv = document.getElementById('loadingMsg');
             
             errorDiv.style.display = 'none';
             
@@ -102,20 +116,29 @@
                 return;
             }
             
+            loadingDiv.style.display = 'block';
+            
             try {
+                console.log('جاري الاتصال بـ /api/login...');
+                
                 const response = await fetch('/api/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({ email, password })
                 });
                 
+                console.log('الرد:', response.status);
                 const data = await response.json();
+                console.log('البيانات:', data);
+                
+                loadingDiv.style.display = 'none';
                 
                 if (data.success && data.user) {
-                    // حفظ بيانات المستخدم
                     localStorage.setItem('currentUser', JSON.stringify(data.user));
                     
-                    // التوجيه حسب الدور
                     if (data.user.role === 'admin') {
                         window.location.href = '/admin.html';
                     } else {
@@ -126,15 +149,31 @@
                     errorDiv.style.display = 'block';
                 }
             } catch (err) {
-                errorDiv.innerHTML = '❌ خطأ في الاتصال بالسيرفر: ' + err.message;
+                loadingDiv.style.display = 'none';
+                errorDiv.innerHTML = '❌ خطأ في الاتصال: ' + err.message;
                 errorDiv.style.display = 'block';
+                console.error('خطأ:', err);
             }
         }
         
-        // الضغط على Enter
         document.getElementById('password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
+        
+        // اختبار الاتصال بـ API عند تحميل الصفحة
+        async function testAPI() {
+            try {
+                const res = await fetch('/api/products');
+                if (res.ok) {
+                    console.log('✅ API يعمل');
+                } else {
+                    console.log('❌ API لا يعمل');
+                }
+            } catch(e) {
+                console.log('❌ لا يمكن الاتصال بـ API');
+            }
+        }
+        testAPI();
     </script>
 </body>
 </html>

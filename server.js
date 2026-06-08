@@ -1,5 +1,6 @@
+
 // ============================================
-// الرعدي أونلاين - الخادم الخلفي المتكامل (النسخة النهائية)
+// الرعدي أونلاين - الخادم الخلفي المتكامل (النسخة النهائية 8.0)
 // ============================================
 
 const express = require('express');
@@ -11,6 +12,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const QRCode = require('qrcode');
 const fs = require('fs');
+const csv = require('csv-parser');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,26 +27,34 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/assets', express.static('public/assets'));
 
-// إنشاء مجلد assets إذا لم يكن موجوداً
-if (!fs.existsSync('./public/assets')) fs.mkdirSync('./public/assets', { recursive: true });
-if (!fs.existsSync('./public/assets/uploads')) fs.mkdirSync('./public/assets/uploads', { recursive: true });
-if (!fs.existsSync('./public/assets/sounds')) fs.mkdirSync('./public/assets/sounds', { recursive: true });
-if (!fs.existsSync('./public/assets/images')) fs.mkdirSync('./public/assets/images', { recursive: true });
+// إنشاء المجلدات
+const dirs = ['./public/assets', './public/assets/sounds', './public/assets/images', './public/assets/uploads', './database'];
+dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
 
 // رفع الملفات
 const storage = multer.diskStorage({
     destination: './public/assets/uploads/',
     filename: (req, file, cb) => {
-        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-        cb(null, uniqueName);
+        cb(null, Date.now() + '-' + file.originalname);
     }
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+// رفع الصوتيات
+const soundStorage = multer.diskStorage({
+    destination: './public/assets/sounds/',
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+});
+const uploadSound = multer({ storage: soundStorage });
+
 // ============================================
 // قاعدة البيانات
 // ============================================
-const db = new sqlite3.Database('./database.db');
+const db = new sqlite3.Database('./database/raadi.db');
 
 // دوال مساعدة
 function logError(error, context) {
@@ -64,7 +75,7 @@ function sendNotification(userId, title, message, type = 'info', link = '') {
 }
 
 function generateToken(userId) {
-    return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '7d' });
+    return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '30d' });
 }
 
 // إنشاء جميع الجداول
@@ -78,6 +89,7 @@ db.serialize(() => {
         phone TEXT,
         address TEXT,
         city TEXT,
+        country TEXT,
         role TEXT DEFAULT 'client',
         loyalty_points INTEGER DEFAULT 0,
         tier TEXT DEFAULT 'bronze',
@@ -147,6 +159,7 @@ db.serialize(() => {
         user_phone TEXT,
         address TEXT,
         city TEXT,
+        country TEXT,
         postal_code TEXT,
         products TEXT,
         subtotal REAL,
@@ -164,6 +177,8 @@ db.serialize(() => {
         tracking_number TEXT,
         status TEXT DEFAULT 'pending',
         notes TEXT,
+        signature TEXT,
+        delivery_date TEXT,
         date DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
@@ -313,7 +328,30 @@ db.serialize(() => {
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    console.log('✅ تم إنشاء 17 جدولاً بنجاح');
+    // 18. المعروضات (Banners)
+    db.run(`CREATE TABLE IF NOT EXISTS banners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        image TEXT,
+        link TEXT,
+        position TEXT,
+        sort_order INTEGER DEFAULT 0,
+        isActive INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // 19. الصوتيات
+    db.run(`CREATE TABLE IF NOT EXISTS sounds (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        type TEXT,
+        filename TEXT,
+        url TEXT,
+        isActive INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    console.log('✅ تم إنشاء 19 جدولاً بنجاح');
 
     // ============================================
     // البيانات الافتراضية
@@ -326,43 +364,47 @@ db.serialize(() => {
             db.run(`INSERT INTO users (name, email, password, phone, role, loyalty_points, tier) VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 ['مدير النظام', 'admin@system.com', adminHash, '0500000000', 'admin', 0, 'gold']);
             console.log('✅ تم إضافة حساب المدير: admin@system.com / admin123');
-        } else {
-            console.log('✅ حساب المدير موجود مسبقاً');
         }
     });
 
-    // إضافة الأقسام الرئيسية
+    // إضافة الأقسام
     db.get(`SELECT * FROM categories LIMIT 1`, [], (err, row) => {
         if (!row) {
             const categories = [
                 ['الكل', 'All', 'all', '📱', '', 0, 0, 1],
-                ['إلكترونيات', 'Electronics', 'electronics', '📱', 'https://picsum.photos/id/0/100/100', 0, 1, 2],
-                ['أزياء', 'Fashion', 'fashion', '👕', 'https://picsum.photos/id/20/100/100', 0, 1, 3],
-                ['منزل ومطبخ', 'Home', 'home', '🏠', 'https://picsum.photos/id/10/100/100', 0, 1, 4],
-                ['هواتف', 'Phones', 'phones', '📱', 'https://picsum.photos/id/1/100/100', 2, 2, 5],
-                ['أجهزة لوحية', 'Tablets', 'tablets', '📱', 'https://picsum.photos/id/2/100/100', 2, 2, 6]
+                ['إلكترونيات', 'Electronics', 'electronics', '📱', '', 0, 1, 2],
+                ['هواتف', 'Phones', 'phones', '📱', '', 2, 2, 3],
+                ['أجهزة لوحية', 'Tablets', 'tablets', '📱', '', 2, 2, 4],
+                ['أزياء', 'Fashion', 'fashion', '👕', '', 0, 1, 5],
+                ['رجالي', 'Men', 'men', '👔', '', 5, 2, 6],
+                ['نسائي', 'Women', 'women', '👗', '', 5, 2, 7],
+                ['منزل ومطبخ', 'Home', 'home', '🏠', '', 0, 1, 8],
+                ['عطور', 'Perfumes', 'perfumes', '🌸', '', 0, 1, 9],
+                ['مكتبة', 'Books', 'books', '📚', '', 0, 1, 10],
+                ['رياضة', 'Sports', 'sports', '⚽', '', 0, 1, 11],
+                ['جمال وعناية', 'Beauty', 'beauty', '💄', '', 0, 1, 12]
             ];
             categories.forEach(c => {
                 db.run(`INSERT INTO categories (name, name_en, slug, icon, image, parent_id, level, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, c);
             });
-            console.log('✅ تم إضافة الأقسام الافتراضية');
+            console.log('✅ تم إضافة الأقسام');
         }
     });
 
-    // إضافة منتجات افتراضية
+    // إضافة منتجات
     db.get(`SELECT * FROM products LIMIT 1`, [], (err, row) => {
         if (!row) {
             const products = [
-                ['iPhone 15 Pro', 'iPhone 15 Pro', 'iphone-15-pro', 'IP15P-001', 2, 'إلكترونيات', 3999, 4599, 2800, 10, 5, '0.2', '{"width":7,"height":14}', 'https://picsum.photos/id/1/400/400', '["https://picsum.photos/id/1/400/400"]', '["أسود","أبيض","ذهبي"]', '["128GB","256GB"]', '["apple","iphone"]', 'Apple', 'أحدث هاتف من Apple', '{}', 4.9, 0, 0, 0, 1, 1],
-                ['ساعة ذكية', 'Smart Watch', 'smart-watch', 'SW-001', 2, 'إلكترونيات', 499, 699, 350, 20, 5, '0.1', '', 'https://picsum.photos/id/2/400/400', '["https://picsum.photos/id/2/400/400"]', '["أسود","فضي"]', '["S","M","L"]', '["ساعة","ذكية"]', 'Samsung', 'ساعة ذكية متعددة الوظائف', '{}', 4.7, 0, 0, 0, 1, 1],
-                ['سماعات لاسلكية', 'Wireless Headphones', 'wireless-headphones', 'WH-001', 2, 'إلكترونيات', 299, 450, 200, 50, 10, '0.3', '', 'https://picsum.photos/id/3/400/400', '["https://picsum.photos/id/3/400/400"]', '["أسود","أبيض"]', '["M","L"]', '["سماعات","بلوتوث"]', 'Sony', 'سماعات عالية الجودة', '{}', 4.8, 0, 0, 0, 1, 1],
-                ['حقيبة جلدية', 'Leather Bag', 'leather-bag', 'LB-001', 3, 'أزياء', 799, 1299, 500, 15, 3, '0.8', '', 'https://picsum.photos/id/20/400/400', '["https://picsum.photos/id/20/400/400"]', '["بني","أسود"]', '["One Size"]', '["حقيبة","جلد"]', 'Prada', 'حقيبة جلدية فاخرة', '{}', 4.9, 0, 0, 0, 1, 1],
-                ['قلم ذكي', 'Smart Pen', 'smart-pen', 'SP-001', 4, 'مكتبة', 149, 249, 100, 100, 10, '0.05', '', 'https://picsum.photos/id/4/400/400', '["https://picsum.photos/id/4/400/400"]', '["فضي","ذهبي"]', '["One Size"]', '["قلم","ذكي"]', 'Xiaomi', 'قلم ذكي للكتابة', '{}', 4.6, 0, 0, 0, 1, 1]
+                ['iPhone 15 Pro', 'iPhone 15 Pro', 'iphone-15-pro', 'IP15P-001', 3, 'هواتف', 3999, 4599, 2800, 10, 5, 0.2, '', 'https://picsum.photos/id/1/400/400', '["https://picsum.photos/id/1/400/400"]', '["أسود","أبيض","ذهبي"]', '["128GB","256GB"]', '["apple","iphone"]', 'Apple', 'أحدث هاتف من Apple', '{}', 4.9, 0, 0, 0, 1, 1],
+                ['ساعة ذكية', 'Smart Watch', 'smart-watch', 'SW-001', 2, 'إلكترونيات', 499, 699, 350, 20, 5, 0.1, '', 'https://picsum.photos/id/2/400/400', '["https://picsum.photos/id/2/400/400"]', '["أسود","فضي"]', '["S","M","L"]', '["ساعة","ذكية"]', 'Samsung', 'ساعة ذكية متعددة الوظائف', '{}', 4.7, 0, 0, 0, 1, 1],
+                ['سماعات لاسلكية', 'Wireless Headphones', 'wireless-headphones', 'WH-001', 2, 'إلكترونيات', 299, 450, 200, 50, 10, 0.3, '', 'https://picsum.photos/id/3/400/400', '["https://picsum.photos/id/3/400/400"]', '["أسود","أبيض"]', '["M","L"]', '["سماعات","بلوتوث"]', 'Sony', 'سماعات عالية الجودة', '{}', 4.8, 0, 0, 0, 1, 1],
+                ['حقيبة جلدية', 'Leather Bag', 'leather-bag', 'LB-001', 6, 'رجالي', 799, 1299, 500, 15, 3, 0.8, '', 'https://picsum.photos/id/20/400/400', '["https://picsum.photos/id/20/400/400"]', '["بني","أسود"]', '["One Size"]', '["حقيبة","جلد"]', 'Prada', 'حقيبة جلدية فاخرة', '{}', 4.9, 0, 0, 0, 1, 1],
+                ['عطر بلو دي شانيل', 'Bleu de Chanel', 'bleu-de-chanel', 'BDC-001', 9, 'عطور', 520, 650, 400, 30, 5, 0.2, '', 'https://picsum.photos/id/21/400/400', '["https://picsum.photos/id/21/400/400"]', '["كحلي"]', '["100ml","150ml"]', '["عطر","شانيل"]', 'Chanel', 'عطر فاخر برائحة خشبية', '{}', 4.9, 0, 0, 0, 1, 1]
             ];
             products.forEach(p => {
                 db.run(`INSERT INTO products (name, name_en, slug, sku, category_id, category_name, price, old_price, cost_price, stock, min_stock, weight, dimensions, image, images, colors, sizes, tags, brand, description, specifications, rating, reviews_count, sold_count, views_count, isActive, isFeatured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, p);
             });
-            console.log('✅ تم إضافة المنتجات الافتراضية');
+            console.log('✅ تم إضافة المنتجات');
         }
     });
 
@@ -371,6 +413,7 @@ db.serialize(() => {
         if (!row) {
             const settings = [
                 ['site_name', 'الرعدي أونلاين'],
+                ['site_name_en', 'Raadi Online'],
                 ['site_logo', '🛍️'],
                 ['site_description', 'أكبر متجر إلكتروني في العالم العربي'],
                 ['primary_color', '#b87333'],
@@ -380,11 +423,20 @@ db.serialize(() => {
                 ['phone_number', '920000000'],
                 ['email', 'info@raadi-store.com'],
                 ['address', 'الرياض، المملكة العربية السعودية'],
-                ['shipping_cost', '20'],
+                ['shipping_cost_domestic', '15'],
+                ['shipping_cost_international', '50'],
                 ['free_shipping_min', '200'],
                 ['tax_rate', '15'],
+                ['currency', 'ريال'],
+                ['currency_code', 'SAR'],
+                ['return_policy_ar', 'يمكنك إرجاع المنتج خلال 14 يوماً من تاريخ الاستلام بشرط أن يكون بحالته الأصلية.'],
+                ['return_policy_en', 'You can return the product within 14 days of receipt provided it is in its original condition.'],
+                ['exchange_policy_ar', 'يمكنك استبدال المنتج خلال 7 أيام من تاريخ الاستلام.'],
+                ['exchange_policy_en', 'You can exchange the product within 7 days of receipt.'],
                 ['sound_enabled', 'true'],
-                ['marquee_text', '🎉 خصم 20% على أول طلب | كود: WELCOME20 | توصيل مجاني للطلبات فوق 200 ريال | نقاط مضاعفة']
+                ['marquee_text', '🎉 خصم 20% على أول طلب | كود: WELCOME20 | 🚚 توصيل مجاني للطلبات فوق 200 ريال | 💎 نقاط مضاعفة'],
+                ['ar_enabled', 'true'],
+                ['voice_assistant_enabled', 'true']
             ];
             settings.forEach(s => {
                 db.run(`INSERT INTO settings (key, value) VALUES (?, ?)`, s);
@@ -393,7 +445,7 @@ db.serialize(() => {
         }
     });
 
-    // كوبون Welcome
+    // كوبونات
     db.get(`SELECT * FROM coupons WHERE code = 'WELCOME20'`, [], (err, row) => {
         if (!row) {
             db.run(`INSERT INTO coupons (code, description, discount_type, discount_value, min_order, max_uses, isActive) VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -401,13 +453,43 @@ db.serialize(() => {
             console.log('✅ تم إضافة كوبون WELCOME20');
         }
     });
+
+    // صوتيات افتراضية
+    db.get(`SELECT * FROM sounds LIMIT 1`, [], (err, row) => {
+        if (!row) {
+            const sounds = [
+                ['welcome', 'ترحيب', '', ''],
+                ['add_to_cart', 'إضافة للسلة', '', ''],
+                ['order_success', 'نجاح الطلب', '', ''],
+                ['notification', 'إشعار', '', '']
+            ];
+            sounds.forEach(s => {
+                db.run(`INSERT INTO sounds (name, type, filename, url) VALUES (?, ?, ?, ?)`, s);
+            });
+            console.log('✅ تم إضافة قائمة الصوتيات');
+        }
+    });
+
+    // معروضات (Banners)
+    db.get(`SELECT * FROM banners LIMIT 1`, [], (err, row) => {
+        if (!row) {
+            const banners = [
+                ['عرض الصيف', 'https://picsum.photos/id/0/1200/400', '/products', 'hero', 1],
+                ['تخفيضات تصل إلى 50%', 'https://picsum.photos/id/1/1200/400', '/products?discount=50', 'hero', 2],
+                ['أحدث الهواتف', 'https://picsum.photos/id/2/1200/400', '/categories/2', 'hero', 3]
+            ];
+            banners.forEach(b => {
+                db.run(`INSERT INTO banners (title, image, link, position, sort_order) VALUES (?, ?, ?, ?, ?)`, b);
+            });
+            console.log('✅ تم إضافة المعروضات');
+        }
+    });
 });
 
 // ============================================
-// API: المصادقة (Authentication)
+// API: المصادقة
 // ============================================
 
-// تسجيل الدخول
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password, remember } = req.body;
@@ -427,6 +509,11 @@ app.post('/api/login', async (req, res) => {
             
             logActivity(user.id, user.name, 'LOGIN', 'تسجيل دخول ناجح');
             
+            // إرسال كود الترحيب لأول مرة
+            if (user.created_at && new Date(user.created_at) > new Date(Date.now() - 5 * 60 * 1000)) {
+                sendNotification(user.id, '🎉 مرحباً بك!', 'استخدم كود WELCOME20 للحصول على خصم 20% على أول طلب', 'welcome');
+            }
+            
             res.json({
                 success: true,
                 token,
@@ -435,6 +522,9 @@ app.post('/api/login', async (req, res) => {
                     name: user.name,
                     email: user.email,
                     phone: user.phone,
+                    address: user.address,
+                    city: user.city,
+                    country: user.country,
                     role: user.role,
                     loyalty_points: user.loyalty_points,
                     tier: user.tier
@@ -447,10 +537,9 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// تسجيل مستخدم جديد
 app.post('/api/register', async (req, res) => {
     try {
-        const { name, email, password, phone, address, city } = req.body;
+        const { name, email, password, phone, address, city, country } = req.body;
         
         if (!name || !email || !password) {
             return res.json({ success: false, error: 'جميع الحقول المطلوبة غير مكتملة' });
@@ -470,13 +559,13 @@ app.post('/api/register', async (req, res) => {
             
             const hashedPassword = await bcrypt.hash(password, 10);
             
-            db.run(`INSERT INTO users (name, email, password, phone, address, city, role, loyalty_points, tier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [name, email, hashedPassword, phone || '', address || '', city || '', 'client', 0, 'bronze'],
+            db.run(`INSERT INTO users (name, email, password, phone, address, city, country, role, loyalty_points, tier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [name, email, hashedPassword, phone || '', address || '', city || '', country || 'SA', 'client', 0, 'bronze'],
                 function(err2) {
                     if (err2) return res.json({ success: false, error: err2.message });
                     
                     logActivity(this.lastID, name, 'REGISTER', 'حساب جديد');
-                    sendNotification(this.lastID, '🎉 مرحباً بك في الرعدي أونلاين!', 'تم إنشاء حسابك بنجاح. استخدم كود WELCOME20 للحصول على خصم 20% على أول طلب', 'welcome');
+                    sendNotification(this.lastID, '🎉 مرحباً بك!', 'تم إنشاء حسابك بنجاح. استخدم كود WELCOME20 للحصول على خصم 20%', 'welcome');
                     
                     res.json({ success: true, message: 'تم إنشاء الحساب بنجاح، يمكنك تسجيل الدخول الآن' });
                 });
@@ -487,7 +576,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// التحقق من التوكن
 app.post('/api/verify-token', (req, res) => {
     const { token } = req.body;
     try {
@@ -495,7 +583,7 @@ app.post('/api/verify-token', (req, res) => {
         db.get(`SELECT * FROM sessions WHERE token = ? AND expires_at > CURRENT_TIMESTAMP`, [token], (err, session) => {
             if (err || !session) return res.json({ success: false, error: 'جلسة منتهية' });
             
-            db.get(`SELECT id, name, email, phone, role, loyalty_points, tier FROM users WHERE id = ?`, [decoded.userId], (err2, user) => {
+            db.get(`SELECT id, name, email, phone, address, city, country, role, loyalty_points, tier FROM users WHERE id = ?`, [decoded.userId], (err2, user) => {
                 if (!user) return res.json({ success: false, error: 'مستخدم غير موجود' });
                 res.json({ success: true, user });
             });
@@ -505,30 +593,50 @@ app.post('/api/verify-token', (req, res) => {
     }
 });
 
-// تحديث الملف الشخصي
+app.post('/api/forgot-password', (req, res) => {
+    const { email } = req.body;
+    db.get(`SELECT * FROM users WHERE email = ?`, [email], (err, user) => {
+        if (!user) return res.json({ success: false, error: 'البريد غير موجود' });
+        
+        const resetToken = uuidv4();
+        db.run(`UPDATE users SET reset_token = ? WHERE id = ?`, [resetToken, user.id]);
+        
+        console.log(`📧 رابط استعادة كلمة المرور: /reset-password?token=${resetToken}`);
+        res.json({ success: true, message: 'تم إرسال رابط استعادة كلمة المرور' });
+    });
+});
+
+app.post('/api/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+    db.get(`SELECT * FROM users WHERE reset_token = ?`, [token], async (err, user) => {
+        if (!user) return res.json({ success: false, error: 'رابط غير صالح' });
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        db.run(`UPDATE users SET password = ?, reset_token = NULL WHERE id = ?`, [hashedPassword, user.id]);
+        
+        res.json({ success: true, message: 'تم تغيير كلمة المرور' });
+    });
+});
+
 app.put('/api/users/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, phone, address, city, password } = req.body;
-        
-        let query = `UPDATE users SET name = ?, phone = ?, address = ?, city = ?`;
-        let params = [name, phone, address, city];
-        
-        if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            query += `, password = ?`;
-            params.push(hashedPassword);
-        }
-        query += ` WHERE id = ?`;
-        params.push(id);
-        
-        db.run(query, params, function(err) {
-            if (err) return res.json({ success: false, error: err.message });
-            res.json({ success: true, message: 'تم تحديث الملف الشخصي' });
-        });
-    } catch(e) {
-        res.json({ success: false, error: 'خطأ في الخادم' });
+    const { id } = req.params;
+    const { name, phone, address, city, country, password } = req.body;
+    
+    let query = `UPDATE users SET name = ?, phone = ?, address = ?, city = ?, country = ?`;
+    let params = [name, phone, address, city, country];
+    
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        query += `, password = ?`;
+        params.push(hashedPassword);
     }
+    query += ` WHERE id = ?`;
+    params.push(id);
+    
+    db.run(query, params, function(err) {
+        if (err) return res.json({ success: false, error: err.message });
+        res.json({ success: true, message: 'تم تحديث الملف الشخصي' });
+    });
 });
 
 // ============================================
@@ -596,10 +704,23 @@ app.delete('/api/categories/:id', (req, res) => {
 // ============================================
 
 app.get('/api/products', (req, res) => {
-    const { category, search, min_price, max_price, sort, page = 1, limit = 20 } = req.query;
+    const { category, search, min_price, max_price, sort, page = 1, limit = 20, featured, bestseller } = req.query;
     let query = `SELECT * FROM products WHERE isActive = 1`;
     let params = [];
     let countParams = [];
+    
+    if (featured === 'true') {
+        query += ` AND isFeatured = 1`;
+    }
+    
+    if (bestseller === 'true') {
+        query += ` ORDER BY sold_count DESC LIMIT 12`;
+        db.all(query, params, (err, rows) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            return res.json({ success: true, data: rows });
+        });
+        return;
+    }
     
     if (category && category !== 'all' && category !== 'undefined') {
         query += ` AND category_id = ?`;
@@ -758,6 +879,30 @@ app.delete('/api/products/:id', (req, res) => {
     });
 });
 
+// استيراد منتجات من CSV
+app.post('/api/products/import', upload.single('file'), (req, res) => {
+    if (!req.file) return res.json({ success: false, error: 'لم يتم رفع ملف' });
+    
+    const results = [];
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+            let imported = 0;
+            results.forEach(row => {
+                if (row.name && row.price) {
+                    const slug = row.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                    const sku = 'SKU-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                    db.run(`INSERT INTO products (name, price, stock, image, description, slug, sku) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [row.name, parseFloat(row.price), parseInt(row.stock) || 0, row.image || '', row.description || '', slug, sku]);
+                    imported++;
+                }
+            });
+            fs.unlinkSync(req.file.path);
+            res.json({ success: true, imported });
+        });
+});
+
 // ============================================
 // API: سلة التسوق
 // ============================================
@@ -824,26 +969,28 @@ app.delete('/api/cart/clear/:userId', (req, res) => {
 });
 
 // ============================================
-// API: الطلبات
+// API: الطلبات والفواتير
 // ============================================
 
 app.post('/api/orders', (req, res) => {
     const {
-        user_id, user_name, user_email, user_phone, address, city, postal_code,
+        user_id, user_name, user_email, user_phone, address, city, country, postal_code,
         products, subtotal, discount, shipping_cost, tax, total,
         coupon_code, coupon_discount, payment_method, shipping_method, notes
     } = req.body;
     
     const orderNumber = 'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    const signature = `توقيع العميل: ${user_name}`;
+    const deliveryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     
     db.run(`INSERT INTO orders (
-        order_number, user_id, user_name, user_email, user_phone, address, city, postal_code,
+        order_number, user_id, user_name, user_email, user_phone, address, city, country, postal_code,
         products, subtotal, discount, shipping_cost, tax, total,
-        coupon_code, coupon_discount, payment_method, shipping_method, notes, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderNumber, user_id, user_name, user_email, user_phone, address, city, postal_code,
+        coupon_code, coupon_discount, payment_method, shipping_method, notes, signature, delivery_date, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNumber, user_id, user_name, user_email, user_phone, address, city, country, postal_code,
          JSON.stringify(products), subtotal, discount || 0, shipping_cost || 0, tax || 0, total,
-         coupon_code || '', coupon_discount || 0, payment_method || 'cash', shipping_method || 'standard', notes || '', 'pending'],
+         coupon_code || '', coupon_discount || 0, payment_method || 'cash', shipping_method || 'standard', notes || '', signature, deliveryDate, 'pending'],
         function(err) {
             if (err) return res.json({ success: false, error: err.message });
             
@@ -867,16 +1014,10 @@ app.post('/api/orders', (req, res) => {
             
             logActivity(user_id, user_name, 'ORDER', `طلب جديد رقم ${orderNumber} بقيمة ${total}`);
             
-            // إنشاء تذكير صيانة
-            const productsArray = typeof products === 'string' ? JSON.parse(products) : products;
-            productsArray.forEach(product => {
-                const reminderDate = new Date();
-                reminderDate.setMonth(reminderDate.getMonth() + 3);
-                db.run(`INSERT INTO maintenance_reminders (order_id, product_name, customer_phone, reminder_date) VALUES (?, ?, ?, ?)`,
-                    [this.lastID, product.name, user_phone, reminderDate.toISOString()]);
+            // إنشاء QR للفاتورة
+            QRCode.toDataURL(JSON.stringify({ orderNumber, total, date: new Date().toISOString() }), (err, qrCode) => {
+                res.json({ success: true, orderId: this.lastID, orderNumber, qrCode });
             });
-            
-            res.json({ success: true, orderId: this.lastID, orderNumber });
         });
 });
 
@@ -893,12 +1034,7 @@ app.get('/api/orders/:id', (req, res) => {
         if (err) return res.status(500).json({ success: false, error: err.message });
         
         if (row) {
-            const qrData = JSON.stringify({
-                orderNumber: row.order_number,
-                total: row.total,
-                date: row.date
-            });
-            QRCode.toDataURL(qrData, (err, qrCode) => {
+            QRCode.toDataURL(JSON.stringify({ orderNumber: row.order_number, total: row.total, date: row.date }), (err, qrCode) => {
                 res.json({ success: true, data: row, qrCode: qrCode || null });
             });
         } else {
@@ -934,8 +1070,80 @@ app.put('/api/orders/:id/status', (req, res) => {
         });
 });
 
+// تصدير الفاتورة كـ PDF (توليد HTML)
+app.get('/api/invoice/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    db.get(`SELECT * FROM orders WHERE id = ? OR order_number = ?`, [orderId, orderId], (err, order) => {
+        if (err || !order) return res.status(404).json({ success: false, error: 'الفاتورة غير موجودة' });
+        
+        const products = JSON.parse(order.products || '[]');
+        
+        const html = `
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head><meta charset="UTF-8"><title>فاتورة ${order.order_number}</title>
+            <style>
+                body { font-family: 'Cairo', sans-serif; padding: 30px; }
+                .invoice { max-width: 800px; margin: auto; border: 1px solid #ddd; border-radius: 20px; padding: 30px; }
+                .header { text-align: center; border-bottom: 2px solid #b87333; padding-bottom: 20px; margin-bottom: 20px; }
+                .logo { font-size: 2rem; }
+                .title { color: #b87333; font-size: 1.5rem; }
+                .info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
+                .total { font-size: 1.3rem; font-weight: bold; text-align: left; margin-top: 20px; }
+                .qr { text-align: center; margin: 20px 0; }
+                .footer { text-align: center; font-size: 0.7rem; color: #666; margin-top: 30px; }
+                .signature { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+                .conditions { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 12px; }
+                button { background: #b87333; color: white; border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; width: 100%; }
+            </style>
+            </head>
+            <body>
+            <div class="invoice">
+                <div class="header">
+                    <div class="logo">🛍️</div>
+                    <div class="title">الرعدي أونلاين</div>
+                    <p>فاتورة شراء معتمدة</p>
+                </div>
+                <div class="info">
+                    <div><strong>رقم الفاتورة:</strong> ${order.order_number}</div>
+                    <div><strong>التاريخ:</strong> ${new Date(order.date).toLocaleString('ar')}</div>
+                    <div><strong>العميل:</strong> ${order.user_name}</div>
+                    <div><strong>الهاتف:</strong> ${order.user_phone || '-'}</div>
+                    <div><strong>العنوان:</strong> ${order.address || '-'}</div>
+                    <div><strong>البلد:</strong> ${order.country === 'SA' ? 'السعودية (شحن داخلي)' : 'شحن دولي'}</div>
+                </div>
+                <table>
+                    <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                    <tbody>${products.map(p => `<tr><td>${p.name}</td><td>${p.quantity}</td><td>${p.price} ريال</td><td>${p.price * p.quantity} ريال</td></tr>`).join('')}</tbody>
+                </table>
+                <div class="total">الإجمالي النهائي: ${order.total} ريال سعودي</div>
+                <div class="signature"><strong>توقيع المستلم:</strong> ${order.signature || '_________________'}</div>
+                <div class="conditions">
+                    <strong>شروط الإرجاع والاستبدال:</strong><br>
+                    • يمكنك إرجاع المنتج خلال 14 يوماً من تاريخ الاستلام بشرط أن يكون بحالته الأصلية.<br>
+                    • يمكنك استبدال المنتج خلال 7 أيام من تاريخ الاستلام.<br>
+                    • يتم استرداد المبلغ خلال 5 أيام عمل بعد فحص المنتج.<br>
+                    • للاستفسار: ${process.env.PHONE || '920000000'}
+                </div>
+                <div class="qr"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({ order: order.order_number, total: order.total }))}" width="120"></div>
+                <div class="footer">
+                    <p>شكراً لتسوقك مع الرعدي أونلاين</p>
+                    <p>للصيانة أو الاستفسار: واتساب ${process.env.WHATSAPP || '966500000000'}</p>
+                </div>
+                <button onclick="window.print()">🖨️ طباعة الفاتورة</button>
+            </div>
+            </body>
+            </html>
+        `;
+        
+        res.send(html);
+    });
+});
+
 // ============================================
-// API: المراجعات
+// API: المراجعات والمفضلة
 // ============================================
 
 app.get('/api/reviews/product/:productId', (req, res) => {
@@ -966,10 +1174,6 @@ app.post('/api/reviews', (req, res) => {
             res.json({ success: true, id: this.lastID });
         });
 });
-
-// ============================================
-// API: المفضلة
-// ============================================
 
 app.get('/api/wishlist/:userId', (req, res) => {
     const { userId } = req.params;
@@ -1061,7 +1265,7 @@ app.delete('/api/coupons/:id', (req, res) => {
 });
 
 // ============================================
-// API: الإحصائيات
+// API: الإحصائيات والتقارير
 // ============================================
 
 app.get('/api/stats', (req, res) => {
@@ -1073,12 +1277,13 @@ app.get('/api/stats', (req, res) => {
     db.get(`SELECT COUNT(*) as count FROM categories`, (err, row) => { stats.categories = row?.count || 0; });
     db.get(`SELECT SUM(total) as total FROM orders WHERE status != 'cancelled'`, (err, row) => { stats.revenue = row?.total || 0; });
     db.get(`SELECT SUM(total) as total FROM orders WHERE date >= date('now', '-30 days')`, (err, row) => { stats.monthlyRevenue = row?.total || 0; });
+    db.get(`SELECT SUM(total) as total FROM orders WHERE date = date('now')`, (err, row) => { stats.todayRevenue = row?.total || 0; });
     db.get(`SELECT COUNT(*) as count FROM products WHERE stock < min_stock`, (err, row) => { stats.lowStock = row?.count || 0; });
     db.get(`SELECT COUNT(*) as count FROM orders WHERE status = 'pending'`, (err, row) => { stats.pendingOrders = row?.count || 0; });
     
     setTimeout(() => {
         res.json({ success: true, stats });
-    }, 300);
+    }, 200);
 });
 
 app.get('/api/stats/sales', (req, res) => {
@@ -1152,7 +1357,7 @@ app.delete('/api/trash/:id', (req, res) => {
 });
 
 // ============================================
-// API: الدردشة والإشعارات
+// API: الدردشة والإشعارات والمعروضات والصوتيات
 // ============================================
 
 app.get('/api/chat/messages', (req, res) => {
@@ -1191,8 +1396,64 @@ app.put('/api/notifications/:id/read', (req, res) => {
     });
 });
 
+app.get('/api/banners', (req, res) => {
+    db.all(`SELECT * FROM banners WHERE isActive = 1 ORDER BY sort_order`, (err, rows) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
+app.post('/api/banners', upload.single('image'), (req, res) => {
+    const { title, link, position, sort_order } = req.body;
+    const image = req.file ? `/assets/uploads/${req.file.filename}` : (req.body.image || '');
+    
+    db.run(`INSERT INTO banners (title, image, link, position, sort_order) VALUES (?, ?, ?, ?, ?)`,
+        [title || '', image, link || '', position || 'hero', sort_order || 0],
+        function(err) {
+            if (err) return res.json({ success: false, error: err.message });
+            res.json({ success: true, id: this.lastID });
+        });
+});
+
+app.delete('/api/banners/:id', (req, res) => {
+    const { id } = req.params;
+    db.run(`DELETE FROM banners WHERE id = ?`, [id], function(err) {
+        if (err) return res.json({ success: false, error: err.message });
+        res.json({ success: true });
+    });
+});
+
+app.get('/api/sounds', (req, res) => {
+    db.all(`SELECT * FROM sounds WHERE isActive = 1`, (err, rows) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
+app.post('/api/sounds', uploadSound.single('file'), (req, res) => {
+    const { name, type } = req.body;
+    const filename = req.file ? req.file.filename : '';
+    const url = req.file ? `/assets/sounds/${filename}` : '';
+    
+    db.run(`INSERT INTO sounds (name, type, filename, url) VALUES (?, ?, ?, ?)`,
+        [name, type, filename, url],
+        function(err) {
+            if (err) return res.json({ success: false, error: err.message });
+            res.json({ success: true, id: this.lastID, url });
+        });
+});
+
+app.put('/api/sounds/:id', (req, res) => {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    db.run(`UPDATE sounds SET isActive = ? WHERE id = ?`, [isActive, id], function(err) {
+        if (err) return res.json({ success: false, error: err.message });
+        res.json({ success: true });
+    });
+});
+
 // ============================================
-// API: الإعدادات العامة
+// API: الإعدادات العامة والمستخدمين
 // ============================================
 
 app.get('/api/settings', (req, res) => {
@@ -1213,6 +1474,45 @@ app.put('/api/settings/:key', (req, res) => {
     });
 });
 
+app.get('/api/users', (req, res) => {
+    db.all(`SELECT id, name, email, phone, address, city, country, role, loyalty_points, tier, created_at FROM users`, (err, rows) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
+app.put('/api/users/:id/role', (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    if (role === 'admin') return res.json({ success: false, error: 'لا يمكن تعيين مدير جديد' });
+    db.run(`UPDATE users SET role = ? WHERE id = ?`, [role, id], function(err) {
+        if (err) return res.json({ success: false, error: err.message });
+        res.json({ success: true });
+    });
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+    db.run(`DELETE FROM users WHERE id = ? AND role != 'admin'`, [id], function(err) {
+        if (err) return res.json({ success: false, error: err.message });
+        res.json({ success: true });
+    });
+});
+
+app.get('/api/logs/errors', (req, res) => {
+    db.all(`SELECT * FROM error_logs ORDER BY timestamp DESC LIMIT 100`, (err, rows) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
+app.get('/api/logs/activities', (req, res) => {
+    db.all(`SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 100`, (err, rows) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, data: rows });
+    });
+});
+
 // ============================================
 // الصفحات
 // ============================================
@@ -1227,6 +1527,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 الرعدي أونلاين يعمل على المنفذ ${PORT}`);
     console.log(`🌐 http://localhost:${PORT}`);
     console.log(`👑 المدير: admin@system.com / admin123`);
-    console.log(`✅ جميع الجداول جاهزة`);
+    console.log(`✅ جميع الجداول جاهزة (19 جدولاً)`);
     console.log(`✅ النظام متكامل بالكامل`);
 });

@@ -1,5 +1,6 @@
 // ==============================================
 // server.js - الخادم الخلفي لمتجر الرعدي أونلاين
+// متوافق مع Render.com وبيئات السحابة
 // ==============================================
 
 const express = require('express');
@@ -15,17 +16,25 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use(express.static(__dirname)); // لخدمة index.html و admin.html
 
 // ==============================================
-// مسار قاعدة البيانات الثابت (Auto-Backup)
+// مسار قاعدة البيانات (داخل المشروع - متوافق مع السحابة)
 // ==============================================
-const DB_PATH = '/var/lib/sqlite/raadi.db';
-const BACKUP_PATH = '/var/backups/raadi/';
+const DB_DIR = path.join(__dirname, 'database');
+const DB_PATH = path.join(DB_DIR, 'raadi.db');
+const BACKUP_PATH = path.join(__dirname, 'backups');
 
-// التأكد من وجود مجلد النسخ الاحتياطي
+// إنشاء المجلدات إذا لم تكن موجودة
+if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+}
 if (!fs.existsSync(BACKUP_PATH)) {
     fs.mkdirSync(BACKUP_PATH, { recursive: true });
 }
+
+console.log(`📁 مجلد قاعدة البيانات: ${DB_DIR}`);
+console.log(`💾 مجلد النسخ الاحتياطي: ${BACKUP_PATH}`);
 
 // فتح قاعدة البيانات
 const db = new sqlite3.Database(DB_PATH, (err) => {
@@ -97,31 +106,65 @@ function initDatabase() {
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // إنشاء فهارس لتحسين الأداء (Indexing)
+    // إنشاء فهارس لتحسين الأداء
     db.run(`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
 
     console.log('✅ تم إنشاء جميع الجداول والفهارس');
+    
+    // إضافة بيانات افتراضية إذا كانت الجداول فارغة
+    seedDefaultData();
+}
+
+// إضافة بيانات افتراضية
+function seedDefaultData() {
+    // إضافة مستخدم افتراضي إذا لم يوجد
+    db.get(`SELECT * FROM users WHERE email = 'admin@system.com'`, [], (err, row) => {
+        if (!row) {
+            db.run(`INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)`,
+                ['مدير النظام', 'admin@system.com', 'admin123', '0500000000', 'admin']);
+            db.run(`INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)`,
+                ['أحمد العميل', 'ahmed@client.com', '123456', '0555123456', 'client']);
+            console.log('✅ تم إضافة بيانات افتراضية');
+        }
+    });
+    
+    // إضافة منتجات افتراضية
+    db.get(`SELECT * FROM products LIMIT 1`, [], (err, row) => {
+        if (!row) {
+            const products = [
+                ['سماعات لاسلكية برو', 299, 450, 50, 'electronics', 'https://picsum.photos/id/1/300/300', '["أسود","أبيض","أزرق"]', 4.8],
+                ['ساعة ذكية رياضية', 499, 699, 30, 'electronics', 'https://picsum.photos/id/2/300/300', '["أسود","فضي","ذهبي"]', 4.6],
+                ['حقيبة جلدية فاخرة', 799, 1299, 15, 'fashion', 'https://picsum.photos/id/3/300/300', '["بني","أسود"]', 4.9],
+                ['قلم ذكي للكتابة', 149, 249, 100, 'office', 'https://picsum.photos/id/4/300/300', '["فضي","ذهبي"]', 4.5]
+            ];
+            
+            products.forEach(p => {
+                db.run(`INSERT INTO products (name, price, old_price, stock, category, image, colors, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, p);
+            });
+            console.log('✅ تم إضافة منتجات افتراضية');
+        }
+    });
 }
 
 // ==============================================
-// نظام النسخ الاحتياطي التلقائي (Auto-Backup)
+// نظام النسخ الاحتياطي التلقائي (معتمد على المسار الجديد)
 // ==============================================
 function autoBackup() {
     const backupFile = path.join(BACKUP_PATH, `raadi_backup_${Date.now()}.db`);
     fs.copyFile(DB_PATH, backupFile, (err) => {
         if (err) {
-            logError(err, 'Auto Backup');
+            console.error('❌ فشل النسخ الاحتياطي:', err);
         } else {
             console.log(`✅ تم إنشاء نسخة احتياطية: ${backupFile}`);
             
-            // حذف النسخ القديمة (الاحتفاظ بآخر 7 نسخ فقط)
+            // حذف النسخ القديمة (الاحتفاظ بآخر 5 نسخ فقط)
             fs.readdir(BACKUP_PATH, (err, files) => {
                 if (err) return;
                 const backups = files.filter(f => f.startsWith('raadi_backup_')).sort();
-                while (backups.length > 7) {
+                while (backups.length > 5) {
                     const oldBackup = backups.shift();
                     fs.unlink(path.join(BACKUP_PATH, oldBackup), () => {});
                 }
@@ -130,11 +173,11 @@ function autoBackup() {
     });
 }
 
-// تشغيل النسخ الاحتياطي كل 24 ساعة
-setInterval(autoBackup, 24 * 60 * 60 * 1000);
+// تشغيل النسخ الاحتياطي كل 6 ساعات (أقل ضغطاً على السيرفر المجاني)
+setInterval(autoBackup, 6 * 60 * 60 * 1000);
 
 // ==============================================
-// تسجيل الأخطاء (Zero-Failure Protocol)
+// تسجيل الأخطاء
 // ==============================================
 function logError(error, context) {
     const errorMsg = error.message || error;
@@ -149,176 +192,144 @@ function logError(error, context) {
 }
 
 // ==============================================
-// API Routes (مع Try-Catch لتغليف الأخطاء)
+// API Routes
 // ==============================================
 
+// الصفحة الرئيسية - إرجاع index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// لوحة المدير
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // الحصول على جميع المنتجات
-app.get('/api/products', async (req, res) => {
-    try {
-        db.all(`SELECT * FROM products ORDER BY id DESC`, [], (err, rows) => {
-            if (err) throw err;
-            res.json({ success: true, data: rows });
-        });
-    } catch (error) {
-        logError(error, 'GET /api/products');
-        res.status(500).json({ success: false, error: 'خطأ في جلب المنتجات' });
-    }
+app.get('/api/products', (req, res) => {
+    db.all(`SELECT * FROM products ORDER BY id DESC`, [], (err, rows) => {
+        if (err) {
+            logError(err, 'GET /api/products');
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        res.json({ success: true, data: rows });
+    });
 });
 
 // إضافة منتج جديد
-app.post('/api/products', async (req, res) => {
-    try {
-        const { name, price, stock, category, image, colors } = req.body;
-        db.run(`INSERT INTO products (name, price, stock, category, image, colors) VALUES (?, ?, ?, ?, ?, ?)`,
-            [name, price, stock, category, image, JSON.stringify(colors)],
-            function(err) {
-                if (err) throw err;
-                res.json({ success: true, id: this.lastID });
-            });
-    } catch (error) {
-        logError(error, 'POST /api/products');
-        res.status(500).json({ success: false, error: 'خطأ في إضافة المنتج' });
-    }
+app.post('/api/products', (req, res) => {
+    const { name, price, stock, category, image, colors } = req.body;
+    db.run(`INSERT INTO products (name, price, stock, category, image, colors) VALUES (?, ?, ?, ?, ?, ?)`,
+        [name, price, stock, category, image, JSON.stringify(colors)],
+        function(err) {
+            if (err) {
+                logError(err, 'POST /api/products');
+                return res.status(500).json({ success: false, error: err.message });
+            }
+            res.json({ success: true, id: this.lastID });
+        });
 });
 
 // تحديث منتج
-app.put('/api/products/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, price, stock } = req.body;
-        db.run(`UPDATE products SET name = ?, price = ?, stock = ? WHERE id = ?`,
-            [name, price, stock, id], function(err) {
-                if (err) throw err;
-                res.json({ success: true, changes: this.changes });
-            });
-    } catch (error) {
-        logError(error, `PUT /api/products/${req.params.id}`);
-        res.status(500).json({ success: false, error: 'خطأ في تحديث المنتج' });
-    }
+app.put('/api/products/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, price, stock } = req.body;
+    db.run(`UPDATE products SET name = ?, price = ?, stock = ? WHERE id = ?`,
+        [name, price, stock, id], function(err) {
+            if (err) {
+                logError(err, `PUT /api/products/${id}`);
+                return res.status(500).json({ success: false, error: err.message });
+            }
+            res.json({ success: true, changes: this.changes });
+        });
 });
 
-// حذف منتج (نقل إلى سلة المحذوفات)
-app.delete('/api/products/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+// حذف منتج
+app.delete('/api/products/:id', (req, res) => {
+    const { id } = req.params;
+    
+    db.get(`SELECT * FROM products WHERE id = ?`, [id], (err, product) => {
+        if (err) {
+            logError(err, `DELETE /api/products/${id}`);
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        if (product) {
+            db.run(`INSERT INTO deleted_items (item_type, item_data) VALUES (?, ?)`,
+                ['product', JSON.stringify(product)]);
+        }
         
-        // جلب المنتج قبل الحذف
-        db.get(`SELECT * FROM products WHERE id = ?`, [id], (err, product) => {
-            if (err) throw err;
-            if (product) {
-                // نقل إلى سلة المحذوفات
-                db.run(`INSERT INTO deleted_items (item_type, item_data) VALUES (?, ?)`,
-                    ['product', JSON.stringify(product)], (err2) => {
-                        if (err2) throw err2;
-                    });
+        db.run(`DELETE FROM products WHERE id = ?`, [id], function(err2) {
+            if (err2) {
+                logError(err2, `DELETE /api/products/${id}`);
+                return res.status(500).json({ success: false, error: err2.message });
             }
-            
-            // حذف من جدول المنتجات
-            db.run(`DELETE FROM products WHERE id = ?`, [id], function(err3) {
-                if (err3) throw err3;
-                res.json({ success: true, deleted: this.changes });
-            });
+            res.json({ success: true, deleted: this.changes });
         });
-    } catch (error) {
-        logError(error, `DELETE /api/products/${req.params.id}`);
-        res.status(500).json({ success: false, error: 'خطأ في حذف المنتج' });
-    }
-});
-
-// استعادة منتج من سلة المحذوفات
-app.post('/api/restore/:itemId', async (req, res) => {
-    try {
-        const { itemId } = req.params;
-        db.get(`SELECT * FROM deleted_items WHERE id = ?`, [itemId], (err, item) => {
-            if (err) throw err;
-            if (item && item.item_type === 'product') {
-                const product = JSON.parse(item.item_data);
-                db.run(`INSERT INTO products (name, price, stock, category, image, colors) VALUES (?, ?, ?, ?, ?, ?)`,
-                    [product.name, product.price, product.stock, product.category, product.image, product.colors],
-                    function(err2) {
-                        if (err2) throw err2;
-                        db.run(`DELETE FROM deleted_items WHERE id = ?`, [itemId]);
-                        res.json({ success: true, restored: true });
-                    });
-            }
-        });
-    } catch (error) {
-        logError(error, `POST /api/restore/${req.params.itemId}`);
-        res.status(500).json({ success: false, error: 'خطأ في الاستعادة' });
-    }
+    });
 });
 
 // تسجيل دخول المستخدم
-app.post('/api/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        db.get(`SELECT * FROM users WHERE email = ? AND password = ?`, [email, password], (err, user) => {
-            if (err) throw err;
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+    db.get(`SELECT id, name, email, phone, role, loyalty_points as loyaltyPoints FROM users WHERE email = ? AND password = ?`, 
+        [email, password], (err, user) => {
+            if (err) {
+                logError(err, 'POST /api/login');
+                return res.status(500).json({ success: false, error: err.message });
+            }
             if (user) {
-                res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+                res.json({ success: true, user });
             } else {
                 res.json({ success: false, error: 'بيانات الدخول غير صحيحة' });
             }
         });
-    } catch (error) {
-        logError(error, 'POST /api/login');
-        res.status(500).json({ success: false, error: 'خطأ في تسجيل الدخول' });
-    }
 });
 
 // إنشاء طلب جديد
-app.post('/api/orders', async (req, res) => {
-    try {
-        const { userId, userName, productId, productName, total } = req.body;
-        db.run(`INSERT INTO orders (user_id, user_name, product_id, product_name, total, status) VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, userName, productId, productName, total, 'pending'],
-            function(err) {
-                if (err) throw err;
-                
-                // تحديث عدد مبيعات المنتج
-                db.run(`UPDATE products SET sold_count = sold_count + 1 WHERE id = ?`, [productId]);
-                
-                res.json({ success: true, orderId: this.lastID });
-            });
-    } catch (error) {
-        logError(error, 'POST /api/orders');
-        res.status(500).json({ success: false, error: 'خطأ في إنشاء الطلب' });
-    }
+app.post('/api/orders', (req, res) => {
+    const { userId, userName, productId, productName, total } = req.body;
+    db.run(`INSERT INTO orders (user_id, user_name, product_id, product_name, total, status) VALUES (?, ?, ?, ?, ?, ?)`,
+        [userId, userName, productId, productName, total, 'pending'],
+        function(err) {
+            if (err) {
+                logError(err, 'POST /api/orders');
+                return res.status(500).json({ success: false, error: err.message });
+            }
+            db.run(`UPDATE products SET sold_count = sold_count + 1 WHERE id = ?`, [productId]);
+            res.json({ success: true, orderId: this.lastID });
+        });
 });
 
-// الحصول على إحصائيات لوحة التحكم
-app.get('/api/stats', async (req, res) => {
-    try {
-        const stats = {};
+// إحصائيات لوحة التحكم
+app.get('/api/stats', (req, res) => {
+    const stats = {};
+    
+    db.get(`SELECT COUNT(*) as count FROM products`, [], (err, row) => {
+        if (err) {
+            logError(err, 'GET /api/stats');
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        stats.products = row.count;
         
-        // عدد المنتجات
-        db.get(`SELECT COUNT(*) as count FROM products`, [], (err, row) => {
-            stats.products = row.count;
+        db.get(`SELECT COUNT(*) as count FROM orders`, [], (err2, row2) => {
+            stats.orders = row2.count;
+            
+            db.get(`SELECT SUM(total) as total FROM orders`, [], (err3, row3) => {
+                stats.revenue = row3.total || 0;
+                res.json({ success: true, stats });
+            });
         });
-        
-        // عدد الطلبات
-        db.get(`SELECT COUNT(*) as count FROM orders`, [], (err, row) => {
-            stats.orders = row.count;
-        });
-        
-        // إجمالي الإيرادات
-        db.get(`SELECT SUM(total) as total FROM orders`, [], (err, row) => {
-            stats.revenue = row.total || 0;
-            res.json({ success: true, stats });
-        });
-    } catch (error) {
-        logError(error, 'GET /api/stats');
-        res.status(500).json({ success: false, error: 'خطأ في جلب الإحصائيات' });
-    }
+    });
 });
 
 // ==============================================
 // تشغيل السيرفر
 // ==============================================
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 خادم الرعدي أونلاين يعمل على المنفذ ${PORT}`);
     console.log(`📁 قاعدة البيانات: ${DB_PATH}`);
     console.log(`💾 النسخ الاحتياطي: ${BACKUP_PATH}`);
+    console.log(`🌐 افتح المتصفح على: http://localhost:${PORT}`);
 });
 
 // ==============================================

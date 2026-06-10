@@ -1,97 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>الرعدي أونلاين - المتجر</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>الرعدي بلاس — المتجر الشامل</title>
+  <link rel="stylesheet" href="/styles.css">
   <style>
-    body {margin:0;font-family:"Tahoma",Arial;background:#f5f5f5;}
-    header {background:#203a43;color:#fff;padding:10px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1000;}
-    header img {height:40px;}
-    .search {flex:1;margin:0 20px;}
-    .search input {width:100%;padding:8px;border-radius:5px;border:none;}
-    .icons span {margin:0 8px;cursor:pointer;}
-    .hero {position:relative;height:250px;background:url('banner.jpg') center/cover;color:#fff;display:flex;align-items:center;justify-content:center;}
-    .hero h2 {font-size:28px;color:gold;text-shadow:2px 2px 5px #000;}
-    .flash-sale {background:#ff4444;color:#fff;padding:15px;text-align:center;font-size:18px;}
-    .categories {display:flex;justify-content:center;flex-wrap:wrap;margin:20px 0;}
-    .categories div {width:100px;height:100px;border-radius:50%;background:#203a43;color:#fff;display:flex;align-items:center;justify-content:center;margin:10px;cursor:pointer;transition:0.3s;}
-    .categories div:hover {background:gold;color:#000;}
-    .products {display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:20px;}
-    .product-card {background:#fff;border-radius:8px;padding:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);transition:0.3s;}
-    .product-card:hover {transform:scale(1.05);}
-    .product-card img {width:100%;height:180px;object-fit:cover;border-radius:5px;}
-    .product-card h3 {font-size:16px;margin:10px 0;}
-    .product-card .price {color:#203a43;font-weight:bold;}
-    .product-card button {width:100%;padding:10px;background:gold;border:none;border-radius:5px;cursor:pointer;font-weight:bold;}
-    footer {background:#203a43;color:#fff;text-align:center;padding:15px;margin-top:20px;}
+    /* تنسيقات إضافية داخل الملف لتكبير الحجم */
+    body { font-family: "Cairo", sans-serif; margin:0; background:#f8fafc; color:#0b1220; }
+    header, footer { background:#fff; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand img { width:64px; height:64px; }
+    .nav { display:flex; gap:12px; }
+    .nav a { text-decoration:none; padding:8px 12px; border-radius:8px; background:#ffb703; color:#fff; }
+    .hero { padding:40px; background:#fff; margin:20px; border-radius:12px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px; margin:20px; }
+    .card { background:#fff; border-radius:12px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:8px; }
+    .card img { width:100%; height:160px; object-fit:cover; border-radius:8px; }
+    .btn { padding:10px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; }
+    .btn.primary { background:#ffb703; color:#fff; }
+    .btn.secondary { background:#0b1220; color:#ffb703; }
+    .section { margin:40px 20px; padding:20px; background:#fff; border-radius:12px; }
+    .footer { text-align:center; color:#6b7280; }
   </style>
 </head>
 <body>
 
-  <!-- الشريط العلوي -->
+  <!-- Header -->
   <header>
-    <img src="logo.png" alt="شعار الرعدي">
-    <div class="search"><input type="text" placeholder="ابحث عن منتج..."></div>
-    <div class="icons">
-      <span>🌐</span>
-      <span>💱</span>
-      <span>❤️</span>
-      <span>🛒</span>
-      <span>👤</span>
+    <div class="brand">
+      <img src="/assets/logo.png" alt="logo" />
+      <div>
+        <h1>الرعدي بلاس</h1>
+        <p>أفضل العروض والمنتجات</p>
+      </div>
     </div>
+    <nav class="nav">
+      <a href="#home">الرئيسية</a>
+      <a href="#products">المنتجات</a>
+      <a href="#cart">السلة</a>
+      <a href="#admin">لوحة المدير</a>
+      <a href="#invoice">الفاتورة</a>
+    </nav>
   </header>
 
-  <!-- سلايدر العروض -->
-  <div class="hero">
-    <h2>أقوى العروض والتخفيضات</h2>
-  </div>
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <h2>أهلاً وسهلاً بكم في متجر الرعدي أونلاين</h2>
+    <p>تسوق الآن من مجموعة منتقاة بعناية، مع صوت ترحيبي جذاب.</p>
+    <button id="playWelcome" class="btn primary">تشغيل الترحيب</button>
+  </section>
 
-  <!-- العروض الخاطفة -->
-  <div class="flash-sale">
-    ⏳ عرض خاطف ينتهي خلال: <span id="countdown">00:10:00</span>
-  </div>
+  <!-- Products Section -->
+  <section id="products" class="section">
+    <h3>المنتجات</h3>
+    <div id="productsGrid" class="grid"></div>
+  </section>
 
-  <!-- الأقسام -->
-  <div class="categories">
-    <div>📱 إلكترونيات</div>
-    <div>👗 أزياء</div>
-    <div>🌸 عطور</div>
-    <div>🏠 منزل</div>
-  </div>
+  <!-- Cart Section -->
+  <section id="cart" class="section">
+    <h3>سلة المشتريات</h3>
+    <div id="cartItems"></div>
+    <button class="btn primary" onclick="checkout()">إتمام الطلب</button>
+  </section>
 
-  <!-- المنتجات -->
-  <div class="products">
-    <div class="product-card">
-      <img src="product1.jpg" alt="منتج">
-      <h3>هاتف ذكي فاخر</h3>
-      <div class="price">999 ر.س <del>1200 ر.س</del></div>
-      <button>إضافة إلى السلة</button>
-    </div>
-    <div class="product-card">
-      <img src="product2.jpg" alt="منتج">
-      <h3>عطر مميز</h3>
-      <div class="price">250 ر.س <del>300 ر.س</del></div>
-      <button>إضافة إلى السلة</button>
-    </div>
-  </div>
+  <!-- Admin Section -->
+  <section id="admin" class="section">
+    <h3>لوحة المدير</h3>
+    <form id="addProductForm">
+      <input type="text" name="name" placeholder="اسم المنتج" required />
+      <input type="number" name="price" placeholder="السعر" required />
+      <textarea name="description" placeholder="الوصف"></textarea>
+      <button type="submit" class="btn primary">إضافة منتج</button>
+    </form>
+    <div id="adminProducts"></div>
+  </section>
 
-  <!-- الفوتر -->
-  <footer>
-    © 2026 الرعدي أونلاين - جميع الحقوق محفوظة
-  </footer>
+  <!-- Invoice Section -->
+  <section id="invoice" class="section">
+    <h3>الفاتورة</h3>
+    <p>يمكنك تحميل الفاتورة PDF بعد إتمام الطلب.</p>
+    <button class="btn secondary" onclick="downloadInvoice()">تحميل الفاتورة</button>
+  </section>
 
+  <!-- Footer -->
+  <footer class="footer">© 2026 الرعدي أونلاين - جميع الحقوق محفوظة</footer>
+
+  <!-- Audio -->
+  <audio id="welcomeAudio" src="/assets/welcome.mp3" preload="auto"></audio>
+
+  <!-- Scripts -->
   <script>
-    // عداد العرض الخاطف
-    let time = 10*60; // 10 دقائق
-    const countdown = document.getElementById("countdown");
-    setInterval(()=>{
-      let m = Math.floor(time/60);
-      let s = time%60;
-      countdown.textContent = `00:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-      if(time>0) time--;
-    },1000);
-  </script>
+    // تشغيل الصوت الترحيبي
+    const audio = document.getElementById('welcomeAudio');
+    document.getElementById('playWelcome').addEventListener('click', () => {
+      audio.play().catch(()=>alert('يرجى السماح بتشغيل الصوت'));
+    });
 
+    // جلب المنتجات
+    async function fetchProducts(){
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = '';
+      data.forEach(p=>{
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+          <img src="${p.image || '/assets/product-placeholder.jpg'}" alt="${p.name}" />
+          <h4>${p.name}</h4>
+          <p>${p.description || ''}</p>
+          <div class="price">${p.price} ر.س</div>
+          <button class="btn primary" onclick="addToCart(${p.id})">أضف للسلة</button>
+        `;
+        grid.appendChild(el);
+      });
+    }
+
+    // السلة
+    let cart = [];
+    function addToCart(id){
+      const found = cart.find(i=>i.id===id);
+      if(found) found.qty++;
+      else cart.push({id, qty:1});
+      renderCart();
+    }
+    function renderCart(){
+      const div = document.getElementById('cartItems');
+      div.innerHTML = cart.map(c=>`<div>منتج رقم ${c.id} × ${c.qty}</div>`).join('');
+    }
+    function checkout(){
+      alert('إتمام الطلب (تجريبي)');
+    }
+
+    // لوحة المدير
+    document.getElementById('addProductForm').addEventListener('submit', async e=>{
+      e.preventDefault();
+      alert('إضافة منتج (تجريبي)');
+    });
+
+    // تحميل الفاتورة
+    function downloadInvoice(){
+      alert('تحميل الفاتورة PDF (تجريبي)');
+    }
+
+    fetchProducts();
+  </script>
 </body>
 </html>

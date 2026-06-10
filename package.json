@@ -1,0 +1,22 @@
+{
+  "name": "al-raadi-plus-store",
+  "version": "1.0.0",
+  "description": "Al-Raadi Plus - Highly Advanced and Cinematic E-commerce Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.7",
+    "sequelize": "^6.37.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

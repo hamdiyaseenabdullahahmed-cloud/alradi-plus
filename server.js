@@ -182,4 +182,104 @@ app.post('/api/orders', authenticate, async (req, res) => {
 });
 
 // ---------- Invoice PDF ----------
-app.get('/api/invoice/:orderId', authenticate, async (req
+// ---------- Invoice PDF ----------
+app.get('/api/invoice/:orderId', authenticate, async (req, res) => {
+  const orderId = req.params.orderId;
+  try {
+    const orderQ = await pool.query(
+      'SELECT o.id, o.created_at, o.address, u.username FROM orders o JOIN users u ON u.id=o.user_id WHERE o.id=$1',
+      [orderId]
+    );
+    if (!orderQ.rows.length) return res.status(404).json({ error: 'Order not found' });
+    const order = orderQ.rows[0];
+    const itemsQ = await pool.query(
+      'SELECT oi.qty, oi.price, p.name FROM order_items oi JOIN products p ON p.id=oi.product_id WHERE oi.order_id=$1',
+      [orderId]
+    );
+    const items = itemsQ.rows;
+
+    // Create PDF
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}.pdf`);
+    doc.pipe(res);
+
+    // Header with logo if exists
+    const logoPath = path.join(__dirname, 'public', 'assets', 'logo.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 80 });
+    }
+    doc.fontSize(20).text('فاتورة شراء', 150, 50, { align: 'right' });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`رقم الطلب: ${order.id}`, { align: 'right' });
+    doc.text(`التاريخ: ${new Date(order.created_at).toLocaleString()}`, { align: 'right' });
+    doc.text(`العميل: ${order.username}`, { align: 'right' });
+    doc.text(`العنوان: ${order.address}`, { align: 'right' });
+    doc.moveDown();
+
+    // Table header
+    doc.fontSize(12).text('المنتج', 50, 200);
+    doc.text('الكمية', 300, 200);
+    doc.text('السعر', 380, 200);
+    doc.text('الإجمالي', 460, 200);
+    doc.moveTo(50, 215).lineTo(550, 215).stroke();
+
+    let y = 230;
+    let total = 0;
+    for (const it of items) {
+      const lineTotal = Number(it.price) * Number(it.qty);
+      total += lineTotal;
+      doc.text(it.name, 50, y);
+      doc.text(it.qty.toString(), 300, y);
+      doc.text(Number(it.price).toFixed(2) + ' ر.س', 380, y);
+      doc.text(lineTotal.toFixed(2) + ' ر.س', 460, y);
+      y += 20;
+    }
+
+    doc.moveTo(50, y + 6).lineTo(550, y + 6).stroke();
+    doc.fontSize(14).text('المجموع الكلي: ' + total.toFixed(2) + ' ر.س', 400, y + 20);
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Invoice generation failed' });
+  }
+});
+
+// ---------- Admin Stats ----------
+app.get('/api/admin/stats', authenticate, async (req, res) => {
+  if (!req.user.is_admin) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const r1 = await pool.query('SELECT COUNT(*) FROM products');
+    const r2 = await pool.query('SELECT COUNT(*) FROM orders');
+    const r3 = await pool.query('SELECT COALESCE(SUM(price*qty),0) AS revenue FROM order_items');
+    res.json({
+      products: r1.rows[0].count,
+      orders: r2.rows[0].count,
+      revenue: r3.rows[0].revenue
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Stats failed' });
+  }
+});
+
+// ---------- Serve static pages ----------
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/checkout.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'checkout.html'));
+});
+app.get('/product.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'product.html'));
+});
+
+// ---------- Fallback ----------
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ---------- Start server ----------
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -1,7 +1,7 @@
 {
   "name": "alradi-onlin",
-  "version": "3.0.0",
-  "description": "متجر الرعدي أونلاين - منصة تجارة إلكترونية فاخرة تنافس أمازون وعلي بابا",
+  "version": "4.0.0",
+  "description": "متجر الرعدي أونلاين - منصة تجارة إلكترونية أسطورية",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -24,7 +24,8 @@
     "compression": "^1.7.4",
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "archiver": "^6.0.1"
   },
   "engines": {
     "node": ">=18.0.0"

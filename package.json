@@ -1,7 +1,7 @@
 {
   "name": "alradi-onlin",
-  "version": "4.0.0",
-  "description": "متجر الرعدي أونلاين - منصة تجارة إلكترونية أسطورية",
+  "version": "6.0.0",
+  "description": "متجر الرعدي أونلاين - النسخة الأسطورية النهائية",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

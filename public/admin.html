@@ -1,80 +1,1071 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>تفاصيل المنتج — الرعدي بلاس</title>
-  <link rel="stylesheet" href="/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الرعدي أونلاين</title>
+    <style>
+        :root {
+            --primary: #C9A84C;
+            --primary-dark: #A68A3E;
+            --secondary: #1A1A2E;
+            --bg: #0A0A15;
+            --card: #1A1A2E;
+            --text: #FFFFFF;
+            --muted: #A0A0B0;
+            --border: #2A2A3E;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --warning: #F39C12;
+            --info: #3498DB;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* القائمة الجانبية */
+        .sidebar {
+            width: 260px;
+            background: var(--card);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--muted);
+            text-decoration: none;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(201,168,76,0.1);
+            color: var(--primary);
+        }
+        .nav-item .icon { font-size: 20px; width: 24px; text-align: center; }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            margin-right: 260px;
+            flex: 1;
+            padding: 30px;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* البطاقات الإحصائية */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        .stat-label {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .stat-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--danger); }
+
+        /* الجداول */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .data-table th, .data-table td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table th {
+            background: rgba(201,168,76,0.1);
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .data-table tr:hover {
+            background: rgba(201,168,76,0.05);
+        }
+
+        /* الأزرار */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--primary); color: var(--secondary); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+        /* الفورم */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--muted); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* الألسنة */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* الرسوم البيانية */
+        .chart-container {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .chart-placeholder {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+        }
+
+        /* إعدادات الألوان */
+        .color-picker-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .color-picker-item {
+            text-align: center;
+        }
+        .color-picker-item input[type="color"] {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-right: 0;
+            }
+            body {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="brand">
-      <img src="/assets/logo.png" alt="logo" class="logo-img" />
-      <div>
-        <h1>الرعدي بلاس</h1>
-        <p class="tag">تفاصيل المنتج</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button onclick="location.href='/'" class="btn secondary">الرئيسية</button>
-      <button onclick="location.href='/checkout.html'" class="btn">السلة</button>
-    </div>
-  </header>
-
-  <!-- Product Details -->
-  <main class="container">
-    <section id="productWrap" class="section">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-        <div>
-          <img id="prodImg" src="/assets/product-placeholder.jpg" alt="product" style="width:100%;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+    <!-- القائمة الجانبية -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>⚡</span> الرعدي أونلاين
         </div>
-        <div>
-          <h2 id="prodName">اسم المنتج</h2>
-          <p id="prodDesc" style="color:#6b7280">وصف المنتج</p>
-          <div style="margin:12px 0;font-weight:700;font-size:18px" id="prodPrice">0 ر.س</div>
-          <div style="display:flex;gap:10px">
-            <button class="btn primary" onclick="addToCartFromProduct()">أضف للسلة</button>
-            <button class="btn secondary" onclick="location.href='/checkout.html'">الدفع الآن</button>
-          </div>
+        <nav>
+            <a class="nav-item active" onclick="showTab('dashboard')">
+                <span class="icon">📊</span> لوحة القيادة
+            </a>
+            <a class="nav-item" onclick="showTab('products')">
+                <span class="icon">📦</span> المنتجات
+            </a>
+            <a class="nav-item" onclick="showTab('orders')">
+                <span class="icon">📋</span> الطلبات
+            </a>
+            <a class="nav-item" onclick="showTab('customers')">
+                <span class="icon">👥</span> العملاء
+            </a>
+            <a class="nav-item" onclick="showTab('coupons')">
+                <span class="icon">🎫</span> الكوبونات
+            </a>
+            <a class="nav-item" onclick="showTab('reports')">
+                <span class="icon">📈</span> التقارير
+            </a>
+            <a class="nav-item" onclick="showTab('settings')">
+                <span class="icon">⚙️</span> الإعدادات
+            </a>
+            <a class="nav-item" onclick="showTab('customize')">
+                <span class="icon">🎨</span> تخصيص المتجر
+            </a>
+        </nav>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="main-content">
+        <!-- لوحة القيادة -->
+        <div class="tab-content active" id="tab-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">📊 لوحة القيادة</h1>
+                <button class="btn btn-primary" onclick="refreshStats()">🔄 تحديث</button>
+            </div>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-label">إجمالي المبيعات</div>
+                    <div class="stat-value" id="statRevenue">0 ر.س</div>
+                    <div class="stat-change up">↑ 12% عن الشهر الماضي</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">الطلبات</div>
+                    <div class="stat-value" id="statOrders">0</div>
+                    <div class="stat-change up">↑ 8 طلبات اليوم</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">العملاء</div>
+                    <div class="stat-value" id="statCustomers">0</div>
+                    <div class="stat-change up">↑ 5 عملاء جدد</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">المنتجات</div>
+                    <div class="stat-value" id="statProducts">0</div>
+                    <div class="stat-change down">⚠️ 3 منتجات منخفضة المخزون</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 style="margin-bottom:15px;">📈 المبيعات الشهرية</h3>
+                <div class="chart-placeholder">
+                    <canvas id="salesChart" width="800" height="250"></canvas>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom:15px;">📋 آخر الطلبات</h3>
+            <table class="data-table" id="recentOrdersTable">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>الإجمالي</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="recentOrdersBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
         </div>
-      </div>
-    </section>
-  </main>
 
-  <!-- Footer -->
-  <footer class="footer">© 2026 الرعدي أونلاين - جميع الحقوق محفوظة</footer>
+        <!-- المنتجات -->
+        <div class="tab-content" id="tab-products">
+            <div class="page-header">
+                <h1 class="page-title">📦 إدارة المنتجات</h1>
+                <button class="btn btn-primary" onclick="addProduct()">➕ إضافة منتج</button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الصورة</th>
+                        <th>الاسم</th>
+                        <th>السعر</th>
+                        <th>المخزون</th>
+                        <th>القسم</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-  <!-- Script -->
-  <script>
-    function getQuery(name){
-      const url = new URL(location.href);
-      return url.searchParams.get(name);
-    }
-    async function loadProduct(){
-      const id = getQuery('id');
-      try{
-        const res = await fetch('/api/products');
-        const items = await res.json();
-        const p = items.find(x => String(x.id) === String(id)) || items[0] || {name:'منتج تجريبي', price:0, image:'/assets/product-placeholder.jpg', description:'وصف تجريبي'};
-        document.getElementById('prodImg').src = p.image;
-        document.getElementById('prodName').textContent = p.name;
-        document.getElementById('prodDesc').textContent = p.description;
-        document.getElementById('prodPrice').textContent = Number(p.price).toFixed(2) + ' ر.س';
-      }catch(e){
-        console.error('فشل تحميل المنتج', e);
-      }
-    }
-    function addToCartFromProduct(){
-      const id = getQuery('id');
-      let cart = JSON.parse(localStorage.getItem('cart_v1') || '[]');
-      const found = cart.find(i=>String(i.id)===String(id));
-      if(found) found.qty++;
-      else cart.push({id, qty:1});
-      localStorage.setItem('cart_v1', JSON.stringify(cart));
-      alert('تمت إضافة المنتج إلى السلة');
-    }
-    loadProduct();
-  </script>
+        <!-- الطلبات -->
+        <div class="tab-content" id="tab-orders">
+            <div class="page-header">
+                <h1 class="page-title">📋 إدارة الطلبات</h1>
+                <select class="btn btn-secondary" onchange="filterOrders(this.value)">
+                    <option value="all">جميع الطلبات</option>
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="processing">قيد المعالجة</option>
+                    <option value="shipped">تم الشحن</option>
+                    <option value="delivered">تم التسليم</option>
+                    <option value="cancelled">ملغي</option>
+                </select>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>الإجمالي</th>
+                        <th>طريقة الدفع</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <tr><td colspan="7" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- العملاء -->
+        <div class="tab-content" id="tab-customers">
+            <div class="page-header">
+                <h1 class="page-title">👥 إدارة العملاء</h1>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>البريد</th>
+                        <th>الهاتف</th>
+                        <th>نقاط الولاء</th>
+                        <th>المستوى</th>
+                        <th>تاريخ التسجيل</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- الكوبونات -->
+        <div class="tab-content" id="tab-coupons">
+            <div class="page-header">
+                <h1 class="page-title">🎫 إدارة الكوبونات</h1>
+                <button class="btn btn-primary" onclick="addCoupon()">➕ إضافة كوبون</button>
+            </div>
+            <div id="addCouponForm" style="display:none; background:var(--card); padding:20px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+                <h3 style="margin-bottom:15px;">إضافة كوبون جديد</h3>
+                <div class="form-group">
+                    <label>كود الكوبون</label>
+                    <input type="text" id="couponCodeInput" placeholder="مثال: SALE50">
+                </div>
+                <div class="form-group">
+                    <label>نوع الخصم</label>
+                    <select id="couponType">
+                        <option value="percentage">نسبة مئوية</option>
+                        <option value="fixed">قيمة ثابتة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>قيمة الخصم</label>
+                    <input type="number" id="couponValue" placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأدنى للطلب</label>
+                    <input type="number" id="couponMinOrder" placeholder="100">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الانتهاء</label>
+                    <input type="date" id="couponExpiry">
+                </div>
+                <button class="btn btn-primary" onclick="saveCoupon()">💾 حفظ الكوبون</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('addCouponForm').style.display='none'">إلغاء</button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الكود</th>
+                        <th>نوع الخصم</th>
+                        <th>القيمة</th>
+                        <th>الاستخدامات</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="couponsTableBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- التقارير -->
+        <div class="tab-content" id="tab-reports">
+            <div class="page-header">
+                <h1 class="page-title">📈 التقارير</h1>
+                <div>
+                    <button class="btn btn-primary" onclick="exportReport('pdf')">📄 تصدير PDF</button>
+                    <button class="btn btn-secondary" onclick="exportReport('csv')">📊 تصدير CSV</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>نوع التقرير</label>
+                <select id="reportType" onchange="loadReport()">
+                    <option value="sales">المبيعات</option>
+                    <option value="products">المنتجات</option>
+                    <option value="inventory">المخزون</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الفترة</label>
+                <select id="reportPeriod" onchange="loadReport()">
+                    <option value="daily">يومي</option>
+                    <option value="monthly">شهري</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <div id="reportContent">
+                    <p style="color:var(--muted);">اختر نوع التقرير والفترة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإعدادات -->
+        <div class="tab-content" id="tab-settings">
+            <div class="page-header">
+                <h1 class="page-title">⚙️ إعدادات المتجر</h1>
+                <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+            </div>
+            
+            <h3 style="margin:20px 0;">📦 إعدادات الشحن</h3>
+            <div class="form-group">
+                <label>نسبة الشحن الداخلي (%)</label>
+                <input type="number" id="internalShippingRate" value="5" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label>نسبة الشحن الخارجي الافتراضية (%)</label>
+                <input type="number" id="externalShippingRate" value="10" min="0" max="100">
+            </div>
+            
+            <h3 style="margin:20px 0;">📝 شروط الاسترجاع</h3>
+            <div class="form-group">
+                <label>نص شروط الاسترجاع</label>
+                <textarea id="returnPolicy" rows="4">الاستبدال مسموح خلال 14 يوماً بشرط عدم وجود تلف مصنعي. لا يتم استرجاع المبلغ في حالات التلف الناتج عن سوء الاستخدام أو تلف الفاتورة أو تغيير رأي العميل.</textarea>
+            </div>
+            <div class="form-group">
+                <label>مدة الاسترجاع (بالأيام)</label>
+                <input type="number" id="returnWindow" value="14" min="1" max="365">
+            </div>
+            
+            <h3 style="margin:20px 0;">🔐 إعدادات الأمان</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enable2FA"> تفعيل المصادقة الثنائية للمديرين
+                </label>
+            </div>
+        </div>
+
+        <!-- تخصيص المتجر -->
+        <div class="tab-content" id="tab-customize">
+            <div class="page-header">
+                <h1 class="page-title">🎨 تخصيص المتجر</h1>
+                <button class="btn btn-primary" onclick="applyCustomization()">✅ تطبيق التغييرات</button>
+            </div>
+            
+            <h3 style="margin:20px 0;">🎨 ألوان المتجر</h3>
+            <div class="color-picker-group">
+                <div class="color-picker-item">
+                    <label>اللون الرئيسي</label><br>
+                    <input type="color" id="primaryColor" value="#C9A84C">
+                </div>
+                <div class="color-picker-item">
+                    <label>اللون الثانوي</label><br>
+                    <input type="color" id="secondaryColor" value="#1A1A2E">
+                </div>
+                <div class="color-picker-item">
+                    <label>لون الخلفية</label><br>
+                    <input type="color" id="bgColor" value="#0F0F1A">
+                </div>
+                <div class="color-picker-item">
+                    <label>لون النص</label><br>
+                    <input type="color" id="textColor" value="#FFFFFF">
+                </div>
+            </div>
+            
+            <h3 style="margin:20px 0;">🔊 صوت الترحيب</h3>
+            <div class="form-group">
+                <label>رفع ملف صوتي</label>
+                <input type="file" id="welcomeSoundFile" accept="audio/*">
+            </div>
+            <div class="form-group">
+                <label>أو رابط الملف الصوتي</label>
+                <input type="text" id="welcomeSoundUrl" placeholder="https://example.com/welcome.mp3">
+            </div>
+            <button class="btn btn-secondary" onclick="testWelcomeSound()">🔊 اختبار الصوت</button>
+            
+            <h3 style="margin:20px 0;">🖼️ شعار المتجر</h3>
+            <div class="form-group">
+                <label>رفع الشعار</label>
+                <input type="file" id="logoFile" accept="image/*">
+            </div>
+            <div id="logoPreview" style="margin-top:10px;"></div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = '/api';
+        const token = localStorage.getItem('adminToken') || prompt('أدخل رمز المدير:');
+        
+        if (token) {
+            localStorage.setItem('adminToken', token);
+        }
+
+        // ============ التهيئة ============
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            loadProducts();
+            loadOrders();
+            loadCustomers();
+            loadCoupons();
+            loadSettings();
+        });
+
+        // ============ التنقل بين الألسنة ============
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.closest('.nav-item')?.classList.add('active');
+            
+            // تحميل بيانات اللسان
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'products') loadProducts();
+            else if (tabName === 'orders') loadOrders();
+            else if (tabName === 'customers') loadCustomers();
+            else if (tabName === 'coupons') loadCoupons();
+        }
+
+        // ============ لوحة القيادة ============
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statRevenue').textContent = `${data.data.totalRevenue.toLocaleString()} ر.س`;
+                    document.getElementById('statOrders').textContent = data.data.totalOrders;
+                    document.getElementById('statCustomers').textContent = data.data.totalCustomers;
+                    document.getElementById('statProducts').textContent = data.data.totalProducts;
+                    
+                    // آخر الطلبات
+                    const tbody = document.getElementById('recentOrdersBody');
+                    tbody.innerHTML = data.data.recentOrders.map(order => `
+                        <tr>
+                            <td>${order.orderNumber}</td>
+                            <td>${order.user?.fullName || 'غير معروف'}</td>
+                            <td>${order.pricing?.total || 0} ر.س</td>
+                            <td><span class="badge" style="background:${getStatusColor(order.status)}; padding:5px 10px; border-radius:20px; font-size:12px;">${getStatusArabic(order.status)}</span></td>
+                            <td>${new Date(order.createdAt).toLocaleDateString('ar-SA')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary" onclick="viewOrder('${order._id}')">👁️</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    // رسم بياني بسيط
+                    drawSalesChart();
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل لوحة القيادة:', error);
+            }
+        }
+
+        function refreshStats() {
+            loadDashboard();
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': '#F39C12',
+                'confirmed': '#3498DB',
+                'processing': '#9B59B6',
+                'shipped': '#2ECC71',
+                'delivered': '#27AE60',
+                'cancelled': '#E74C3C',
+                'returned': '#E67E22'
+            };
+            return colors[status] || '#95A5A6';
+        }
+
+        function getStatusArabic(status) {
+            const statuses = {
+                'pending': 'قيد الانتظار',
+                'confirmed': 'مؤكد',
+                'processing': 'قيد المعالجة',
+                'shipped': 'تم الشحن',
+                'delivered': 'تم التسليم',
+                'cancelled': 'ملغي',
+                'returned': 'مرتجع'
+            };
+            return statuses[status] || status;
+        }
+
+        function drawSalesChart() {
+            const canvas = document.getElementById('salesChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // بيانات وهمية للرسم البياني
+            const data = [1200, 1900, 3000, 5000, 2000, 3000, 4500, 3800, 4200, 5100, 4800, 6200];
+            const max = Math.max(...data);
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // رسم الخطوط
+            ctx.beginPath();
+            ctx.strokeStyle = '#C9A84C';
+            ctx.lineWidth = 3;
+            
+            data.forEach((value, index) => {
+                const x = (index / (data.length - 1)) * (width - 80) + 40;
+                const y = height - (value / max) * (height - 60) - 30;
+                
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                // نقاط
+                ctx.fillStyle = '#C9A84C';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // قيمة
+                ctx.fillStyle = '#A0A0B0';
+                ctx.font = '11px Arial';
+                ctx.fillText(value, x - 15, y - 15);
+            });
+            
+            ctx.stroke();
+            
+            // أسماء الشهور
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            ctx.fillStyle = '#A0A0B0';
+            ctx.font = '12px Arial';
+            months.forEach((month, i) => {
+                const x = (i / (months.length - 1)) * (width - 80) + 40;
+                ctx.fillText(month, x - 20, height - 10);
+            });
+        }
+
+        // ============ المنتجات ============
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_URL}/products?limit=50`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('productsTableBody').innerHTML = data.data.map(p => `
+                        <tr>
+                            <td><img src="${p.images?.[0]?.url || ''}" width="50" height="50" style="border-radius:8px; object-fit:cover;" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect fill=%22%23333%22/></svg>'"></td>
+                            <td>${p.name}</td>
+                            <td>${p.price} ر.س</td>
+                            <td style="color:${p.stock <= 5 ? 'var(--danger)' : 'var(--success)'}">${p.stock}</td>
+                            <td>${p.category || 'عام'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary" onclick="editProduct('${p._id}')">✏️</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p._id}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المنتجات:', error);
+            }
+        }
+
+        function addProduct() {
+            const name = prompt('اسم المنتج:');
+            if (!name) return;
+            const price = prompt('السعر:');
+            if (!price) return;
+            const stock = prompt('المخزون:');
+            if (!stock) return;
+            
+            fetch(`${API_URL}/products`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name,
+                    price: parseFloat(price),
+                    stock: parseInt(stock),
+                    description: '',
+                    sku: 'SKU-' + Date.now(),
+                    category: 'عام'
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ تم إضافة المنتج بنجاح');
+                    loadProducts();
+                }
+            });
+        }
+
+        // ============ الطلبات ============
+        async function loadOrders(filter = 'all') {
+            try {
+                const response = await fetch(`${API_URL}/orders${filter !== 'all' ? `?status=${filter}` : ''}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('ordersTableBody').innerHTML = data.data.map(order => `
+                        <tr>
+                            <td>${order.orderNumber}</td>
+                            <td>${order.user?.fullName || 'غير معروف'}</td>
+                            <td>${order.pricing?.total || 0} ر.س</td>
+                            <td>${order.payment?.method === 'cod' ? 'عند الاستلام' : 'بطاقة'}</td>
+                            <td><span style="background:${getStatusColor(order.status)}; padding:5px 10px; border-radius:20px; font-size:12px;">${getStatusArabic(order.status)}</span></td>
+                            <td>${new Date(order.createdAt).toLocaleDateString('ar-SA')}</td>
+                            <td>
+                                <select onchange="updateOrderStatus('${order._id}', this.value)" style="padding:5px; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                                    <option value="">تغيير الحالة</option>
+                                    <option value="confirmed">مؤكد</option>
+                                    <option value="processing">قيد المعالجة</option>
+                                    <option value="shipped">تم الشحن</option>
+                                    <option value="delivered">تم التسليم</option>
+                                    <option value="cancelled">ملغي</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الطلبات:', error);
+            }
+        }
+
+        function filterOrders(status) {
+            loadOrders(status);
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            if (!status) return;
+            try {
+                await fetch(`${API_URL}/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+                loadOrders();
+            } catch (error) {
+                console.error('خطأ في تحديث حالة الطلب:', error);
+            }
+        }
+
+        // ============ العملاء ============
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_URL}/users?role=customer`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('customersTableBody').innerHTML = data.data.map(user => `
+                        <tr>
+                            <td>${user.fullName}</td>
+                            <td>${user.email}</td>
+                            <td>${user.phone}</td>
+                            <td>${user.loyaltyPoints || 0}</td>
+                            <td>${user.loyaltyTier || 'bronze'}</td>
+                            <td>${new Date(user.createdAt).toLocaleDateString('ar-SA')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل العملاء:', error);
+            }
+        }
+
+        // ============ الكوبونات ============
+        function addCoupon() {
+            document.getElementById('addCouponForm').style.display = 'block';
+        }
+
+        async function saveCoupon() {
+            const code = document.getElementById('couponCodeInput').value;
+            const type = document.getElementById('couponType').value;
+            const value = document.getElementById('couponValue').value;
+            const minOrder = document.getElementById('couponMinOrder').value;
+            const expiry = document.getElementById('couponExpiry').value;
+            
+            if (!code || !value) {
+                alert('يرجى إدخال جميع البيانات');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/coupons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        code,
+                        discountType: type,
+                        discountValue: parseFloat(value),
+                        minOrderAmount: parseFloat(minOrder) || 0,
+                        expiryDate: expiry,
+                        maxUses: 100
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ تم إضافة الكوبون بنجاح');
+                    document.getElementById('addCouponForm').style.display = 'none';
+                    loadCoupons();
+                }
+            } catch (error) {
+                console.error('خطأ في حفظ الكوبون:', error);
+            }
+        }
+
+        async function loadCoupons() {
+            try {
+                const response = await fetch(`${API_URL}/coupons`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('couponsTableBody').innerHTML = data.data.map(coupon => `
+                        <tr>
+                            <td><strong>${coupon.code}</strong></td>
+                            <td>${coupon.discountType === 'percentage' ? 'نسبة' : 'ثابت'}</td>
+                            <td>${coupon.discountValue}${coupon.discountType === 'percentage' ? '%' : ' ر.س'}</td>
+                            <td>${coupon.usedCount || 0} / ${coupon.maxUses || '∞'}</td>
+                            <td>${coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('ar-SA') : 'مفتوح'}</td>
+                            <td>${coupon.isActive ? '✅ نشط' : '❌ غير نشط'}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الكوبونات:', error);
+            }
+        }
+
+        // ============ الإعدادات ============
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_URL}/admin/settings/store`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    document.getElementById('internalShippingRate').value = data.data.internalShippingRate || 5;
+                    document.getElementById('externalShippingRate').value = data.data.externalShippingRate || 10;
+                    document.getElementById('returnPolicy').value = data.data.returnPolicy || '';
+                    document.getElementById('returnWindow').value = data.data.returnWindow || 14;
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الإعدادات:', error);
+            }
+        }
+
+        async function saveSettings() {
+            const settings = {
+                type: 'store',
+                data: {
+                    internalShippingRate: document.getElementById('internalShippingRate').value,
+                    externalShippingRate: document.getElementById('externalShippingRate').value,
+                    returnPolicy: document.getElementById('returnPolicy').value,
+                    returnWindow: document.getElementById('returnWindow').value
+                }
+            };
+            
+            try {
+                await fetch(`${API_URL}/admin/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+                alert('✅ تم حفظ الإعدادات بنجاح');
+            } catch (error) {
+                console.error('خطأ في حفظ الإعدادات:', error);
+            }
+        }
+
+        // ============ تخصيص المتجر ============
+        function applyCustomization() {
+            const colors = {
+                primary: document.getElementById('primaryColor').value,
+                secondary: document.getElementById('secondaryColor').value,
+                bg: document.getElementById('bgColor').value,
+                text: document.getElementById('textColor').value
+            };
+            
+            // تطبيق الألوان على الصفحة الحالية كمعاينة
+            document.documentElement.style.setProperty('--primary', colors.primary);
+            document.documentElement.style.setProperty('--secondary', colors.secondary);
+            document.documentElement.style.setProperty('--bg', colors.bg);
+            document.documentElement.style.setProperty('--text', colors.text);
+            
+            // حفظ في الخادم
+            fetch(`${API_URL}/admin/settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    type: 'theme',
+                    data: { colors }
+                })
+            });
+            
+            alert('✅ تم تطبيق التغييرات');
+        }
+
+        function testWelcomeSound() {
+            const url = document.getElementById('welcomeSoundUrl').value;
+            const file = document.getElementById('welcomeSoundFile').files[0];
+            
+            if (file) {
+                const audio = new Audio(URL.createObjectURL(file));
+                audio.play();
+            } else if (url) {
+                const audio = new Audio(url);
+                audio.play();
+            } else {
+                alert('يرجى رفع ملف صوتي أو إدخال رابط');
+            }
+        }
+
+        // ============ التقارير ============
+        async function loadReport() {
+            const type = document.getElementById('reportType').value;
+            const period = document.getElementById('reportPeriod').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/reports?type=${type}&period=${period}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('reportContent').innerHTML = `
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>عدد الطلبات</th>
+                                    <th>الإيرادات</th>
+                                    <th>متوسط الطلب</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(row => `
+                                    <tr>
+                                        <td>${row._id}</td>
+                                        <td>${row.orders}</td>
+                                        <td>${row.revenue?.toLocaleString() || 0} ر.س</td>
+                                        <td>${row.averageOrder?.toFixed(2) || 0} ر.س</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل التقرير:', error);
+            }
+        }
+
+        function exportReport(format) {
+            alert(`📥 جاري تصدير التقرير بصيغة ${format.toUpperCase()}...`);
+        }
+
+        console.log('👑 لوحة تحكم الرعدي أونلاين جاهزة');
+    </script>
 </body>
-</html>
+  </html>

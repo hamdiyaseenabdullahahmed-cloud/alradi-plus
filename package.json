@@ -1,19 +1,14 @@
 {
-  "name": "ra3di-online",
-  "version": "2.0.0",
-  "description": "متجر الرعدي أونلاين - منصة تجارة إلكترونية متكاملة",
+  "name": "alradi-onlin",
+  "version": "3.0.0",
+  "description": "متجر الرعدي أونلاين - منصة تجارة إلكترونية فاخرة تنافس أمازون وعلي بابا",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "install-deps": "npm install",
-    "setup": "node setup.js",
-    "backup": "node backup.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "mongoose": "^7.6.3",
-    "redis": "^4.6.10",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -24,21 +19,12 @@
     "pdfkit": "^0.13.0",
     "qrcode": "^1.5.3",
     "nodemailer": "^6.9.7",
-    "twilio": "^4.19.3",
-    "stripe": "^14.11.0",
-    "axios": "^1.6.2",
-    "socket.io": "^4.7.2",
     "uuid": "^9.0.0",
     "dotenv": "^16.3.1",
-    "express-validator": "^7.0.1",
     "compression": "^1.7.4",
     "morgan": "^1.10.0",
-    "aws-sdk": "^2.1511.0",
     "node-cron": "^3.0.3",
-    "archiver": "^6.0.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
+    "socket.io": "^4.7.2"
   },
   "engines": {
     "node": ">=18.0.0"

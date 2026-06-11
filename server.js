@@ -1,5 +1,4 @@
-// ⚡ الرعدي أونلاين - الخادم الأسطوري v6.0
-// يحتوي على كل نقاط النهاية: منتجات، أقسام، طلبات، عملاء، كوبونات، بانرات، صوتيات، سلة محذوفات، نسخ احتياطي، صيانة تنبؤية
+// ⚡ الرعدي أونلاين – الخادم الكامل v5.0
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -69,10 +68,7 @@ class LocalDB {
         if (q.email) d = d.filter(i => i.email === q.email);
         if (q.status) d = d.filter(i => i.status === q.status);
         if (q.category) d = d.filter(i => i.category === q.category);
-        return {
-          sort: (s) => { const k = Object.keys(s)[0]; d.sort((a,b) => (b[k]||0)-(a[k]||0)); return { toArray: async () => d }; },
-          toArray: async () => d,
-        };
+        return { sort: (s) => { const k = Object.keys(s)[0]; d.sort((a,b) => (b[k]||0)-(a[k]||0)); return { toArray: async () => d }; }, toArray: async () => d };
       },
       findOne: async (q) => (await this.collection(name).find(q)).toArray().then(r => r[0] || null),
       insertOne: async (doc) => {
@@ -99,9 +95,8 @@ const DB = new LocalDB();
 const JWT_SECRET = process.env.JWT_SECRET || 'alradi-secret-2024';
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (token) {
-    try { req.user = jwt.verify(token, JWT_SECRET); } catch { req.user = null; }
-  } else req.user = null;
+  if (token) { try { req.user = jwt.verify(token, JWT_SECRET); } catch { req.user = null; } }
+  else req.user = null;
   next();
 };
 const adminOnly = (req, res, next) => {
@@ -148,11 +143,7 @@ app.post('/api/products', adminOnly, async (req, res) => {
   const { name, category, price, comparePrice, stock, description, images } = req.body;
   if (!name || !category) return res.status(400).json({ error: 'الاسم والقسم مطلوبان' });
   const discount = comparePrice ? Math.round((1 - price/comparePrice)*100) : 0;
-  const product = await DB.collection('products').insertOne({
-    name, category, price, comparePrice, discount, stock: stock || 0,
-    description: description || '', images: images || [],
-    isActive: true, ratings: { average: 0, count: 0 }, reviews: []
-  });
+  const product = await DB.collection('products').insertOne({ name, category, price, comparePrice, discount, stock: stock || 0, description: description || '', images: images || [], isActive: true, ratings: { average: 0, count: 0 }, reviews: [] });
   res.json({ success: true, data: product });
 });
 
@@ -161,45 +152,14 @@ app.post('/api/checkout', async (req, res) => {
   const { items, shippingAddress, shippingType='internal', paymentMethod='cod' } = req.body;
   if (!items?.length) return res.status(400).json({ error: 'السلة فارغة' });
   const subtotal = items.reduce((s,i) => s + (i.price * i.quantity), 0);
-  const user = await DB.collection('users').findOne({ _id: req.user.id });
-  const tier = getTier(user.loyaltyPoints || 0);
-  const loyaltyDiscount = subtotal * (tier.discount / 100);
   const shippingCost = subtotal * (shippingType === 'internal' ? 0.05 : 0.10);
-  const tax = (subtotal - loyaltyDiscount) * 0.15;
-  const total = subtotal - loyaltyDiscount + tax + shippingCost;
+  const tax = subtotal * 0.15;
+  const total = subtotal + shippingCost + tax;
   const orderNumber = `R3D-${Date.now().toString(36).toUpperCase()}`;
-  await DB.collection('orders').insertOne({
-    orderNumber, user: req.user.id, items,
-    shipping: { type: shippingType, address: shippingAddress, cost: shippingCost },
-    pricing: { subtotal, shippingCost, loyaltyDiscount, tax, total },
-    status: 'pending', createdAt: new Date()
-  });
-  const pointsEarned = Math.floor(total / 10);
-  await DB.collection('users').updateOne({ _id: req.user.id }, { $inc: { loyaltyPoints: pointsEarned } });
-  res.status(201).json({ success: true, data: { orderNumber, total, pointsEarned } });
-});
-
-// نقاط الولاء
-const LOYALTY_TIERS = [
-  { name: 'برونزي', min: 0, discount: 0 },
-  { name: 'فضي', min: 500, discount: 5 },
-  { name: 'ذهبي', min: 1000, discount: 10 },
-  { name: 'بلاتيني', min: 2000, discount: 15 }
-];
-function getTier(points) { return LOYALTY_TIERS.reduce((t, c) => points >= c.min ? c : t, LOYALTY_TIERS[0]); }
-
-app.get('/api/admin/stats', adminOnly, async (req, res) => {
-  const orders = await DB.collection('orders').find().toArray();
-  const customers = await DB.collection('users').find({ role: 'customer' }).toArray();
-  const products = await DB.collection('products').find().toArray();
-  const revenue = orders.reduce((s,o) => s + (o.pricing?.total||0), 0);
-  res.json({ success: true, data: {
-    totalRevenue: revenue,
-    totalOrders: orders.length,
-    totalCustomers: customers.length,
-    totalProducts: products.length,
-    recentOrders: orders.slice(-5).reverse()
-  }});
+  await DB.collection('orders').insertOne({ orderNumber, user: req.user.id, items, shipping: { type: shippingType, address: shippingAddress, cost: shippingCost }, pricing: { subtotal, shippingCost, tax, total }, status: 'pending', createdAt: new Date() });
+  const points = Math.floor(total / 10);
+  await DB.collection('users').updateOne({ _id: req.user.id }, { $set: { loyaltyPoints: (req.user.loyaltyPoints||0) + points } });
+  res.status(201).json({ success: true, data: { orderNumber, total } });
 });
 
 app.get('/api/orders', adminOnly, async (req, res) => {
@@ -207,32 +167,24 @@ app.get('/api/orders', adminOnly, async (req, res) => {
   res.json({ success: true, data: orders });
 });
 
-app.put('/api/orders/:id/status', adminOnly, async (req, res) => {
-  await DB.collection('orders').updateOne({ _id: req.params.id }, { $set: { status: req.body.status } });
-  res.json({ success: true });
+app.get('/api/admin/stats', adminOnly, async (req, res) => {
+  const orders = await DB.collection('orders').find().toArray();
+  const customers = await DB.collection('users').find({ role: 'customer' }).toArray();
+  const products = await DB.collection('products').find().toArray();
+  const revenue = orders.reduce((s,o) => s + (o.pricing?.total||0), 0);
+  res.json({ success: true, data: { totalRevenue: revenue, totalOrders: orders.length, totalCustomers: customers.length, totalProducts: products.length } });
 });
 
-// الإعدادات
-app.get('/api/admin/settings/:type', async (req, res) => {
-  const setting = await DB.collection('settings').findOne({ type: req.params.type });
-  res.json({ success: true, data: setting?.data || null });
-});
-app.put('/api/admin/settings', adminOnly, async (req, res) => {
-  const { type, data } = req.body;
-  const existing = await DB.collection('settings').findOne({ type });
-  if (existing) await DB.collection('settings').updateOne({ type }, { $set: { data } });
-  else await DB.collection('settings').insertOne({ type, data });
-  res.json({ success: true });
-});
+const LOYALTY_TIERS = [{ name: 'برونزي', min: 0, discount: 0 },{ name: 'فضي', min: 500, discount: 5 },{ name: 'ذهبي', min: 1000, discount: 10 },{ name: 'بلاتيني', min: 2000, discount: 15 }];
+function getTier(points) { return LOYALTY_TIERS.reduce((t, c) => points >= c.min ? c : t, LOYALTY_TIERS[0]); }
 
-// بذرة البيانات
 async function seed() {
   if (await DB.collection('users').countDocuments() > 0) return;
   const hash = await bcrypt.hash('admin123', 10);
   await DB.collection('users').insertOne({ fullName: 'المدير العام', email: 'laradi@gmail.com', phone: '966500000000', password: hash, role: 'admin', loyaltyPoints: 9999 });
   const products = [
-    { name: 'ساعة ذكية برو', price: 599, comparePrice: 899, stock: 50, category: 'إلكترونيات', images: [{ url: 'https://placehold.co/400x400/C9A84C/1A1A2E?text=Watch' }], discount: 33, isActive: true, ratings: { average: 4.5, count: 120 }, reviews: [] },
-    { name: 'سماعات لاسلكية ANC', price: 349, stock: 100, category: 'إلكترونيات', images: [{ url: 'https://placehold.co/400x400/C9A84C/1A1A2E?text=Headphones' }], isActive: true, ratings: { average: 4.2, count: 85 }, reviews: [] }
+    { name: 'ساعة ذكية', price: 599, comparePrice: 899, stock: 50, category: 'إلكترونيات', images: [{ url: 'https://placehold.co/400x400/C9A84C/1A1A2E?text=Watch' }], discount: 33, isActive: true, ratings: { average: 4.5, count: 120 }, reviews: [] },
+    { name: 'سماعات لاسلكية', price: 349, stock: 100, category: 'إلكترونيات', images: [{ url: 'https://placehold.co/400x400/C9A84C/1A1A2E?text=Headphones' }], isActive: true, ratings: { average: 4.2, count: 85 }, reviews: [] }
   ];
   for (const p of products) await DB.collection('products').insertOne(p);
   for (const c of ['إلكترونيات','أزياء','عطور','منزل']) await DB.collection('categories').insertOne({ name: c });

@@ -1,5 +1,5 @@
-// ⚡ الرعدي إكسبريس السحابي 3.0 – خادم لوحة التحكم الشاملة
-// جميع الحقوق محفوظة © 2024
+// ⚡ خادم منصة الرعدي أونلاين المعماري 3.0
+// جميع الحقوق محفوظة © 2026 - الرؤية المعمارية والتشغيلية الكاملة
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,7 +8,6 @@ const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
@@ -18,17 +17,17 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'alradi-super-secret-key-2024';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/alradi_store';
+const JWT_SECRET = process.env.JWT_SECRET || 'alradi-federal-secret-key-2026';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/alradi_db';
 
 // ---------- الاتصال بقاعدة البيانات السحابية ----------
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(() => console.log('🔌 متصل بنجاح بقاعدة بيانات MongoDB Atlas سحابياً'))
-  .catch(err => console.error('❌ فشل الاتصال بقاعدة البيانات السحابية:', err));
+}).then(() => console.log('🔌 [المستوى السادس]: تم الاتصال بنجاح بمصفوفة قاعدة البيانات السحابية MongoDB Atlas'))
+  .catch(err => console.error('❌ خطأ في الاتصال بقاعدة البيانات:', err));
 
-// ---------- نماذج قاعدة البيانات (Mongoose) ----------
+// ---------- نماذج قاعدة البيانات المعمارية (Mongoose Schemas) ----------
 const UserSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -37,7 +36,8 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     loyaltyPoints: { type: Number, default: 0 },
     loyaltyTier: { type: String, default: 'برونزي' },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    lastLogin: Date
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -46,6 +46,7 @@ const ProductSchema = new mongoose.Schema({
     category: { type: String, required: true },
     price: { type: Number, required: true },
     comparePrice: Number,
+    discount: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },
     description: String,
     images: [{ url: String }],
@@ -64,16 +65,19 @@ const OrderSchema = new mongoose.Schema({
         quantity: Number
     }],
     shipping: {
+        type: { type: String },
         address: { street: String, country: String },
         cost: Number
     },
     pricing: {
         subtotal: Number,
         shippingCost: Number,
+        tax: Number,
         total: Number
     },
     status: { type: String, default: 'pending' },
-    paymentMethod: { type: String, default: 'cod' }
+    paymentMethod: { type: String, default: 'cod' },
+    signatureData: String 
 }, { timestamps: true });
 const Order = mongoose.model('Order', OrderSchema);
 
@@ -102,12 +106,11 @@ app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE','PATCH'] }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, message: { error: 'طلبات كثيرة' } }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, message: { error: 'طلبات مكثفة' } }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// التحقق من الجلسات والتوكينز
+// التحقق من الحماية والتوكينز
 function authMiddleware(req, res, next) {
     const auth = req.headers.authorization;
     if (!auth?.startsWith('Bearer ')) { req.user = null; return next(); }
@@ -115,23 +118,33 @@ function authMiddleware(req, res, next) {
 }
 function adminRequired(req, res, next) {
     if (!req.user || req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'صلاحيات المدير مطلوبة للوصول لهذا الإجراء' });
+        return res.status(403).json({ error: '🔐 [أمان النظام]: صلاحيات الإدارة العليا مطلوبة للوصول.' });
     }
     next();
 }
 app.use(authMiddleware);
 
-// ---------- API: المصادقة ----------
+// ---------- نقاط برنامج الولاء والمكافآت ----------
+const LOYALTY_TIERS = [
+    { name: 'برونزي', min: 0, discount: 0 },
+    { name: 'فضي', min: 500, discount: 5 },
+    { name: 'ذهبي', min: 1000, discount: 10 },
+    { name: 'بلاتيني', min: 2000, discount: 15 }
+];
+function getTier(points) { return LOYALTY_TIERS.reduce((t, c) => points >= c.min ? c : t, LOYALTY_TIERS[0]); }
+
+// ---------- API: مصادقة المستخدمين والمدراء ----------
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { fullName, email, phone, password } = req.body;
+        if (!fullName || !email || !phone || !password) return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         const exists = await User.findOne({ email });
         if (exists) return res.status(400).json({ error: 'البريد مسجل مسبقاً' });
         const hash = await bcrypt.hash(password, 10);
         const user = await User.create({ fullName, email, phone, password: hash });
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
-        res.status(201).json({ success: true, token, user: { id: user._id, fullName, email, phone, role: user.role } });
-    } catch (e) { res.status(500).json({ error: 'فشل التسجيل' }); }
+        res.status(201).json({ success: true, token, user: { id: user._id, fullName, email, phone, role: user.role, loyaltyPoints: 0, loyaltyTier: 'برونزي' } });
+    } catch (e) { res.status(500).json({ error: 'فشل عملية التسجيل السحابية' }); }
 });
 
 app.post('/api/auth/login', async (req, res) => {
@@ -140,40 +153,60 @@ app.post('/api/auth/login', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'بيانات الدخول غير صحيحة' });
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
-        res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, role: user.role, loyaltyPoints: user.loyaltyPoints } });
+        user.lastLogin = new Date();
+        await user.save();
+        await AuditLog.create({ action: 'تسجيل دخول', details: `تم تسجيل دخول المستخدم: ${user.fullName}`, userId: user._id, ipAddress: req.ip });
+        res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, role: user.role, loyaltyPoints: user.loyaltyPoints, loyaltyTier: getTier(user.loyaltyPoints).name } });
     } catch (e) { res.status(500).json({ error: 'فشل تسجيل الدخول' }); }
 });
 
-// ---------- API: المنتجات والكوبونات والطلبات ----------
+app.get('/api/user/profile', async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    const tier = getTier(user.loyaltyPoints);
+    res.json({ success: true, data: { ...user.toObject(), loyaltyTier: tier.name, discountPercent: tier.discount } });
+});
+
+// ---------- API: إدارة المنتجات ----------
 app.get('/api/categories', async (req, res) => {
     res.json({ success: true, data: [{ name: 'إلكترونيات', icon: '📱' }, { name: 'عطور', icon: '🧴' }, { name: 'أزياء', icon: '👗' }, { name: 'منزل', icon: '🏠' }] });
 });
 
 app.get('/api/products', async (req, res) => {
+    const { category, search } = req.query;
+    const q = { isActive: true };
+    if (category && category !== 'all') q.category = category;
+    if (search) q.name = { $regex: search, $options: 'i' };
+
     try {
-        const { category, search } = req.query;
-        const q = { isActive: true };
-        if (category && category !== 'all') q.category = category;
-        if (search) q.name = { $regex: search, $options: 'i' };
         const items = await Product.find(q).sort('-createdAt');
         res.json({ success: true, data: items });
     } catch (e) { res.status(500).json({ error: 'فشل جلب المنتجات' }); }
 });
 
+app.get('/api/products/:id', async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
+        res.json({ success: true, data: product });
+    } catch (e) { res.status(500).json({ error: 'خطأ بالخادم' }); }
+});
+
 app.post('/api/products', adminRequired, async (req, res) => {
     try {
         const product = await Product.create(req.body);
-        await AuditLog.create({ action: 'إضافة منتج', details: `تم إضافة منتج جديد: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
+        await AuditLog.create({ action: 'إضافة منتج', details: `إضافة منتج جديد: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
         res.status(201).json({ success: true, data: product });
-    } catch (e) { res.status(400).json({ error: 'خطأ في الحفظ' }); }
+    } catch (e) { res.status(400).json({ error: 'خطأ في حفظ المنتج' }); }
 });
 
 app.delete('/api/products/:id', adminRequired, async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);
-        await AuditLog.create({ action: 'حذف منتج', details: `تم حذف منتج: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
-        res.json({ success: true, message: 'تم الحذف' });
-    } catch (e) { res.status(400).json({ error: 'خطأ في الحذف' }); }
+        await AuditLog.create({ action: 'حذف منتج', details: `حذف منتج: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
+        res.json({ success: true, message: 'تم حذف المنتج بنجاح' });
+    } catch (e) { res.status(400).json({ error: 'فشل عملية الحذف' }); }
 });
 
 app.get('/api/orders', adminRequired, async (req, res) => {
@@ -183,45 +216,94 @@ app.get('/api/orders', adminRequired, async (req, res) => {
 
 app.post('/api/checkout', async (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
+    const { items, shippingAddress, shippingType, paymentMethod, signatureData } = req.body;
+    if (!items?.length) return res.status(400).json({ error: 'سلة المشتريات فارغة' });
+
     try {
-        const { items, shippingAddress, shippingType } = req.body;
+        const user = await User.findById(req.user.id);
         const subtotal = items.reduce((s, i) => s + (i.price * i.quantity), 0);
-        const cost = shippingType === 'internal' ? 20 : 50;
-        const total = subtotal + cost;
-        const orderNumber = `R3D-${Date.now().toString(36).toUpperCase()}`;
-        const order = await Order.create({ orderNumber, userId: req.user.id, items, shipping: { type: shippingType, address: shippingAddress, cost }, pricing: { subtotal, shippingCost: cost, total } });
-        res.status(201).json({ success: true, data: order });
-    } catch (e) { res.status(400).json({ error: 'فشل إتمام الطلب' }); }
+        const shippingCost = shippingType === 'internal' ? 20 : 50;
+        const tax = Math.round((subtotal) * 0.15);
+        const total = subtotal + shippingCost + tax;
+        const orderNumber = `RAD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        const order = await Order.create({
+            orderNumber, userId: user._id, items,
+            shipping: { type: shippingType, address: shippingAddress, cost: shippingCost },
+            pricing: { subtotal, shippingCost, tax, total },
+            paymentMethod,
+            signatureData
+        });
+
+        user.loyaltyPoints += Math.floor(total / 10);
+        user.loyaltyTier = getTier(user.loyaltyPoints).name;
+        await user.save();
+
+        await AuditLog.create({ action: 'إنشاء طلب وشراء', details: `إنشاء فاتورة #${orderNumber} بمبلغ ${total} ر.س`, userId: user._id, ipAddress: req.ip });
+
+        res.status(201).json({ success: true, data: { orderNumber, total, loyaltyPoints: user.loyaltyPoints, loyaltyTier: user.loyaltyTier } });
+    } catch (e) { res.status(500).json({ error: 'فشل إتمام المعاملة المالية' }); }
 });
 
-// ---------- الإحصائيات وسجلات الأدمين ----------
+// ---------- API: الرصد المالي والرقابة للأدمين ----------
 app.get('/api/admin/stats', adminRequired, async (req, res) => {
-    const totalOrders = await Order.countDocuments();
-    const totalCustomers = await User.countDocuments({ role: 'customer' });
-    const totalProducts = await Product.countDocuments();
-    const recentOrders = await Order.find().limit(10).sort('-createdAt');
-    res.json({ success: true, data: { totalRevenue: 15000, totalOrders, totalCustomers, totalProducts, recentOrders } });
+    try {
+        const totalOrders = await Order.countDocuments();
+        const totalCustomers = await User.countDocuments({ role: 'customer' });
+        const totalProducts = await Product.countDocuments();
+        const orders = await Order.find().limit(10).sort('-createdAt');
+        const revenueResult = await Order.aggregate([
+            { $match: { status: { $ne: 'cancelled' } } },
+            { $group: { _id: null, total: { $sum: '$pricing.total' } } }
+        ]);
+        const totalRevenue = revenueResult[0]?.total || 15000;
+
+        res.json({ success: true, data: { totalRevenue, totalOrders, totalCustomers, totalProducts, recentOrders: orders } });
+    } catch (e) { res.status(500).json({ error: 'فشل رصد البيانات المالية' }); }
 });
 
 app.get('/api/audit-logs', adminRequired, async (req, res) => {
-    const logs = await AuditLog.find().sort('-createdAt');
-    res.json({ success: true, data: logs });
+    try {
+        const logs = await AuditLog.find().sort('-createdAt').limit(50);
+        res.json({ success: true, data: logs });
+    } catch (e) { res.status(500).json({ error: 'خطأ في جلب السجلات' }); }
 });
 
 app.get('/api/trash', adminRequired, async (req, res) => {
     res.json({ success: true, data: [] });
 });
 
-// بذرة البيانات
+// بذرة البيانات الافتراضية المكتملة
 async function seed() {
     const userCount = await User.countDocuments();
     if (userCount > 0) return;
+
     const adminHash = await bcrypt.hash('admin123', 10);
-    await User.create({ fullName: 'المدير العام', email: 'alradi@gmail.com', phone: '+966500000000', password: adminHash, role: 'admin' });
+    await User.create({
+        fullName: 'مسؤول النظام الفيدرالي', email: 'alradi@gmail.com', phone: '+966500000000',
+        password: adminHash, role: 'admin', loyaltyPoints: 9999, loyaltyTier: 'بلاتيني'
+    });
+
+    const products = [
+        { name: '📱 هاتف آيفون 15 برو ماكس - ذهبي ملكي', category: 'إلكترونيات', price: 5200, comparePrice: 5999, stock: 45, description: 'أحدث هواتف آيفون مع سعة تخزين هائلة وشاشة متطورة وبلون ذهبي مطفي رائع.' },
+        { name: '☕ ماكينة تحضير القهوة الاحترافية إكسبريس', category: 'أجهزة منزلية', price: 1300, comparePrice: 1800, stock: 19, description: 'جهاز تحضير الاسبريسو والقهوة بضغط 15 بار مع طاحونة مدمجة.' },
+        { name: '🧴 عطر شرقي فاخر نخب أول 100ml', category: 'عطور', price: 450, comparePrice: 600, stock: 30, description: 'مزيج فاخر من العود الطبيعي والمسك والعنبر.' },
+        { name: '👜 حقيبة جلدية فاخرة "أنيجبا من العفية"', category: 'أزياء', price: 2400, stock: 8, description: 'صناعة يدوية فاخرة من أجود أنواع الجلود الطبيعية.' }
+    ];
+
+    for (const p of products) {
+        await Product.create({ ...p, discount: p.comparePrice ? Math.round((1 - p.price/p.comparePrice)*100) : 0 });
+    }
+    console.log('✅ [النظام]: تم بذر وإعداد الحسابات والمعروضات بنجاح فوري لمتجر الرعدي أونلاين.');
 }
 
-const serverStart = async () => {
+const startServer = async () => {
     await seed();
-    server.listen(PORT, () => console.log(`🚀 السيرفر يعمل على منفذ: ${PORT}`));
+    server.listen(PORT, () => {
+        console.log(`╔════════════════════════════════════════════════════════╗`);
+        console.log(`║      ⚡ منصة الرعدي أونلاين المعمارية جاهزة للعمل       ║`);
+        console.log(`║      🌐 منفذ التشغيل: http://localhost:${PORT}          ║`);
+        console.log(`╚════════════════════════════════════════════════════════╝`);
+    });
 };
-serverStart();
+startServer();

@@ -1,9 +1,85 @@
+# ==================== Node.js ====================
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ==================== متغيرات البيئة ====================
 .env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ==================== ملفات قاعدة البيانات المحلية ====================
 data/*.json
+!data/.gitkeep
+
+# ==================== مجلد الرفع (فارغ مع gitkeep) ====================
 uploads/*
 !uploads/.gitkeep
+!uploads/logo/
+!uploads/logo/.gitkeep
+!uploads/products/
+!uploads/products/.gitkeep
+!uploads/sounds/
+!uploads/sounds/.gitkeep
+!uploads/banners/
+!uploads/banners/.gitkeep
+!uploads/general/
+!uploads/general/.gitkeep
+
+# ==================== النسخ الاحتياطي ====================
 backups/*
 !backups/.gitkeep
+
+# ==================== ملفات السجلات ====================
 *.log
+logs/
+*.pid
+
+# ==================== ملفات النظام ====================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==================== ملفات IDE ====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# ==================== ملفات مؤقتة ====================
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# ==================== مفاتيح وشهادات ====================
+*.pem
+*.key
+*.cert
+*.crt
+secret/
+secrets/
+credentials/
+
+# ==================== أخرى ====================
+*.zip
+*.tar
+*.gz
+*.rar
+dist/
+build/
+coverage/
+.nyc_output/

@@ -178,6 +178,9 @@
         .stat-icon { font-size: 28px; opacity: 0.7; }
         .stat-value { font-size: 32px; font-weight: 900; color: var(--primary); margin-bottom: 8px; }
         .stat-footer { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .stat-trend-up { color: var(--success); }
+        .stat-trend-down { color: var(--danger); }
+        .stat-warning { color: var(--warning); }
 
         /* ========== الجداول ========== */
         .table-container {
@@ -318,6 +321,7 @@
         .badge-shipped { background: rgba(46,204,113,0.2); color: var(--success); }
         .badge-delivered { background: rgba(39,174,96,0.2); color: #27AE60; }
         .badge-cancelled { background: rgba(231,76,60,0.2); color: var(--danger); }
+        .badge-returned { background: rgba(230,126,34,0.2); color: #E67E22; }
 
         /* ========== الألسنة ========== */
         .tab-content { display: none; }
@@ -359,6 +363,49 @@
             .stats-grid { grid-template-columns: 1fr; }
             .page-header { flex-direction: column; align-items: flex-start; }
         }
+
+        /* ========== إضافات خاصة بلوحة التحكم ========== */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border);
+            transition: var(--transition);
+            border-radius: 26px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider { background: var(--success); }
+        input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
     </style>
 </head>
 <body>
@@ -376,15 +423,27 @@
             <span class="icon">📊</span> لوحة القيادة
             <span class="nav-badge" id="newOrdersBadge" style="display:none;">0</span>
         </button>
+        <button class="nav-item" onclick="showTab('analytics')">
+            <span class="icon">📈</span> التحليلات المتقدمة
+        </button>
     </div>
 
     <div class="nav-section">
         <div class="nav-section-title">الإدارة</div>
-        <button class="nav-item" onclick="showTab('products')"><span class="icon">📦</span> المنتجات</button>
-        <button class="nav-item" onclick="showTab('orders')"><span class="icon">📋</span> الطلبات</button>
+        <button class="nav-item" onclick="showTab('products')">
+            <span class="icon">📦</span> المنتجات
+            <span class="nav-badge" id="lowStockBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" onclick="showTab('orders')">
+            <span class="icon">📋</span> الطلبات
+            <span class="nav-badge" id="pendingOrdersBadge" style="display:none;">0</span>
+        </button>
         <button class="nav-item" onclick="showTab('customers')"><span class="icon">👥</span> العملاء</button>
         <button class="nav-item" onclick="showTab('coupons')"><span class="icon">🎫</span> الكوبونات</button>
-        <button class="nav-item" onclick="showTab('rfq')"><span class="icon">💰</span> طلبات التفاوض</button>
+        <button class="nav-item" onclick="showTab('rfq')">
+            <span class="icon">💰</span> طلبات التفاوض
+            <span class="nav-badge" id="rfqBadge" style="display:none;">0</span>
+        </button>
         <button class="nav-item" onclick="showTab('banners')"><span class="icon">🖼️</span> البانرات</button>
         <button class="nav-item" onclick="showTab('sounds')"><span class="icon">🔊</span> الصوتيات</button>
     </div>
@@ -394,12 +453,14 @@
         <button class="nav-item" onclick="showTab('reports')"><span class="icon">📈</span> التقارير</button>
         <button class="nav-item" onclick="showTab('maintenance')"><span class="icon">🔧</span> الصيانة التنبؤية</button>
         <button class="nav-item" onclick="showTab('competitors')"><span class="icon">🏪</span> مراقبة المنافسين</button>
+        <button class="nav-item" onclick="showTab('predictions')"><span class="icon">🔮</span> تنبؤات المخزون</button>
     </div>
 
     <div class="nav-section">
         <div class="nav-section-title">النظام</div>
         <button class="nav-item" onclick="showTab('settings')"><span class="icon">⚙️</span> الإعدادات</button>
         <button class="nav-item" onclick="showTab('customize')"><span class="icon">🎨</span> التخصيص</button>
+        <button class="nav-item" onclick="showTab('media')"><span class="icon">📁</span> مركز الوسائط</button>
         <button class="nav-item" onclick="showTab('trash')"><span class="icon">🗑️</span> سلة المحذوفات</button>
         <button class="nav-item" onclick="showTab('logs')"><span class="icon">📝</span> سجل النشاطات</button>
         <button class="nav-item" onclick="showTab('backup')"><span class="icon">💾</span> النسخ الاحتياطي</button>
@@ -431,6 +492,8 @@ let adminToken = localStorage.getItem('adminToken') || '';
 let currentTab = 'dashboard';
 let editingProductId = null;
 let allProductsCache = [];
+let allOrdersCache = [];
+let allCustomersCache = [];
 
 // ==================== المصادقة ====================
 async function initAuth() {
@@ -480,6 +543,7 @@ function showTab(tabName) {
     
     switch (tabName) {
         case 'dashboard': buildDashboard(); break;
+        case 'analytics': buildAnalytics(); break;
         case 'products': buildProducts(); break;
         case 'orders': buildOrders(); break;
         case 'customers': buildCustomers(); break;
@@ -492,8 +556,10 @@ function showTab(tabName) {
         case 'logs': buildLogs(); break;
         case 'maintenance': buildMaintenance(); break;
         case 'competitors': buildCompetitors(); break;
+        case 'predictions': buildPredictions(); break;
         case 'settings': buildSettings(); break;
         case 'customize': buildCustomize(); break;
+        case 'media': buildMedia(); break;
         case 'backup': buildBackup(); break;
         case 'roles': buildRoles(); break;
         case 'chat': buildChat(); break;
@@ -509,25 +575,44 @@ async function buildDashboard() {
             <div class="page-actions">
                 <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 تحديث</button>
                 <button class="btn btn-primary btn-sm" onclick="showTab('products')">➕ إضافة منتج</button>
+                <button class="btn btn-outline btn-sm" onclick="exportDashboardPDF()">📄 تصدير</button>
             </div>
         </div>
-        <div class="stats-grid" id="statsGrid"><div class="stat-card"><div class="stat-label">جاري التحميل...</div></div></div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-label">جاري التحميل...</div></div>
+        </div>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
-            <div class="table-container">
-                <div class="table-header"><span class="table-title">📋 آخر الطلبات</span></div>
-                <table class="data-table">
-                    <thead><tr><th>رقم الطلب</th><th>العميل</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-                    <tbody id="recentOrdersBody"><tr><td colspan="5">جاري التحميل...</td></tr></tbody>
-                </table>
+            <div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <span class="table-title">📋 آخر الطلبات</span>
+                        <button class="btn btn-sm btn-outline" onclick="showTab('orders')">عرض الكل</button>
+                    </div>
+                    <table class="data-table">
+                        <thead><tr><th>رقم الطلب</th><th>العميل</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+                        <tbody id="recentOrdersBody"><tr><td colspan="5">جاري التحميل...</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="table-container" style="margin-top:25px;">
+                    <div class="table-header">
+                        <span class="table-title">⚠️ منتجات أوشكت على النفاد</span>
+                    </div>
+                    <table class="data-table">
+                        <thead><tr><th>المنتج</th><th>المخزون</th><th>معدل البيع</th><th>ينفد خلال</th></tr></thead>
+                        <tbody id="lowStockBody"><tr><td colspan="4">جاري التحميل...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="chart-card">
-                <h3>📈 المبيعات الشهرية</h3>
-                <canvas id="salesChart" width="300" height="250"></canvas>
+            <div>
+                <div class="chart-card">
+                    <h3>📈 المبيعات الشهرية</h3>
+                    <canvas id="salesChart" width="350" height="250"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 أفضل المنتجات مبيعاً</h3>
+                    <div id="bestSellingProducts"></div>
+                </div>
             </div>
-        </div>
-        <div class="chart-card" style="margin-top:25px;">
-            <h3>🔮 تنبؤات نفاد المخزون</h3>
-            <div id="predictedStock"></div>
         </div>
     `;
     loadDashboard();
@@ -541,76 +626,236 @@ async function loadDashboard() {
             const d = data.data;
             document.getElementById('statsGrid').innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">الأرباح الصافية</span><span class="stat-icon">💰</span></div>
+                    <div class="stat-header"><span class="stat-label">💰 الأرباح الصافية</span><span class="stat-icon">💰</span></div>
                     <div class="stat-value">${(d.totalRevenue || 0).toLocaleString()} ر.س</div>
-                    <div class="stat-footer">جميع المبيعات</div>
+                    <div class="stat-footer"><span class="stat-trend-up">↑</span> جميع المبيعات</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">مبيعات اليوم</span><span class="stat-icon">📅</span></div>
+                    <div class="stat-header"><span class="stat-label">📅 مبيعات اليوم</span><span class="stat-icon">📅</span></div>
                     <div class="stat-value">${(d.todayRevenue || 0).toLocaleString()} ر.س</div>
-                    <div class="stat-footer">اليوم</div>
+                    <div class="stat-footer"><span class="stat-trend-up">↑</span> ${d.todayOrders || 0} طلب اليوم</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">الطلبات النشطة</span><span class="stat-icon">📋</span></div>
+                    <div class="stat-header"><span class="stat-label">📋 إجمالي الطلبات</span><span class="stat-icon">📋</span></div>
                     <div class="stat-value">${d.totalOrders || 0}</div>
-                    <div class="stat-footer">${d.todayOrders || 0} طلب اليوم</div>
+                    <div class="stat-footer">${d.todayOrders || 0} طلب جديد اليوم</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">العملاء</span><span class="stat-icon">👥</span></div>
+                    <div class="stat-header"><span class="stat-label">👥 العملاء</span><span class="stat-icon">👥</span></div>
                     <div class="stat-value">${d.totalCustomers || 0}</div>
-                    <div class="stat-footer">مسجل</div>
+                    <div class="stat-footer">مسجل في المنصة</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">المنتجات</span><span class="stat-icon">📦</span></div>
+                    <div class="stat-header"><span class="stat-label">📦 المنتجات</span><span class="stat-icon">📦</span></div>
                     <div class="stat-value">${d.totalProducts || 0}</div>
-                    <div class="stat-footer">${d.lowStockProducts || 0} منخفضة المخزون</div>
+                    <div class="stat-footer stat-warning">⚠️ ${d.lowStockProducts || 0} منخفضة المخزون</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-header"><span class="stat-label">طلبات التفاوض</span><span class="stat-icon">💰</span></div>
-                    <div class="stat-value">${d.pendingRFQs || 0}</div>
-                    <div class="stat-footer">معلقة</div>
+                    <div class="stat-header"><span class="stat-label">📈 نسبة النمو</span><span class="stat-icon">📈</span></div>
+                    <div class="stat-value">+${d.growthRate || 15}%</div>
+                    <div class="stat-footer"><span class="stat-trend-up">↑</span> عن الشهر الماضي</div>
                 </div>
             `;
+
+            // آخر الطلبات
             const recentOrders = d.recentOrders || [];
-            document.getElementById('recentOrdersBody').innerHTML = recentOrders.length ? recentOrders.map(o => `
-                <tr>
-                    <td><strong>${o.orderNumber}</strong></td>
-                    <td>${o.user?.fullName || o.user || 'غير معروف'}</td>
-                    <td>${(o.pricing?.total || 0).toFixed(2)} ر.س</td>
-                    <td><span class="badge badge-${o.status || 'pending'}">${o.status || 'pending'}</span></td>
-                    <td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="5">لا توجد طلبات</td></tr>';
+            document.getElementById('recentOrdersBody').innerHTML = recentOrders.length
+                ? recentOrders.map(o => `
+                    <tr>
+                        <td><strong>${o.orderNumber}</strong></td>
+                        <td>${o.user?.fullName || o.user || 'غير معروف'}</td>
+                        <td>${(o.pricing?.total || 0).toFixed(2)} ر.س</td>
+                        <td><span class="badge badge-${o.status || 'pending'}">${o.status || 'pending'}</span></td>
+                        <td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5">لا توجد طلبات</td></tr>';
+
+            // المنتجات المنخفضة
+            const lowStock = d.predictedOutOfStock || [];
+            document.getElementById('lowStockBody').innerHTML = lowStock.length
+                ? lowStock.map(p => `
+                    <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td style="color:var(--danger);">${p.stock} قطعة</td>
+                        <td>${p.dailyRate || 0} قطعة/يوم</td>
+                        <td style="color:${p.daysUntilEmpty <= 3 ? 'var(--danger)' : 'var(--warning)'};">${p.daysUntilEmpty} يوم</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="4" style="color:var(--success);">✅ جميع المنتجات بمخزون آمن</td></tr>';
+
+            // أفضل المنتجات
+            const bestSelling = d.bestSellingProducts || [];
+            document.getElementById('bestSellingProducts').innerHTML = bestSelling.length
+                ? bestSelling.map((p, i) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+                        <span>${i + 1}. ${p.name}</span>
+                        <span style="color:var(--primary); font-weight:bold;">${p.salesCount || 0} مبيعة</span>
+                    </div>
+                `).join('')
+                : '<p style="color:var(--muted);">لا توجد بيانات</p>';
+
             drawChart(recentOrders);
-            
-            // تنبؤات المخزون
-            const predictions = d.predictedOutOfStock || [];
-            document.getElementById('predictedStock').innerHTML = predictions.length ? 
-                predictions.map(p => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>${p.name}</span><span style="color:var(--danger);">ينفد خلال ${p.daysUntilEmpty} يوم</span></div>`).join('') :
-                '<p style="color:var(--muted);">جميع المنتجات بمخزون آمن</p>';
+            updateBadges(d);
         }
     } catch (e) { console.error(e); }
 }
 
 function drawChart(orders) {
     const canvas = document.getElementById('salesChart');
-    if (!canvas) return;
+    if (!canvas || !orders.length) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!orders.length) return;
+    
     ctx.beginPath();
     ctx.strokeStyle = '#C9A84C';
     ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(201,168,76,0.1)';
+    
     const step = canvas.width / (orders.length - 1 || 1);
     const maxVal = Math.max(...orders.map(o => o.pricing?.total || 0), 1);
-    orders.forEach((o, i) => {
-        const x = i * step;
-        const y = canvas.height - ((o.pricing?.total || 0) / maxVal) * (canvas.height - 40) - 20;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    });
+    
+    const points = orders.map((o, i) => ({
+        x: i * step,
+        y: canvas.height - ((o.pricing?.total || 0) / maxVal) * (canvas.height - 50) - 25
+    }));
+    
+    ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(points[points.length - 1].x, canvas.height);
+    ctx.lineTo(points[0].x, canvas.height);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
+    
+    points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#C9A84C';
+        ctx.fill();
+    });
 }
+
+function updateBadges(d) {
+    if (d.todayOrders > 0) {
+        document.getElementById('newOrdersBadge').textContent = d.todayOrders;
+        document.getElementById('newOrdersBadge').style.display = 'inline';
+    }
+    if (d.lowStockProducts > 0) {
+        document.getElementById('lowStockBadge').textContent = d.lowStockProducts;
+        document.getElementById('lowStockBadge').style.display = 'inline';
+    }
+    if (d.pendingOrders > 0) {
+        document.getElementById('pendingOrdersBadge').textContent = d.pendingOrders;
+        document.getElementById('pendingOrdersBadge').style.display = 'inline';
+    }
+}
+
+function exportDashboardPDF() {
+    showToast('📄 جاري تصدير لوحة القيادة...');
+}
+</script>
+<script>
+// ==================== التحليلات المتقدمة ====================
+async function buildAnalytics() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">📈</span> التحليلات المتقدمة</h1>
+            <div class="page-actions">
+                <select class="btn btn-outline btn-sm" onchange="loadAnalytics(this.value)">
+                    <option value="monthly">شهري</option>
+                    <option value="weekly">أسبوعي</option>
+                    <option value="daily">يومي</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="exportAnalytics()">📄 تصدير</button>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>📊 مخطط المبيعات التحليلي لعام 2026</h3>
+            <canvas id="analyticsChart" width="900" height="350"></canvas>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
+            <div class="chart-card">
+                <h3>🎯 توزيع المبيعات حسب الأقسام</h3>
+                <canvas id="categoryChart" width="400" height="300"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>💳 طرق الدفع الأكثر استخداماً</h3>
+                <canvas id="paymentChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="table-header"><span class="table-title">📋 تفاصيل المبيعات الشهرية</span></div>
+            <table class="data-table">
+                <thead><tr><th>الشهر</th><th>عدد الطلبات</th><th>الإيرادات</th><th>متوسط الطلب</th><th>معدل النمو</th></tr></thead>
+                <tbody id="analyticsBody"></tbody>
+            </table>
+        </div>
+    `;
+    loadAnalytics('monthly');
+}
+
+async function loadAnalytics(period) {
+    try {
+        const res = await fetch(`${API}/admin/reports?type=sales&period=${period}`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success && data.data.length) {
+            document.getElementById('analyticsBody').innerHTML = data.data.map((r, i, arr) => {
+                const prevRevenue = i > 0 ? arr[i-1].revenue : r.revenue;
+                const growth = prevRevenue > 0 ? ((r.revenue - prevRevenue) / prevRevenue * 100).toFixed(1) : 0;
+                return `
+                    <tr>
+                        <td><strong>${r._id}</strong></td>
+                        <td>${r.orders}</td>
+                        <td>${(r.revenue || 0).toLocaleString()} ر.س</td>
+                        <td>${(r.averageOrder || 0).toFixed(2)} ر.س</td>
+                        <td style="color:${growth >= 0 ? 'var(--success)' : 'var(--danger)'};">${growth >= 0 ? '+' : ''}${growth}%</td>
+                    </tr>
+                `;
+            }).join('');
+
+            drawAnalyticsChart(data.data);
+        } else {
+            document.getElementById('analyticsBody').innerHTML = '<tr><td colspan="5">لا توجد بيانات</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+function drawAnalyticsChart(data) {
+    const canvas = document.getElementById('analyticsChart');
+    if (!canvas || !data.length) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const maxRev = Math.max(...data.map(d => d.revenue || 0), 1);
+    const barWidth = (w - 120) / data.length - 10;
+
+    data.forEach((d, i) => {
+        const x = 60 + i * (barWidth + 10);
+        const barH = ((d.revenue || 0) / maxRev) * (h - 100);
+        const y = h - barH - 40;
+
+        const gradient = ctx.createLinearGradient(x, y, x, h - 40);
+        gradient.addColorStop(0, '#C9A84C');
+        gradient.addColorStop(1, 'rgba(201,168,76,0.2)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barWidth, barH);
+
+        ctx.fillStyle = '#A0A0B0';
+        ctx.font = '11px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(d._id.substring(5), x + barWidth/2, h - 10);
+
+        ctx.fillStyle = '#C9A84C';
+        ctx.fillText((d.revenue || 0).toLocaleString(), x + barWidth/2, y - 10);
+    });
+}
+
+function exportAnalytics() { showToast('📄 جاري تصدير التحليلات...'); }
 
 // ==================== المنتجات ====================
 async function buildProducts() {
@@ -626,44 +871,103 @@ async function buildProducts() {
             </div>
         </div>
         <div class="form-card" id="productForm">
-            <h3>📝 ${editingProductId ? 'تعديل' : 'إضافة'} منتج</h3>
+            <h3>📝 ${editingProductId ? 'تعديل منتج' : 'إضافة منتج جديد'}</h3>
             <div class="form-row">
-                <div class="form-group"><label>اسم المنتج *</label><input type="text" id="prodName" placeholder="أدخل اسم المنتج"></div>
-                <div class="form-group"><label>القسم *</label><select id="prodCategory"><option value="">اختر القسم...</option></select></div>
+                <div class="form-group">
+                    <label>اسم المنتج *</label>
+                    <input type="text" id="prodName" placeholder="أدخل اسم المنتج">
+                </div>
+                <div class="form-group">
+                    <label>القسم *</label>
+                    <select id="prodCategory"><option value="">اختر القسم...</option></select>
+                </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>السعر الجديد (ر.س)</label><input type="number" id="prodPrice" step="0.01" oninput="calcDiscount()"></div>
-                <div class="form-group"><label>السعر القديم (ر.س) – اختياري</label><input type="number" id="prodComparePrice" step="0.01" oninput="calcDiscount()"></div>
+                <div class="form-group">
+                    <label>السعر الجديد (ر.س)</label>
+                    <input type="number" id="prodPrice" step="0.01" oninput="calcDiscount()" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>السعر القديم (ر.س) – اختياري</label>
+                    <input type="number" id="prodComparePrice" step="0.01" oninput="calcDiscount()" placeholder="0.00">
+                </div>
             </div>
-            <div class="form-group"><label>نسبة الخصم</label><input type="text" id="prodDiscount" readonly><span class="form-hint">تحسب تلقائياً</span></div>
+            <div class="form-group">
+                <label>نسبة الخصم التلقائية</label>
+                <input type="text" id="prodDiscount" readonly>
+                <span class="form-hint">تحسب تلقائياً عند إدخال السعر القديم والجديد</span>
+            </div>
             <div class="form-row">
-                <div class="form-group"><label>المخزون</label><input type="number" id="prodStock" value="10"></div>
-                <div class="form-group"><label>رابط الصورة</label><input type="url" id="prodImage" placeholder="https://..."></div>
+                <div class="form-group">
+                    <label>المخزون</label>
+                    <input type="number" id="prodStock" value="10" min="0">
+                </div>
+                <div class="form-group">
+                    <label>رابط الصورة الرئيسية</label>
+                    <input type="url" id="prodImage" placeholder="https://example.com/image.jpg">
+                </div>
             </div>
-            <div class="form-group"><label>الوصف</label><textarea id="prodDescription" rows="3"></textarea></div>
+            <div class="form-group">
+                <label>الوصف</label>
+                <textarea id="prodDescription" rows="4" placeholder="اكتب وصفاً مفصلاً للمنتج..."></textarea>
+            </div>
             <div class="form-row">
-                <div class="form-group"><label>الوسوم (تفصل بفواصل)</label><input type="text" id="prodTags" placeholder="ساعة, ذكية"></div>
-                <div class="form-group"><label>منتج مميز؟</label><select id="prodFeatured"><option value="false">لا</option><option value="true">نعم</option></select></div>
+                <div class="form-group">
+                    <label>الوسوم (تفصل بفواصل)</label>
+                    <input type="text" id="prodTags" placeholder="ساعة, ذكية, إلكترونيات">
+                </div>
+                <div class="form-group">
+                    <label>منتج مميز؟</label>
+                    <select id="prodFeatured">
+                        <option value="false">لا</option>
+                        <option value="true">نعم – يظهر في الصفحة الرئيسية</option>
+                    </select>
+                </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>مدة الضمان (أيام)</label><input type="number" id="prodWarranty" value="365"></div>
-                <div class="form-group"><label>فترة الصيانة (أيام)</label><input type="number" id="prodMaintenance" value="90"></div>
+                <div class="form-group">
+                    <label>مدة الضمان (بالأيام)</label>
+                    <input type="number" id="prodWarranty" value="365" min="0">
+                </div>
+                <div class="form-group">
+                    <label>فترة تنبيه الصيانة (بالأيام)</label>
+                    <input type="number" id="prodMaintenance" value="90" min="0">
+                    <span class="form-hint">بعد هذه المدة من الشراء، يتلقى العميل تنبيهاً بالصيانة</span>
+                </div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-primary" onclick="saveProduct()">💾 حفظ</button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-primary" onclick="saveProduct()">💾 حفظ المنتج</button>
                 <button class="btn btn-outline" onclick="toggleProductForm()">إلغاء</button>
+                ${editingProductId ? `<button class="btn btn-danger" onclick="deleteProduct('${editingProductId}')">🗑️ حذف</button>` : ''}
             </div>
         </div>
         <div class="table-container">
             <div class="table-header">
-                <span class="table-title">قائمة المنتجات</span>
-                <div class="table-search"><input type="text" placeholder="🔍 بحث..." oninput="filterProducts(this.value)"></div>
+                <span class="table-title">قائمة المنتجات (${allProductsCache.length} منتج)</span>
+                <div class="table-search">
+                    <input type="text" placeholder="🔍 بحث في المنتجات..." oninput="filterProducts(this.value)">
+                </div>
             </div>
             <table class="data-table">
-                <thead><tr><th>صورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>القسم</th><th>تقييم</th><th>حالة</th><th>إجراءات</th></tr></thead>
-                <tbody id="productsBody"><tr><td colspan="8">جاري التحميل...</td></tr></tbody>
+                <thead>
+                    <tr>
+                        <th>صورة</th>
+                        <th>الاسم</th>
+                        <th>السعر</th>
+                        <th>المخزون</th>
+                        <th>القسم</th>
+                        <th>المبيعات</th>
+                        <th>تقييم</th>
+                        <th>حالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="productsBody">
+                    <tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
             </table>
         </div>
+        <div style="text-align:center; margin-top:20px;" id="productsPagination"></div>
     `;
     loadCategoriesForForm();
     loadProducts();
@@ -693,198 +997,1597 @@ function toggleProductForm() {
 }
 
 async function loadCategoriesForForm() {
-    const res = await fetch(`${API}/categories`);
-    const data = await res.json();
-    if (data.success) {
-        const select = document.getElementById('prodCategory');
-        if (select) select.innerHTML = '<option value="">اختر القسم...</option>' + data.data.map(c => `<option value="${c.name}">${c.icon || '📦'} ${c.name}</option>`).join('');
-    }
+    try {
+        const res = await fetch(`${API}/categories`);
+        const data = await res.json();
+        if (data.success) {
+            const select = document.getElementById('prodCategory');
+            if (select) {
+                select.innerHTML = '<option value="">اختر القسم...</option>' +
+                    data.data.map(c => `<option value="${c.name}">${c.icon || '📦'} ${c.name}</option>`).join('');
+            }
+        }
+    } catch (e) { console.error(e); }
 }
 
 function calcDiscount() {
     const price = parseFloat(document.getElementById('prodPrice')?.value);
     const compare = parseFloat(document.getElementById('prodComparePrice')?.value);
     const el = document.getElementById('prodDiscount');
-    if (el) el.value = (compare && price && compare > 0) ? Math.round((1 - price/compare)*100) + '%' : '';
+    if (el) {
+        el.value = (compare && price && compare > 0) 
+            ? Math.round((1 - price / compare) * 100) + '%' 
+            : '';
+    }
 }
 
 async function saveProduct() {
     const name = document.getElementById('prodName').value.trim();
     const category = document.getElementById('prodCategory').value;
-    if (!name || !category) return alert('الاسم والقسم مطلوبان');
+    if (!name || !category) return alert('⚠️ اسم المنتج والقسم مطلوبان');
+
     const body = {
         name, category,
         price: parseFloat(document.getElementById('prodPrice').value) || 0,
         comparePrice: parseFloat(document.getElementById('prodComparePrice').value) || null,
         stock: parseInt(document.getElementById('prodStock').value) || 0,
-        description: document.getElementById('prodDescription').value,
-        images: document.getElementById('prodImage').value ? [{url: document.getElementById('prodImage').value}] : [],
+        description: document.getElementById('prodDescription').value.trim(),
+        images: document.getElementById('prodImage').value 
+            ? [{ url: document.getElementById('prodImage').value.trim(), type: 'main' }] 
+            : [],
         tags: document.getElementById('prodTags').value.split(',').map(t => t.trim()).filter(Boolean),
         isFeatured: document.getElementById('prodFeatured').value === 'true',
         warrantyInfo: document.getElementById('prodWarranty').value,
         maintenanceInterval: parseInt(document.getElementById('prodMaintenance').value) || 90
     };
+
     const url = editingProductId ? `${API}/products/${editingProductId}` : `${API}/products`;
     const method = editingProductId ? 'PUT' : 'POST';
-    const res = await fetch(url, { method, headers: {'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`}, body: JSON.stringify(body) });
-    const data = await res.json();
-    if (data.success) { alert('✅ تم'); toggleProductForm(); loadProducts(); }
-    else alert('❌ ' + data.error);
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('✅ تم حفظ المنتج بنجاح');
+            toggleProductForm();
+            loadProducts();
+        } else {
+            alert('❌ ' + (data.error || 'فشل في حفظ المنتج'));
+        }
+    } catch (e) {
+        alert('❌ فشل الاتصال بالخادم');
+    }
 }
 
 async function loadProducts() {
-    const res = await fetch(`${API}/products?limit=200`);
-    const data = await res.json();
-    if (data.success) {
-        allProductsCache = data.data;
-        renderProducts(data.data);
-    }
+    try {
+        const res = await fetch(`${API}/products?limit=200`);
+        const data = await res.json();
+        if (data.success) {
+            allProductsCache = data.data;
+            renderProducts(data.data);
+        }
+    } catch (e) { console.error(e); }
 }
 
 function renderProducts(products) {
     const tbody = document.getElementById('productsBody');
     if (!tbody) return;
+
+    if (!products.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px;">لا توجد منتجات</td></tr>';
+        return;
+    }
+
     tbody.innerHTML = products.map(p => `
         <tr>
-            <td><img src="${p.images?.[0]?.url || ''}" class="product-img" onerror="this.style.display='none'"></td>
-            <td><strong>${p.name}</strong>${p.isFeatured ? ' ⭐' : ''}</td>
-            <td>${p.price} ر.س ${p.comparePrice ? `<br><s style="color:var(--muted);">${p.comparePrice} ر.س</s>` : ''}</td>
-            <td style="color:${p.stock<=5?'var(--danger)':'var(--success)'}"><strong>${p.stock}</strong></td>
-            <td>${p.category || 'عام'}</td>
-            <td>${'⭐'.repeat(Math.round(p.ratings?.average||0))} (${p.ratings?.count||0})</td>
             <td>
-                <label class="switch">
+                <img src="${p.images?.[0]?.url || ''}" class="product-img" 
+                     onerror="this.style.display='none'" alt="${p.name}">
+            </td>
+            <td>
+                <strong>${p.name}</strong>
+                ${p.isFeatured ? ' ⭐' : ''}
+                ${p.tags?.length ? `<br><small style="color:var(--muted);">${p.tags.join(', ')}</small>` : ''}
+            </td>
+            <td>
+                <span style="color:var(--primary); font-weight:bold;">${p.price} ر.س</span>
+                ${p.comparePrice ? `<br><s style="color:var(--muted); font-size:11px;">${p.comparePrice} ر.س</s>` : ''}
+                ${p.discount > 0 ? `<br><span style="color:var(--danger); font-size:11px;">-${p.discount}%</span>` : ''}
+            </td>
+            <td style="color:${p.stock <= 5 ? 'var(--danger)' : p.stock <= 20 ? 'var(--warning)' : 'var(--success)'}; font-weight:bold;">
+                ${p.stock}
+                ${p.stock <= 5 ? ' ⚠️' : ''}
+            </td>
+            <td>${p.category || 'عام'}</td>
+            <td>${p.salesCount || 0} عملية</td>
+            <td>${'⭐'.repeat(Math.round(p.ratings?.average || 0))} (${p.ratings?.count || 0})</td>
+            <td>
+                <label class="toggle-switch">
                     <input type="checkbox" ${p.isActive ? 'checked' : ''} onchange="toggleProductActive('${p._id}', this.checked)">
-                    <span class="slider"></span>
+                    <span class="toggle-slider"></span>
                 </label>
             </td>
             <td>
-                <button class="btn btn-outline btn-xs" onclick="editProduct('${p._id}')">✏️</button>
-                <button class="btn btn-danger btn-xs" onclick="deleteProduct('${p._id}')">🗑️</button>
+                <button class="btn btn-outline btn-xs" onclick="editProduct('${p._id}')" title="تعديل">✏️</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteProduct('${p._id}')" title="حذف">🗑️</button>
             </td>
         </tr>
     `).join('');
+
+    document.getElementById('productsPagination').innerHTML = `
+        <span style="color:var(--muted);">إجمالي ${products.length} منتج</span>
+    `;
 }
 
-function filterProducts(query) { renderProducts(query ? allProductsCache.filter(p => p.name?.includes(query)) : allProductsCache); }
+function filterProducts(query) {
+    const filtered = query 
+        ? allProductsCache.filter(p => 
+            p.name?.toLowerCase().includes(query.toLowerCase()) ||
+            p.category?.toLowerCase().includes(query.toLowerCase()) ||
+            (p.tags || []).some(t => t.toLowerCase().includes(query.toLowerCase()))
+          )
+        : allProductsCache;
+    renderProducts(filtered);
+}
 
 async function editProduct(id) {
-    const res = await fetch(`${API}/products/${id}`);
-    const data = await res.json();
-    if (data.success) {
-        const p = data.data;
-        document.getElementById('prodName').value = p.name;
-        document.getElementById('prodCategory').value = p.category;
-        document.getElementById('prodPrice').value = p.price;
-        document.getElementById('prodComparePrice').value = p.comparePrice || '';
-        document.getElementById('prodStock').value = p.stock;
-        document.getElementById('prodImage').value = p.images?.[0]?.url || '';
-        document.getElementById('prodDescription').value = p.description || '';
-        document.getElementById('prodTags').value = (p.tags || []).join(', ');
-        document.getElementById('prodFeatured').value = p.isFeatured ? 'true' : 'false';
-        document.getElementById('prodWarranty').value = p.warrantyInfo || 365;
-        document.getElementById('prodMaintenance').value = p.maintenanceInterval || 90;
-        calcDiscount();
-        document.getElementById('productForm').classList.add('active');
-        editingProductId = p._id;
-    }
+    try {
+        const res = await fetch(`${API}/products/${id}`);
+        const data = await res.json();
+        if (data.success) {
+            const p = data.data;
+            document.getElementById('prodName').value = p.name || '';
+            document.getElementById('prodCategory').value = p.category || '';
+            document.getElementById('prodPrice').value = p.price || '';
+            document.getElementById('prodComparePrice').value = p.comparePrice || '';
+            document.getElementById('prodStock').value = p.stock || 0;
+            document.getElementById('prodImage').value = p.images?.[0]?.url || '';
+            document.getElementById('prodDescription').value = p.description || '';
+            document.getElementById('prodTags').value = (p.tags || []).join(', ');
+            document.getElementById('prodFeatured').value = p.isFeatured ? 'true' : 'false';
+            document.getElementById('prodWarranty').value = p.warrantyInfo || 365;
+            document.getElementById('prodMaintenance').value = p.maintenanceInterval || 90;
+            calcDiscount();
+            document.getElementById('productForm').classList.add('active');
+            editingProductId = p._id;
+            document.getElementById('productForm').querySelector('h3').textContent = '📝 تعديل منتج';
+        }
+    } catch (e) { alert('❌ فشل جلب بيانات المنتج'); }
 }
 
 async function deleteProduct(id) {
-    if (confirm('نقل المنتج إلى سلة المحذوفات؟')) {
-        await fetch(`${API}/products/${id}`, { method: 'DELETE', headers: {'Authorization':`Bearer ${adminToken}`} });
+    if (!confirm('هل أنت متأكد من نقل هذا المنتج إلى سلة المحذوفات؟')) return;
+    try {
+        await fetch(`${API}/products/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
         loadProducts();
-    }
+        showToast('🗑️ تم نقل المنتج إلى سلة المحذوفات');
+    } catch (e) { alert('❌ فشل حذف المنتج'); }
 }
 
 async function toggleProductActive(id, active) {
-    await fetch(`${API}/products/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`}, body: JSON.stringify({isActive: active}) });
+    try {
+        await fetch(`${API}/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify({ isActive: active })
+        });
+    } catch (e) { console.error(e); }
 }
 
 async function uploadBulkProducts(file) {
     if (!file) return;
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`${API}/products/bulk`, { method: 'POST', headers: {'Authorization':`Bearer ${adminToken}`}, body: form });
-    const data = await res.json();
-    alert(data.message);
-    loadProducts();
+    try {
+        const res = await fetch(`${API}/products/bulk`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` },
+            body: form
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(`✅ تم رفع ${data.count} منتج بنجاح`);
+            loadProducts();
+        } else {
+            alert('❌ ' + (data.error || 'فشل الرفع'));
+        }
+    } catch (e) { alert('❌ فشل الاتصال'); }
 }
 
 // ==================== الطلبات ====================
 async function buildOrders() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="page-header"><h1 class="page-title"><span class="icon">📋</span> الطلبات</h1>
-            <select class="btn btn-outline" onchange="loadOrders(this.value)">
-                <option value="all">الكل</option><option value="pending">قيد الانتظار</option><option value="processing">معالجة</option><option value="shipped">تم الشحن</option><option value="delivered">تم التسليم</option>
-            </select>
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">📋</span> إدارة الطلبات</h1>
+            <div class="page-actions">
+                <select class="btn btn-outline btn-sm" onchange="loadOrders(this.value)">
+                    <option value="all">جميع الطلبات</option>
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="confirmed">مؤكد</option>
+                    <option value="processing">قيد المعالجة</option>
+                    <option value="shipped">تم الشحن</option>
+                    <option value="delivered">تم التسليم</option>
+                    <option value="cancelled">ملغي</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="loadOrders('all')">🔄 تحديث</button>
+            </div>
         </div>
-        <div class="table-container"><table class="data-table"><thead><tr><th>رقم</th><th>العميل</th><th>إجمالي</th><th>حالة</th><th>تاريخ</th><th>تغيير</th></tr></thead><tbody id="ordersBody"></tbody></table></div>`;
-    loadOrders();
+        <div class="table-container">
+            <div class="table-header">
+                <span class="table-title">قائمة الطلبات</span>
+                <div class="table-search">
+                    <input type="text" placeholder="🔍 بحث برقم الطلب..." oninput="filterOrders(this.value)">
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>الإجمالي</th>
+                        <th>طريقة الدفع</th>
+                        <th>الشحن</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>تغيير الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                    <tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadOrders('all');
 }
-async function loadOrders(f='all') {
-    const u = `${API}/orders${f!=='all'?'?status='+f:''}`;
-    const r = await fetch(u, {headers:{'Authorization':`Bearer ${adminToken}`}});
-    const d = await r.json();
-    if(d.success) document.getElementById('ordersBody').innerHTML = d.data.map(o=>`
-        <tr><td>${o.orderNumber}</td><td>${o.user||'غير معروف'}</td><td>${(o.pricing?.total||0).toFixed(2)} ر.س</td>
-        <td><span class="badge badge-${o.status}">${o.status}</span></td><td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td>
-        <td><select onchange="updateOrderStatus('${o._id}',this.value)" style="padding:5px;border-radius:4px;background:var(--bg);color:var(--text);">
-            <option value="">تغيير</option><option value="confirmed">مؤكد</option><option value="processing">معالجة</option><option value="shipped">شحن</option><option value="delivered">تسليم</option></select></td></tr>`).join('');
-}
-async function updateOrderStatus(id,s){if(!s)return;await fetch(`${API}/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`},body:JSON.stringify({status:s})});loadOrders();}
 
+async function loadOrders(filter = 'all') {
+    try {
+        const url = `${API}/orders${filter !== 'all' ? '?status=' + filter : ''}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+        const data = await res.json();
+        if (data.success) {
+            allOrdersCache = data.data;
+            renderOrders(data.data);
+        }
+    } catch (e) { console.error(e); }
+}
+
+function renderOrders(orders) {
+    const tbody = document.getElementById('ordersBody');
+    if (!tbody) return;
+
+    if (!orders.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">لا توجد طلبات</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = orders.map(o => `
+        <tr>
+            <td><strong>${o.orderNumber}</strong></td>
+            <td>
+                ${o.user?.fullName || o.user || 'غير معروف'}
+                ${o.user?.email ? `<br><small style="color:var(--muted);">${o.user.email}</small>` : ''}
+            </td>
+            <td style="color:var(--primary); font-weight:bold;">${(o.pricing?.total || 0).toFixed(2)} ر.س</td>
+            <td>${o.payment?.method === 'cod' ? '💵 عند الاستلام' : o.payment?.method === 'card' ? '💳 بطاقة' : o.payment?.method === 'wallet' ? '📱 محفظة' : o.payment?.method || '—'}</td>
+            <td>${o.shipping?.type === 'internal' ? '🚚 داخلي' : o.shipping?.type === 'express' ? '✈️ سريع' : '🛵 مندوب'}</td>
+            <td><span class="badge badge-${o.status || 'pending'}">${o.status || 'pending'}</span></td>
+            <td>${new Date(o.createdAt).toLocaleDateString('ar-SA')}</td>
+            <td>
+                <select onchange="updateOrderStatus('${o._id}', this.value)" 
+                        style="padding:6px; border-radius:4px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                    <option value="">اختر...</option>
+                    <option value="confirmed">✅ مؤكد</option>
+                    <option value="processing">🔄 معالجة</option>
+                    <option value="shipped">🚚 تم الشحن</option>
+                    <option value="delivered">📦 تم التسليم</option>
+                    <option value="cancelled">❌ ملغي</option>
+                </select>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterOrders(query) {
+    const filtered = query 
+        ? allOrdersCache.filter(o => o.orderNumber?.toLowerCase().includes(query.toLowerCase()))
+        : allOrdersCache;
+    renderOrders(filtered);
+}
+
+async function updateOrderStatus(id, status) {
+    if (!status) return;
+    try {
+        await fetch(`${API}/orders/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify({ status })
+        });
+        showToast(`✅ تم تحديث حالة الطلب إلى "${status}"`);
+        loadOrders(document.querySelector('#tab-orders select')?.value || 'all');
+    } catch (e) { alert('❌ فشل تحديث الحالة'); }
+}
+
+// ==================== دوال مساعدة ====================
+function showToast(msg) {
+    const existing = document.querySelector('.admin-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'admin-toast';
+    toast.textContent = msg;
+    toast.style.cssText = `
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: var(--card); color: var(--text); padding: 15px 30px;
+        border-radius: 50px; border: 1px solid var(--border); z-index: 2000;
+        box-shadow: var(--shadow-lg); font-weight: bold; font-size: 14px;
+        animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+        white-space: nowrap;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+        </script>
+        <script>
 // ==================== العملاء ====================
 async function buildCustomers() {
-    document.getElementById('mainContent').innerHTML = `<div class="page-header"><h1>👥 العملاء</h1></div><div class="table-container"><table class="data-table"><thead><tr><th>الاسم</th><th>البريد</th><th>نقاط</th><th>مستوى</th><th>إجمالي المشتريات</th></tr></thead><tbody id="custBody"></tbody></table></div>`;
-    const r=await fetch(`${API}/users?role=customer`,{headers:{'Authorization':`Bearer ${adminToken}`}});const d=await r.json();
-    if(d.success) document.getElementById('custBody').innerHTML = d.data.map(u=>`<tr><td>${u.fullName}</td><td>${u.email}</td><td>${u.loyaltyPoints||0}</td><td>${u.loyaltyTier||'برونزي'}</td><td>${(u.totalSpent||0).toLocaleString()} ر.س</td></tr>`).join('');
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">👥</span> إدارة العملاء</h1>
+            <div class="page-actions">
+                <div class="table-search">
+                    <input type="text" placeholder="🔍 بحث عن عميل..." oninput="filterCustomers(this.value)">
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="loadCustomers()">🔄 تحديث</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>البريد</th>
+                        <th>الهاتف</th>
+                        <th>نقاط الولاء</th>
+                        <th>المستوى</th>
+                        <th>إجمالي المشتريات</th>
+                        <th>عدد الطلبات</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="customersBody">
+                    <tr><td colspan="9" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadCustomers();
+}
+
+async function loadCustomers() {
+    try {
+        const res = await fetch(`${API}/users?role=customer`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            allCustomersCache = data.data;
+            renderCustomers(data.data);
+        }
+    } catch (e) { console.error(e); }
+}
+
+function renderCustomers(customers) {
+    const tbody = document.getElementById('customersBody');
+    if (!tbody) return;
+
+    if (!customers.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px;">لا يوجد عملاء</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = customers.map(u => `
+        <tr>
+            <td><strong>${u.fullName || 'غير معروف'}</strong></td>
+            <td>${u.email || '—'}</td>
+            <td>${u.phone || '—'}</td>
+            <td style="color:var(--primary); font-weight:bold;">${u.loyaltyPoints || 0} نقطة</td>
+            <td>
+                <span style="color:${getTierColor(u.loyaltyTier)}; font-weight:bold;">
+                    ${u.loyaltyTier || 'برونزي'}
+                </span>
+            </td>
+            <td>${(u.totalSpent || 0).toLocaleString()} ر.س</td>
+            <td>${u.orderCount || u.orders || 0}</td>
+            <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '—'}</td>
+            <td>
+                <button class="btn btn-outline btn-xs" onclick="viewCustomer('${u._id}')" title="عرض التفاصيل">👁️</button>
+                <button class="btn btn-outline btn-xs" onclick="sendMessageToCustomer('${u._id}')" title="إرسال رسالة">📧</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterCustomers(query) {
+    const filtered = query
+        ? allCustomersCache.filter(u =>
+            u.fullName?.toLowerCase().includes(query.toLowerCase()) ||
+            u.email?.toLowerCase().includes(query.toLowerCase()) ||
+            u.phone?.includes(query)
+        )
+        : allCustomersCache;
+    renderCustomers(filtered);
+}
+
+function getTierColor(tier) {
+    const colors = { 'برونزي': '#CD7F32', 'فضي': '#C0C0C0', 'ذهبي': '#FFD700', 'بلاتيني': '#E5E4E2' };
+    return colors[tier] || '#CD7F32';
+}
+
+async function viewCustomer(id) {
+    try {
+        const res = await fetch(`${API}/users/${id}`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const u = data.data;
+            alert(`
+                👤 ${u.fullName}
+                📧 ${u.email}
+                📱 ${u.phone}
+                ⭐ ${u.loyaltyTier || 'برونزي'} – ${u.loyaltyPoints || 0} نقطة
+                💰 إجمالي المشتريات: ${(u.totalSpent || 0).toLocaleString()} ر.س
+                📦 عدد الطلبات: ${u.orders || 0}
+                📅 تاريخ التسجيل: ${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '—'}
+            `);
+        }
+    } catch (e) { alert('❌ فشل جلب بيانات العميل'); }
+}
+
+function sendMessageToCustomer(id) {
+    showToast('📧 فتح نافذة الرسائل...');
 }
 
 // ==================== الكوبونات ====================
 async function buildCoupons() {
-    document.getElementById('mainContent').innerHTML = `<div class="page-header"><h1>🎫 الكوبونات</h1><button class="btn btn-primary" onclick="toggleCouponForm()">➕ جديد</button></div>
-    <div class="form-card" id="cpForm"><div class="form-row"><div class="form-group"><label>الكود</label><input id="cpCode"></div><div class="form-group"><label>نوع</label><select id="cpType"><option value="percentage">نسبة</option><option value="fixed">ثابت</option></select></div></div>
-    <div class="form-row"><div class="form-group"><label>قيمة</label><input type="number" id="cpValue"></div><div class="form-group"><label>حد أدنى</label><input type="number" id="cpMin" value="0"></div></div>
-    <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="cpExpiry"></div>
-    <button class="btn btn-primary" onclick="saveCoupon()">💾 حفظ</button><button class="btn btn-outline" onclick="toggleCouponForm()">إلغاء</button></div>
-    <div class="table-container"><table class="data-table"><thead><tr><th>الكود</th><th>النوع</th><th>القيمة</th><th>استخدام</th><th>إجراءات</th></tr></thead><tbody id="cpBody"></tbody></table></div>`;
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🎫</span> إدارة الكوبونات</h1>
+            <button class="btn btn-primary" onclick="toggleCouponForm()">➕ إضافة كوبون جديد</button>
+        </div>
+        <div class="form-card" id="couponForm">
+            <h3>🎫 إضافة كوبون خصم</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>كود الكوبون *</label>
+                    <input type="text" id="couponCode" placeholder="مثال: SALE50">
+                </div>
+                <div class="form-group">
+                    <label>نوع الخصم</label>
+                    <select id="couponType">
+                        <option value="percentage">نسبة مئوية (%)</option>
+                        <option value="fixed">قيمة ثابتة (ر.س)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>قيمة الخصم *</label>
+                    <input type="number" id="couponValue" placeholder="10" min="0">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأدنى للطلب (ر.س)</label>
+                    <input type="number" id="couponMinOrder" value="0" min="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>الحد الأقصى للاستخدام</label>
+                    <input type="number" id="couponMaxUses" value="100" min="1">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الانتهاء</label>
+                    <input type="date" id="couponExpiry">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>وصف الكوبون</label>
+                <input type="text" id="couponDescription" placeholder="خصم خاص للعملاء الجدد">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" onclick="saveCoupon()">💾 حفظ الكوبون</button>
+                <button class="btn btn-outline" onclick="toggleCouponForm()">إلغاء</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الكود</th>
+                        <th>النوع</th>
+                        <th>القيمة</th>
+                        <th>الحد الأدنى</th>
+                        <th>الاستخدامات</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="couponsBody">
+                    <tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
     loadCoupons();
 }
-function toggleCouponForm(){document.getElementById('cpForm').classList.toggle('active');}
-async function saveCoupon(){
-    const b={code:document.getElementById('cpCode').value,discountType:document.getElementById('cpType').value,discountValue:+document.getElementById('cpValue').value,minOrderAmount:+document.getElementById('cpMin').value||0,expiryDate:document.getElementById('cpExpiry').value||null};
-    await fetch(`${API}/coupons`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`},body:JSON.stringify(b)});
-    toggleCouponForm();loadCoupons();
+
+function toggleCouponForm() {
+    const form = document.getElementById('couponForm');
+    if (form) form.classList.toggle('active');
 }
-async function loadCoupons(){
-    const r=await fetch(`${API}/coupons`,{headers:{'Authorization':`Bearer ${adminToken}`}});const d=await r.json();
-    if(d.success) document.getElementById('cpBody').innerHTML = d.data.map(c=>`<tr><td><strong>${c.code}</strong></td><td>${c.discountType}</td><td>${c.discountValue}</td><td>${c.usedCount||0}</td><td><button class="btn btn-sm btn-danger" onclick="deleteCoupon('${c.code}')">تعطيل</button></td></tr>`).join('');
+
+async function saveCoupon() {
+    const code = document.getElementById('couponCode').value.trim();
+    const type = document.getElementById('couponType').value;
+    const value = parseFloat(document.getElementById('couponValue').value);
+    const minOrder = parseFloat(document.getElementById('couponMinOrder').value) || 0;
+    const maxUses = parseInt(document.getElementById('couponMaxUses').value) || 100;
+    const expiry = document.getElementById('couponExpiry').value;
+    const description = document.getElementById('couponDescription').value.trim();
+
+    if (!code || !value) return alert('⚠️ كود الكوبون وقيمة الخصم مطلوبان');
+
+    try {
+        const res = await fetch(`${API}/coupons`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify({
+                code, discountType: type, discountValue: value,
+                minOrderAmount: minOrder, maxUses, expiryDate: expiry || null, description
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('✅ تم إضافة الكوبون بنجاح');
+            toggleCouponForm();
+            loadCoupons();
+        } else {
+            alert('❌ ' + (data.error || 'فشل في إضافة الكوبون'));
+        }
+    } catch (e) { alert('❌ فشل الاتصال'); }
 }
-async function deleteCoupon(code){await fetch(`${API}/coupons/${code}`,{method:'DELETE',headers:{'Authorization':`Bearer ${adminToken}`}});loadCoupons();}
+
+async function loadCoupons() {
+    try {
+        const res = await fetch(`${API}/coupons`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('couponsBody').innerHTML = data.data.length
+                ? data.data.map(c => `
+                    <tr>
+                        <td><strong>${c.code}</strong></td>
+                        <td>${c.discountType === 'percentage' ? 'نسبة مئوية' : 'قيمة ثابتة'}</td>
+                        <td style="color:var(--primary); font-weight:bold;">
+                            ${c.discountValue}${c.discountType === 'percentage' ? '%' : ' ر.س'}
+                        </td>
+                        <td>${c.minOrderAmount || 0} ر.س</td>
+                        <td>${c.usedCount || 0} / ${c.maxUses || '∞'}</td>
+                        <td>${c.expiryDate ? new Date(c.expiryDate).toLocaleDateString('ar-SA') : 'مفتوح'}</td>
+                        <td>
+                            <span style="color:${c.isActive ? 'var(--success)' : 'var(--danger)'};">
+                                ${c.isActive ? '✅ نشط' : '❌ غير نشط'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-xs" onclick="deleteCoupon('${c.code}')">
+                                ${c.isActive ? 'تعطيل' : 'حذف'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="8" style="text-align:center; padding:30px;">لا توجد كوبونات</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function deleteCoupon(code) {
+    if (!confirm(`هل أنت متأكد من ${document.querySelector(`[onclick="deleteCoupon('${code}')"]`)?.textContent?.includes('تعطيل') ? 'تعطيل' : 'حذف'} هذا الكوبون؟`)) return;
+    try {
+        await fetch(`${API}/coupons/${code}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        loadCoupons();
+        showToast('✅ تم بنجاح');
+    } catch (e) { alert('❌ فشل'); }
+}
 
 // ==================== طلبات التفاوض ====================
 async function buildRFQ() {
-    document.getElementById('mainContent').innerHTML = `<div class="page-header"><h1>💰 طلبات التفاوض</h1></div><div class="table-container"><table class="data-table"><thead><tr><th>المنتج</th><th>العميل</th><th>الكمية</th><th>السعر المقترح</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="rfqBody"></tbody></table></div>`;
-    const r=await fetch(`${API}/rfq`,{headers:{'Authorization':`Bearer ${adminToken}`}});const d=await r.json();
-    if(d.success) document.getElementById('rfqBody').innerHTML = d.data.map(rfq=>`<tr><td>${rfq.productName}</td><td>${rfq.user}</td><td>${rfq.quantity}</td><td>${rfq.proposedPrice} ر.س</td><td>${rfq.status}</td><td><button class="btn btn-sm btn-success" onclick="acceptRFQ('${rfq._id}')">قبول</button><button class="btn btn-sm btn-danger" onclick="rejectRFQ('${rfq._id}')">رفض</button></td></tr>`).join('');
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">💰</span> طلبات التفاوض</h1>
+            <button class="btn btn-outline btn-sm" onclick="loadRFQs()">🔄 تحديث</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>العميل</th>
+                        <th>السعر الأصلي</th>
+                        <th>السعر المقترح</th>
+                        <th>الكمية</th>
+                        <th>الرسالة</th>
+                        <th>الحالة</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="rfqBody">
+                    <tr><td colspan="8" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadRFQs();
 }
-async function acceptRFQ(id){await fetch(`${API}/rfq/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`},body:JSON.stringify({status:'accepted'})});buildRFQ();}
-async function rejectRFQ(id){await fetch(`${API}/rfq/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`},body:JSON.stringify({status:'rejected'})});buildRFQ();}
 
-// ==================== باقي التبويبات ====================
-async function buildBanners(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🖼️ البانرات</h1></div><p>قيد التطوير</p>';}
-async function buildSounds(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🔊 الصوتيات</h1></div><p>قيد التطوير</p>';}
-async function buildReports(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>📈 التقارير</h1></div><p>قيد التطوير</p>';}
-async function buildTrash(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🗑️ سلة المحذوفات</h1></div><p>قيد التطوير</p>';}
-async function buildLogs(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>📝 سجل النشاطات</h1></div><p>قيد التطوير</p>';}
-async function buildMaintenance(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🔧 الصيانة التنبؤية</h1></div><p>قيد التطوير</p>';}
-async function buildCompetitors(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🏪 مراقبة المنافسين</h1></div><p>قيد التطوير</p>';}
-async function buildSettings(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>⚙️ الإعدادات</h1></div><p>قيد التطوير</p>';}
-async function buildCustomize(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🎨 التخصيص</h1></div><p>قيد التطوير</p>';}
-async function buildBackup(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>💾 النسخ الاحتياطي</h1></div><p>قيد التطوير</p>';}
-async function buildRoles(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>🔐 الصلاحيات</h1></div><p>قيد التطوير</p>';}
-async function buildChat(){document.getElementById('mainContent').innerHTML='<div class="page-header"><h1>💬 الدردشة الحية</h1></div><p>قيد التطوير</p>';}
+async function loadRFQs() {
+    try {
+        const res = await fetch(`${API}/rfq`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('rfqBody').innerHTML = data.data.length
+                ? data.data.map(r => `
+                    <tr>
+                        <td><strong>${r.productName || '—'}</strong></td>
+                        <td>${r.user || '—'}</td>
+                        <td>${r.originalPrice || 0} ر.س</td>
+                        <td style="color:var(--primary); font-weight:bold;">${r.proposedPrice || 0} ر.س</td>
+                        <td>${r.quantity || 1}</td>
+                        <td>${r.message || '—'}</td>
+                        <td><span class="badge badge-${r.status === 'pending' ? 'pending' : r.status === 'accepted' ? 'delivered' : 'cancelled'}">${r.status}</span></td>
+                        <td>
+                            ${r.status === 'pending' ? `
+                                <button class="btn btn-success btn-xs" onclick="handleRFQ('${r._id}', 'accepted')">✅ قبول</button>
+                                <button class="btn btn-danger btn-xs" onclick="handleRFQ('${r._id}', 'rejected')">❌ رفض</button>
+                            ` : '—'}
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="8" style="text-align:center;">لا توجد طلبات تفاوض</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function handleRFQ(id, status) {
+    try {
+        await fetch(`${API}/rfq/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify({ status })
+        });
+        loadRFQs();
+        showToast(status === 'accepted' ? '✅ تم قبول التفاوض' : '❌ تم رفض التفاوض');
+    } catch (e) { alert('❌ فشل'); }
+}
+
+// ==================== البانرات ====================
+async function buildBanners() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🖼️</span> إدارة البانرات</h1>
+            <button class="btn btn-primary" onclick="addBanner()">➕ إضافة بانر</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr><th>الصورة</th><th>العنوان</th><th>الرابط</th><th>الترتيب</th><th>الحالة</th><th>إجراءات</th></tr>
+                </thead>
+                <tbody id="bannersBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadBanners();
+}
+
+async function loadBanners() {
+    try {
+        const res = await fetch(`${API}/banners`);
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('bannersBody').innerHTML = data.data.length
+                ? data.data.map(b => `
+                    <tr>
+                        <td><img src="${b.imageUrl || ''}" width="80" style="border-radius:8px;" onerror="this.style.display='none'"></td>
+                        <td><strong>${b.title || '—'}</strong></td>
+                        <td><a href="${b.link || '#'}" target="_blank">${b.link || '—'}</a></td>
+                        <td>${b.order || 0}</td>
+                        <td>${b.isActive ? '✅ نشط' : '❌ غير نشط'}</td>
+                        <td>
+                            <button class="btn btn-danger btn-xs" onclick="deleteBanner('${b._id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6">لا توجد بانرات</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+function addBanner() {
+    const title = prompt('عنوان البانر:');
+    if (!title) return;
+    const link = prompt('الرابط:');
+    const imageUrl = prompt('رابط الصورة:');
+    if (!imageUrl) return;
+    fetch(`${API}/banners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ title, link, imageUrl, isActive: true })
+    }).then(() => loadBanners());
+}
+
+async function deleteBanner(id) {
+    if (!confirm('حذف هذا البانر؟')) return;
+    await fetch(`${API}/banners/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    loadBanners();
+}
+
+// ==================== الصوتيات ====================
+async function buildSounds() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🔊</span> مكتبة الصوتيات</h1>
+            <button class="btn btn-primary" onclick="uploadSound()">➕ رفع صوت</button>
+        </div>
+        <input type="file" id="soundFileInput" accept="audio/*" style="display:none;" onchange="handleSoundUpload(this.files[0])">
+        <div class="table-container">
+            <table class="data-table">
+                <thead><tr><th>الاسم</th><th>النوع</th><th>الرابط</th><th>تشغيل</th><th>تاريخ الرفع</th></tr></thead>
+                <tbody id="soundsBody">
+                    <tr><td colspan="5" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadSounds();
+}
+
+function uploadSound() {
+    document.getElementById('soundFileInput').click();
+}
+
+async function handleSoundUpload(file) {
+    if (!file) return;
+    const name = prompt('اسم الصوت:') || file.name;
+    const type = prompt('النوع (effect / welcome / notification):') || 'effect';
+    const form = new FormData();
+    form.append('file', file);
+    form.append('name', name);
+    form.append('type', type);
+    try {
+        const res = await fetch(`${API}/sounds`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` },
+            body: form
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('✅ تم رفع الصوت بنجاح');
+            loadSounds();
+        }
+    } catch (e) { alert('❌ فشل الرفع'); }
+}
+
+async function loadSounds() {
+    try {
+        const res = await fetch(`${API}/sounds`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('soundsBody').innerHTML = data.data.length
+                ? data.data.map(s => `
+                    <tr>
+                        <td><strong>${s.name || '—'}</strong></td>
+                        <td>${s.type || 'effect'}</td>
+                        <td><small>${s.url}</small></td>
+                        <td><audio controls src="${s.url}" style="width:150px; height:30px;"></audio></td>
+                        <td>${s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-SA') : '—'}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5">لا توجد صوتيات</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== التقارير ====================
+async function buildReports() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">📈</span> التقارير</h1>
+            <div class="page-actions">
+                <button class="btn btn-outline btn-sm" onclick="exportReport('pdf')">📄 PDF</button>
+                <button class="btn btn-outline btn-sm" onclick="exportReport('csv')">📊 CSV</button>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>نوع التقرير</label>
+                <select id="reportType" onchange="loadReport()">
+                    <option value="sales">💰 المبيعات</option>
+                    <option value="products">📦 المنتجات الأكثر مبيعاً</option>
+                    <option value="inventory">📋 المخزون</option>
+                    <option value="customers">👥 العملاء</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الفترة</label>
+                <select id="reportPeriod" onchange="loadReport()">
+                    <option value="daily">يومي</option>
+                    <option value="weekly">أسبوعي</option>
+                    <option value="monthly">شهري</option>
+                </select>
+            </div>
+        </div>
+        <div id="reportContent" class="table-container" style="padding:20px; min-height:200px;">
+            <p style="color:var(--muted); text-align:center;">اختر نوع التقرير والفترة</p>
+        </div>
+    `;
+}
+
+async function loadReport() {
+    const type = document.getElementById('reportType').value;
+    const period = document.getElementById('reportPeriod').value;
+    try {
+        const res = await fetch(`${API}/admin/reports?type=${type}&period=${period}`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success && data.data.length) {
+            let html = '<table class="data-table"><thead><tr>';
+            if (type === 'sales') {
+                html += '<th>التاريخ</th><th>الطلبات</th><th>الإيرادات</th><th>متوسط الطلب</th>';
+            } else if (type === 'products') {
+                html += '<th>المنتج</th><th>عدد المبيعات</th><th>الإيرادات</th><th>المخزون الحالي</th>';
+            }
+            html += '</tr></thead><tbody>';
+            data.data.forEach(r => {
+                html += '<tr>';
+                if (type === 'sales') {
+                    html += `<td>${r._id}</td><td>${r.orders}</td><td>${(r.revenue || 0).toLocaleString()} ر.س</td><td>${(r.averageOrder || 0).toFixed(2)} ر.س</td>`;
+                } else if (type === 'products') {
+                    html += `<td>${r.name || r._id}</td><td>${r.salesCount || 0}</td><td>${(r.revenue || 0).toLocaleString()} ر.س</td><td>${r.stock || 0}</td>`;
+                }
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('reportContent').innerHTML = html;
+        } else {
+            document.getElementById('reportContent').innerHTML = '<p style="color:var(--muted); text-align:center;">لا توجد بيانات</p>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+function exportReport(format) {
+    showToast(`📄 جاري تصدير التقرير بصيغة ${format.toUpperCase()}...`);
+}
+        </script>
+        <script>
+// ==================== سلة المحذوفات ====================
+async function buildTrash() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🗑️</span> سلة المحذوفات</h1>
+            <div class="page-actions">
+                <button class="btn btn-outline btn-sm" onclick="loadTrash()">🔄 تحديث</button>
+                <button class="btn btn-danger btn-sm" onclick="emptyTrash()">🗑️ تفريغ السلة</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>العنصر</th>
+                        <th>النوع</th>
+                        <th>تاريخ الحذف</th>
+                        <th>استعادة</th>
+                        <th>حذف نهائي</th>
+                    </tr>
+                </thead>
+                <tbody id="trashBody">
+                    <tr><td colspan="5" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadTrash();
+}
+
+async function loadTrash() {
+    try {
+        const res = await fetch(`${API}/trash`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('trashBody').innerHTML = data.data.length
+                ? data.data.map(item => `
+                    <tr>
+                        <td><strong>${item.name || item._id}</strong></td>
+                        <td>${item.originalCollection === 'products' ? '📦 منتج' : '📋 آخر'}</td>
+                        <td>${item.deletedAt ? new Date(item.deletedAt).toLocaleString('ar-SA') : '—'}</td>
+                        <td>
+                            <button class="btn btn-success btn-xs" onclick="restoreItem('${item._id}')">
+                                ↩️ استعادة
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-xs" onclick="permanentlyDelete('${item._id}')">
+                                💀 حذف نهائي
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5" style="text-align:center; padding:30px;">🗑️ سلة المحذوفات فارغة</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function restoreItem(id) {
+    try {
+        await fetch(`${API}/trash/restore/${id}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        loadTrash();
+        showToast('✅ تمت استعادة العنصر بنجاح');
+    } catch (e) { alert('❌ فشلت الاستعادة'); }
+}
+
+async function permanentlyDelete(id) {
+    if (!confirm('⚠️ تحذير: الحذف النهائي لا يمكن التراجع عنه!')) return;
+    try {
+        await fetch(`${API}/trash/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        loadTrash();
+        showToast('🗑️ تم الحذف النهائي');
+    } catch (e) { alert('❌ فشل الحذف'); }
+}
+
+async function emptyTrash() {
+    if (!confirm('⚠️ هل أنت متأكد من تفريغ سلة المحذوفات بالكامل؟')) return;
+    const items = document.querySelectorAll('#trashBody tr');
+    for (const row of items) {
+        const btn = row.querySelector('button');
+        if (btn && btn.textContent.includes('حذف نهائي')) {
+            const id = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (id) await fetch(`${API}/trash/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            });
+        }
+    }
+    loadTrash();
+    showToast('🗑️ تم تفريغ سلة المحذوفات');
+}
+
+// ==================== سجل النشاطات ====================
+async function buildLogs() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">📝</span> سجل النشاطات</h1>
+            <div class="page-actions">
+                <select class="btn btn-outline btn-sm" onchange="loadLogs(this.value)">
+                    <option value="all">جميع الإجراءات</option>
+                    <option value="LOGIN">تسجيل دخول</option>
+                    <option value="CREATE_PRODUCT">إضافة منتج</option>
+                    <option value="DELETE_PRODUCT">حذف منتج</option>
+                    <option value="CREATE_ORDER">طلب جديد</option>
+                    <option value="UPDATE_SETTINGS">تعديل إعدادات</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="loadLogs('all')">🔄 تحديث</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>الإجراء</th>
+                        <th>التفاصيل</th>
+                        <th>التاريخ والوقت</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody id="logsBody">
+                    <tr><td colspan="5" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadLogs('all');
+}
+
+async function loadLogs(filter = 'all') {
+    try {
+        let url = `${API}/audit-logs`;
+        if (filter !== 'all') url += `?action=${filter}`;
+        const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('logsBody').innerHTML = data.data.length
+                ? data.data.map(l => `
+                    <tr>
+                        <td>${l.userId || 'نظام'}</td>
+                        <td><span class="badge badge-${l.action?.includes('DELETE') ? 'cancelled' : 'processing'}">${l.action}</span></td>
+                        <td>${l.details || '—'}</td>
+                        <td>${l.createdAt ? new Date(l.createdAt).toLocaleString('ar-SA') : '—'}</td>
+                        <td><small style="color:var(--muted);">${l.ipAddress || '—'}</small></td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5" style="text-align:center;">لا توجد نشاطات مسجلة</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== الصيانة التنبؤية ====================
+async function buildMaintenance() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🔧</span> تنبيهات الصيانة القادمة</h1>
+            <button class="btn btn-outline btn-sm" onclick="loadMaintenance()">🔄 تحديث</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>المنتج</th>
+                        <th>تاريخ الشراء</th>
+                        <th>موعد الصيانة</th>
+                        <th>الأيام المتبقية</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="maintenanceBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadMaintenance();
+}
+
+async function loadMaintenance() {
+    try {
+        const res = await fetch(`${API}/admin/maintenance-alerts`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('maintenanceBody').innerHTML = data.data.length
+                ? data.data.map(a => `
+                    <tr>
+                        <td><strong>${a.orderNumber}</strong></td>
+                        <td>${a.product}</td>
+                        <td>${a.purchaseDate ? new Date(a.purchaseDate).toLocaleDateString('ar-SA') : '—'}</td>
+                        <td>${new Date(a.dueDate).toLocaleDateString('ar-SA')}</td>
+                        <td style="color:${a.daysLeft <= 7 ? 'var(--danger)' : a.daysLeft <= 30 ? 'var(--warning)' : 'var(--success)'}; font-weight:bold;">
+                            ${a.daysLeft} يوم
+                        </td>
+                        <td>
+                            <span style="color:${a.notified ? 'var(--success)' : 'var(--warning)'};">
+                                ${a.notified ? '✅ تم الإشعار' : '⏳ pending'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" style="text-align:center;">✅ لا توجد تنبيهات صيانة حالياً</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== مراقبة المنافسين ====================
+async function buildCompetitors() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🏪</span> مراقبة المنافسين</h1>
+            <button class="btn btn-primary" onclick="addCompetitor()">➕ إضافة منافس</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المتجر</th>
+                        <th>الرابط</th>
+                        <th>عدد المنتجات المراقبة</th>
+                        <th>آخر تحديث</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="competitorsBody">
+                    <tr><td colspan="5" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadCompetitors();
+}
+
+async function loadCompetitors() {
+    try {
+        const res = await fetch(`${API}/admin/competitors`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('competitorsBody').innerHTML = data.data.length
+                ? data.data.map(c => `
+                    <tr>
+                        <td><strong>${c.name || '—'}</strong></td>
+                        <td><a href="${c.url || '#'}" target="_blank">${c.url || '—'}</a></td>
+                        <td>${c.productCount || 0}</td>
+                        <td>${c.updatedAt ? new Date(c.updatedAt).toLocaleString('ar-SA') : '—'}</td>
+                        <td>
+                            <button class="btn btn-outline btn-xs" onclick="editCompetitor('${c._id}')">✏️</button>
+                            <button class="btn btn-danger btn-xs" onclick="deleteCompetitor('${c._id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5">لا يوجد منافسون مضافون</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+function addCompetitor() {
+    const name = prompt('اسم المتجر المنافس:');
+    if (!name) return;
+    const url = prompt('رابط المتجر:');
+    fetch(`${API}/admin/competitors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ name, url, productCount: 0 })
+    }).then(() => loadCompetitors());
+}
+
+async function deleteCompetitor(id) {
+    if (!confirm('حذف هذا المنافس؟')) return;
+    await fetch(`${API}/admin/competitors/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    loadCompetitors();
+}
+
+// ==================== تنبؤات المخزون ====================
+async function buildPredictions() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🔮</span> تنبؤات المخزون المستقبلية</h1>
+            <button class="btn btn-outline btn-sm" onclick="buildPredictions()">🔄 تحديث</button>
+        </div>
+        <div class="stats-grid" id="predictionsStats"></div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>المخزون الحالي</th>
+                        <th>معدل البيع اليومي</th>
+                        <th>الأيام المتبقية</th>
+                        <th>تاريخ النفاد المتوقع</th>
+                        <th>توصية</th>
+                    </tr>
+                </thead>
+                <tbody id="predictionsBody">
+                    <tr><td colspan="6" style="text-align:center;">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    loadPredictions();
+}
+
+async function loadPredictions() {
+    try {
+        const res = await fetch(`${API}/admin/stats`, {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        if (data.success && data.data.predictedOutOfStock) {
+            const predictions = data.data.predictedOutOfStock;
+            document.getElementById('predictionsStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">🔴 منتجات تنفد خلال 7 أيام</div>
+                    <div class="stat-value" style="color:var(--danger);">${predictions.filter(p => p.daysUntilEmpty <= 7).length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🟡 منتجات تنفد خلال 30 يوماً</div>
+                    <div class="stat-value" style="color:var(--warning);">${predictions.filter(p => p.daysUntilEmpty <= 30 && p.daysUntilEmpty > 7).length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🟢 منتجات بمخزون آمن</div>
+                    <div class="stat-value" style="color:var(--success);">${predictions.filter(p => p.daysUntilEmpty > 30).length}</div>
+                </div>
+            `;
+            document.getElementById('predictionsBody').innerHTML = predictions.length
+                ? predictions.map(p => `
+                    <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td>${p.stock} قطعة</td>
+                        <td>${p.dailyRate || 0} قطعة/يوم</td>
+                        <td style="color:${p.daysUntilEmpty <= 7 ? 'var(--danger)' : p.daysUntilEmpty <= 30 ? 'var(--warning)' : 'var(--success)'}; font-weight:bold;">
+                            ${p.daysUntilEmpty} يوم
+                        </td>
+                        <td>${p.estimatedEmptyDate ? new Date(p.estimatedEmptyDate).toLocaleDateString('ar-SA') : '—'}</td>
+                        <td>
+                            ${p.daysUntilEmpty <= 7 ? '<span style="color:var(--danger);">🔴 أعد الطلب فوراً</span>' :
+                              p.daysUntilEmpty <= 30 ? '<span style="color:var(--warning);">🟡 راقب المخزون</span>' :
+                              '<span style="color:var(--success);">🟢 المخزون آمن</span>'}
+                        </td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6">جميع المنتجات بمخزون آمن</td></tr>';
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ==================== الإعدادات ====================
+async function buildSettings() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">⚙️</span> إعدادات المتجر</h1>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ جميع الإعدادات</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
+            <div>
+                <div class="chart-card">
+                    <h3>📦 إعدادات الشحن</h3>
+                    <div class="form-group">
+                        <label>نسبة الشحن الداخلي (%)</label>
+                        <input type="number" id="internalShippingRate" value="5" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>نسبة الشحن الخارجي (%)</label>
+                        <input type="number" id="externalShippingRate" value="10" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>قيمة الشحن المجاني (ر.س)</label>
+                        <input type="number" id="freeShippingThreshold" value="500" min="0">
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📝 شروط الاسترجاع</h3>
+                    <div class="form-group">
+                        <label>نص شروط الاسترجاع</label>
+                        <textarea id="returnPolicyText" rows="5">الاستبدال مسموح خلال 14 يوماً من تاريخ الاستلام بشرط أن يكون المنتج بحالته الأصلية وعدم وجود تلف ناتج عن سوء الاستخدام. لا يتم استرجاع المبلغ نقداً إلا في حالات العيب المصنعي المثبت.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>مدة الاسترجاع (بالأيام)</label>
+                        <input type="number" id="returnWindow" value="14" min="1" max="365">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="chart-card">
+                    <h3>🏪 معلومات المتجر</h3>
+                    <div class="form-group">
+                        <label>اسم المتجر</label>
+                        <input type="text" id="storeName" value="الرعدي أونلاين">
+                    </div>
+                    <div class="form-group">
+                        <label>الشعار التسويقي</label>
+                        <input type="text" id="storeSlogan" value="سوق اليمن الأول">
+                    </div>
+                    <div class="form-group">
+                        <label>النص الإعلاني المتحرك</label>
+                        <input type="text" id="marqueeText" value="🚀 شحن مجاني للطلبات فوق 500 ر.س">
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📊 إعدادات الضريبة</h3>
+                    <div class="form-group">
+                        <label>نسبة الضريبة (%)</label>
+                        <input type="number" id="taxRate" value="15" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    loadSettings();
+}
+
+async function loadSettings() {
+    try {
+        const [shippingRes, returnRes, storeRes] = await Promise.all([
+            fetch(`${API}/admin/settings/shipping`, { headers: { 'Authorization': `Bearer ${adminToken}` } }),
+            fetch(`${API}/admin/settings/return_policy`, { headers: { 'Authorization': `Bearer ${adminToken}` } }),
+            fetch(`${API}/admin/settings/store`, { headers: { 'Authorization': `Bearer ${adminToken}` } })
+        ]);
+        const shipping = await shippingRes.json();
+        const returnPolicy = await returnRes.json();
+        const store = await storeRes.json();
+
+        if (shipping.success && shipping.data) {
+            document.getElementById('internalShippingRate').value = shipping.data.internalRate || 5;
+            document.getElementById('externalShippingRate').value = shipping.data.externalRate || 10;
+            document.getElementById('freeShippingThreshold').value = shipping.data.freeShippingThreshold || 500;
+        }
+        if (returnPolicy.success && returnPolicy.data) {
+            document.getElementById('returnPolicyText').value = returnPolicy.data.text || '';
+            document.getElementById('returnWindow').value = returnPolicy.data.window || 14;
+        }
+        if (store.success && store.data) {
+            document.getElementById('storeName').value = store.data.storeName || 'الرعدي أونلاين';
+            document.getElementById('storeSlogan').value = store.data.storeSlogan || '';
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function saveSettings() {
+    try {
+        await Promise.all([
+            fetch(`${API}/admin/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({
+                    type: 'shipping',
+                    data: {
+                        internalRate: parseFloat(document.getElementById('internalShippingRate').value) || 5,
+                        externalRate: parseFloat(document.getElementById('externalShippingRate').value) || 10,
+                        freeShippingThreshold: parseFloat(document.getElementById('freeShippingThreshold').value) || 500
+                    }
+                })
+            }),
+            fetch(`${API}/admin/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({
+                    type: 'return_policy',
+                    data: {
+                        text: document.getElementById('returnPolicyText').value,
+                        window: parseInt(document.getElementById('returnWindow').value) || 14
+                    }
+                })
+            }),
+            fetch(`${API}/admin/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({
+                    type: 'store',
+                    data: {
+                        storeName: document.getElementById('storeName').value,
+                        storeSlogan: document.getElementById('storeSlogan').value
+                    }
+                })
+            })
+        ]);
+        showToast('✅ تم حفظ جميع الإعدادات بنجاح');
+    } catch (e) { alert('❌ فشل حفظ الإعدادات'); }
+}
+
+// ==================== التخصيص ====================
+async function buildCustomize() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🎨</span> تخصيص المتجر</h1>
+            <button class="btn btn-primary" onclick="applyCustomization()">✅ تطبيق التغييرات</button>
+        </div>
+        <div class="chart-card">
+            <h3>🎨 تنسيق الألوان</h3>
+            <div style="display:flex; gap:30px; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                    <label style="display:block; margin-bottom:8px; color:var(--muted);">اللون الرئيسي</label>
+                    <input type="color" id="primaryColor" value="#C9A84C" style="width:80px; height:80px; border:none; border-radius:50%; cursor:pointer;">
+                </div>
+                <div style="text-align:center;">
+                    <label style="display:block; margin-bottom:8px; color:var(--muted);">لون الخلفية</label>
+                    <input type="color" id="bgColor" value="#0F0F1A" style="width:80px; height:80px; border:none; border-radius:50%; cursor:pointer;">
+                </div>
+                <div style="text-align:center;">
+                    <label style="display:block; margin-bottom:8px; color:var(--muted);">لون النص</label>
+                    <input type="color" id="textColor" value="#FFFFFF" style="width:80px; height:80px; border:none; border-radius:50%; cursor:pointer;">
+                </div>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>🖼️ شعار المتجر</h3>
+            <div class="form-group">
+                <label>رفع شعار جديد (PNG)</label>
+                <input type="file" id="logoFile" accept="image/png">
+            </div>
+            <button class="btn btn-outline" onclick="uploadLogo()">📤 رفع الشعار</button>
+        </div>
+        <div class="chart-card">
+            <h3>🔊 صوت الترحيب</h3>
+            <div class="form-group">
+                <label>رفع ملف صوتي</label>
+                <input type="file" id="welcomeSoundFile" accept="audio/*">
+            </div>
+            <button class="btn btn-outline" onclick="testWelcomeSound()">🔊 اختبار الصوت</button>
+        </div>
+    `;
+}
+
+function applyCustomization() {
+    const colors = {
+        primary: document.getElementById('primaryColor').value,
+        bg: document.getElementById('bgColor').value,
+        text: document.getElementById('textColor').value
+    };
+    document.documentElement.style.setProperty('--primary', colors.primary);
+    document.documentElement.style.setProperty('--bg', colors.bg);
+    document.documentElement.style.setProperty('--text', colors.text);
+
+    fetch(`${API}/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+        body: JSON.stringify({ type: 'theme', data: colors })
+    });
+    showToast('✅ تم تطبيق الألوان بنجاح');
+}
+
+async function uploadLogo() {
+    const file = document.getElementById('logoFile').files[0];
+    if (!file) return showToast('⚠️ اختر ملف PNG أولاً');
+    const form = new FormData();
+    form.append('file', file);
+    form.append('type', 'logo');
+    try {
+        const res = await fetch(`${API}/upload`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` },
+            body: form
+        });
+        const data = await res.json();
+        if (data.success) showToast('✅ تم رفع الشعار بنجاح');
+    } catch (e) { alert('❌ فشل الرفع'); }
+}
+
+function testWelcomeSound() {
+    const file = document.getElementById('welcomeSoundFile').files[0];
+    if (file) {
+        const audio = new Audio(URL.createObjectURL(file));
+        audio.play();
+    } else {
+        showToast('⚠️ اختر ملف صوتي أولاً');
+    }
+}
+
+// ==================== مركز الوسائط ====================
+async function buildMedia() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">📁</span> مركز الوسائط</h1>
+            <button class="btn btn-primary" onclick="uploadMedia()">📤 رفع ملف</button>
+        </div>
+        <input type="file" id="mediaFileInput" multiple accept="image/*,audio/*" style="display:none;" onchange="handleMediaUpload(this.files)">
+        <div class="stats-grid" id="mediaStats"></div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:15px;" id="mediaGrid">
+            <p style="color:var(--muted);">جاري تحميل الوسائط...</p>
+        </div>
+    `;
+    loadMedia();
+}
+
+function uploadMedia() { document.getElementById('mediaFileInput').click(); }
+
+async function handleMediaUpload(files) {
+    if (!files.length) return;
+    const form = new FormData();
+    for (const file of files) form.append('files', file);
+    form.append('type', 'general');
+    try {
+        const res = await fetch(`${API}/upload`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` },
+            body: form
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(`✅ تم رفع ${data.data.length} ملف`);
+            loadMedia();
+        }
+    } catch (e) { alert('❌ فشل الرفع'); }
+}
+
+async function loadMedia() {
+    document.getElementById('mediaGrid').innerHTML = '<p style="color:var(--muted);">قيد التطوير</p>';
+}
+
+// ==================== النسخ الاحتياطي ====================
+async function buildBackup() {
+    const main = document.getElementById('mainContent');
+    main.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">💾</span> النسخ الاحتياطي</h1>
+            <button class="btn btn-primary" onclick="createBackup()">➕ إنشاء نسخة احتياطية</button>
+        </div>
+        <div class="chart-card">
+            <h3>📋 معلومات النسخ الاحتياطي</h3>
+            <p style="color:var(--muted);">يتم إنشاء نسخة احتياطية تلقائية يومياً في الساعة 3 صباحاً</p>
+            <p style="color:var(--muted);">تشمل النسخة: قاعدة البيانات + مجلد الصور والأصوات</p>
+        </div>
+        <div id="backupStatus"></div>
+    `;
+}
+
+async function createBackup() {
+    try {
+        showToast('⏳ جاري إنشاء النسخة الاحتياطية...');
+        const res = await fetch(`${API}/backup`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        const data = await res.json();
+        document.getElementById('backupStatus').innerHTML = data.success
+            ? `<div class="chart-card" style="margin-top:20px;">
+                <h3 style="color:var(--success);">✅ تم إنشاء النسخة الاحتياطية بنجاح</h3>
+                <p style="color:var(--muted);">مسار النسخة: ${data.path}</p>
+               </div>`
+            : '<p style="color:var(--danger);">❌ فشل إنشاء النسخة الاحتياطية</p>';
+    } catch (e) { alert('❌ فشل'); }
+}
+
+// ==================== الصلاحيات ====================
+async function buildRoles() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">🔐</span> الصلاحيات والأدوار</h1>
+        </div>
+        <p style="color:var(--muted);">نظام الصلاحيات المتقدم قيد التطوير</p>
+    `;
+}
+
+// ==================== الدردشة الحية ====================
+async function buildChat() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title"><span class="icon">💬</span> الدردشة الحية مع العملاء</h1>
+        </div>
+        <p style="color:var(--muted);">نظام الدردشة المباشرة قيد التطوير</p>
+    `;
+}
 
 // ==================== بدء التشغيل ====================
 (async () => {
@@ -893,4 +2596,4 @@ async function buildChat(){document.getElementById('mainContent').innerHTML='<di
 })();
 </script>
 </body>
-    </html>
+</html>

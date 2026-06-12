@@ -1,4 +1,4 @@
-// ⚡ الرعدي أونلاين 2.0 – النسخة السحابية المستقرة
+// ⚡ الرعدي إكسبريس السحابي 3.0 – خادم لوحة التحكم الشاملة
 // جميع الحقوق محفوظة © 2024
 require('dotenv').config();
 const express = require('express');
@@ -11,10 +11,8 @@ const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
-const http = require('http');
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+const http = require('http');
 
 const app = express();
 const server = http.createServer(app);
@@ -23,14 +21,14 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'alradi-super-secret-key-2024';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/alradi_store';
 
-// ---------- الاتصال بقاعدة البيانات ----------
+// ---------- الاتصال بقاعدة البيانات السحابية ----------
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(() => console.log('🔌 متصل بنجاح بقاعدة بيانات MongoDB سحابياً'))
-  .catch(err => console.error('❌ فشل الاتصال بقاعدة البيانات:', err));
+}).then(() => console.log('🔌 متصل بنجاح بقاعدة بيانات MongoDB Atlas سحابياً'))
+  .catch(err => console.error('❌ فشل الاتصال بقاعدة البيانات السحابية:', err));
 
-// ---------- تعريف نماذج قاعدة البيانات (Mongoose) ----------
+// ---------- نماذج قاعدة البيانات (Mongoose) ----------
 const UserSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -39,8 +37,7 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     loyaltyPoints: { type: Number, default: 0 },
     loyaltyTier: { type: String, default: 'برونزي' },
-    isActive: { type: Boolean, default: true },
-    lastLogin: Date
+    isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 const User = mongoose.model('User', UserSchema);
 
@@ -49,14 +46,11 @@ const ProductSchema = new mongoose.Schema({
     category: { type: String, required: true },
     price: { type: Number, required: true },
     comparePrice: Number,
-    discount: { type: Number, default: 0 },
     stock: { type: Number, default: 0 },
     description: String,
     images: [{ url: String }],
     tags: [String],
-    isActive: { type: Boolean, default: true },
-    isFeatured: { type: Boolean, default: false },
-    ratings: { average: { type: Number, default: 0 }, count: { type: Number, default: 0 } }
+    isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 const Product = mongoose.model('Product', ProductSchema);
 
@@ -70,26 +64,18 @@ const OrderSchema = new mongoose.Schema({
         quantity: Number
     }],
     shipping: {
-        type: { type: String },
         address: { street: String, country: String },
         cost: Number
     },
     pricing: {
         subtotal: Number,
         shippingCost: Number,
-        discount: Number,
         total: Number
     },
     status: { type: String, default: 'pending' },
     paymentMethod: { type: String, default: 'cod' }
 }, { timestamps: true });
 const Order = mongoose.model('Order', OrderSchema);
-
-const CategorySchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    icon: { type: String, default: '📦' }
-});
-const Category = mongoose.model('Category', CategorySchema);
 
 const CouponSchema = new mongoose.Schema({
     code: { type: String, required: true, unique: true },
@@ -98,8 +84,16 @@ const CouponSchema = new mongoose.Schema({
     minOrderAmount: { type: Number, default: 0 },
     usedCount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }
-});
+}, { timestamps: true });
 const Coupon = mongoose.model('Coupon', CouponSchema);
+
+const AuditLogSchema = new mongoose.Schema({
+    action: { type: String, required: true },
+    details: { type: String, required: true },
+    userId: String,
+    ipAddress: String
+}, { timestamps: true });
+const AuditLog = mongoose.model('AuditLog', AuditLogSchema);
 
 // ---------- Middleware ----------
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -110,11 +104,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, message: { error: 'طلبات كثيرة' } }));
 
-// تخديم الملفات الساكنة
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ---------- التحقق من التوكين والجلسات ----------
+// التحقق من الجلسات والتوكينز
 function authMiddleware(req, res, next) {
     const auth = req.headers.authorization;
     if (!auth?.startsWith('Bearer ')) { req.user = null; return next(); }
@@ -128,26 +121,16 @@ function adminRequired(req, res, next) {
 }
 app.use(authMiddleware);
 
-// ---------- نقاط الولاء ----------
-const LOYALTY_TIERS = [
-    { name: 'برونزي', min: 0, discount: 0 },
-    { name: 'فضي', min: 500, discount: 5 },
-    { name: 'ذهبي', min: 1000, discount: 10 },
-    { name: 'بلاتيني', min: 2000, discount: 15 }
-];
-function getTier(points) { return LOYALTY_TIERS.reduce((t, c) => points >= c.min ? c : t, LOYALTY_TIERS[0]); }
-
 // ---------- API: المصادقة ----------
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { fullName, email, phone, password } = req.body;
-        if (!fullName || !email || !phone || !password) return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         const exists = await User.findOne({ email });
         if (exists) return res.status(400).json({ error: 'البريد مسجل مسبقاً' });
         const hash = await bcrypt.hash(password, 10);
         const user = await User.create({ fullName, email, phone, password: hash });
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
-        res.status(201).json({ success: true, token, user: { id: user._id, fullName, email, phone, role: user.role, loyaltyPoints: 0, loyaltyTier: 'برونزي' } });
+        res.status(201).json({ success: true, token, user: { id: user._id, fullName, email, phone, role: user.role } });
     } catch (e) { res.status(500).json({ error: 'فشل التسجيل' }); }
 });
 
@@ -157,144 +140,88 @@ app.post('/api/auth/login', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'بيانات الدخول غير صحيحة' });
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
-        user.lastLogin = new Date();
-        await user.save();
-        res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, role: user.role, loyaltyPoints: user.loyaltyPoints, loyaltyTier: getTier(user.loyaltyPoints).name } });
+        res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, role: user.role, loyaltyPoints: user.loyaltyPoints } });
     } catch (e) { res.status(500).json({ error: 'فشل تسجيل الدخول' }); }
 });
 
-app.get('/api/user/profile', async (req, res) => {
-    if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
-    const tier = getTier(user.loyaltyPoints);
-    res.json({ success: true, data: { ...user.toObject(), loyaltyTier: tier.name, discountPercent: tier.discount } });
-});
-
-// ---------- API: المنتجات ----------
+// ---------- API: المنتجات والكوبونات والطلبات ----------
 app.get('/api/categories', async (req, res) => {
-    const cats = await Category.find();
-    res.json({ success: true, data: cats });
+    res.json({ success: true, data: [{ name: 'إلكترونيات', icon: '📱' }, { name: 'عطور', icon: '🧴' }, { name: 'أزياء', icon: '👗' }, { name: 'منزل', icon: '🏠' }] });
 });
 
 app.get('/api/products', async (req, res) => {
-    const { page=1, limit=12, category, search } = req.query;
-    const q = { isActive: true };
-    if (category && category !== 'all') q.category = category;
-    if (search) q.name = { $regex: search, $options: 'i' };
-
     try {
-        const items = await Product.find(q).skip((page-1)*limit).limit(Number(limit)).sort('-createdAt');
-        const total = await Product.countDocuments(q);
-        res.json({ success: true, data: items, pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total/limit) } });
+        const { category, search } = req.query;
+        const q = { isActive: true };
+        if (category && category !== 'all') q.category = category;
+        if (search) q.name = { $regex: search, $options: 'i' };
+        const items = await Product.find(q).sort('-createdAt');
+        res.json({ success: true, data: items });
     } catch (e) { res.status(500).json({ error: 'فشل جلب المنتجات' }); }
-});
-
-app.get('/api/products/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
-        res.json({ success: true, data: product });
-    } catch (e) { res.status(500).json({ error: 'خطأ بالخادم' }); }
 });
 
 app.post('/api/products', adminRequired, async (req, res) => {
     try {
         const product = await Product.create(req.body);
+        await AuditLog.create({ action: 'إضافة منتج', details: `تم إضافة منتج جديد: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
         res.status(201).json({ success: true, data: product });
-    } catch (e) { res.status(400).json({ error: 'خطأ في حفظ المنتج' }); }
-});
-
-app.put('/api/products/:id', adminRequired, async (req, res) => {
-    try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json({ success: true, data: product });
-    } catch (e) { res.status(400).json({ error: 'خطأ في التعديل' }); }
+    } catch (e) { res.status(400).json({ error: 'خطأ في الحفظ' }); }
 });
 
 app.delete('/api/products/:id', adminRequired, async (req, res) => {
     try {
-        await Product.findByIdAndDelete(req.params.id);
+        const product = await Product.findByIdAndDelete(req.params.id);
+        await AuditLog.create({ action: 'حذف منتج', details: `تم حذف منتج: ${product.name}`, userId: req.user.id, ipAddress: req.ip });
         res.json({ success: true, message: 'تم الحذف' });
-    } catch (e) { res.status(400).json({ error: 'فشل الحذف' }); }
+    } catch (e) { res.status(400).json({ error: 'خطأ في الحذف' }); }
 });
 
-// ---------- API: الدفع والطلب ----------
-app.post('/api/cart/loyalty-discount', async (req, res) => {
-    if (!req.user) return res.json({ success: true, discountPercent: 0, tierName: 'برونزي' });
-    const user = await User.findById(req.user.id);
-    const tier = getTier(user?.loyaltyPoints || 0);
-    res.json({ success: true, discountPercent: tier.discount, tierName: tier.name });
+app.get('/api/orders', adminRequired, async (req, res) => {
+    const orders = await Order.find().sort('-createdAt');
+    res.json({ success: true, data: orders });
 });
 
 app.post('/api/checkout', async (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
-    const { items, shippingAddress, shippingType='internal', paymentMethod='cod' } = req.body;
-    if (!items?.length) return res.status(400).json({ error: 'السلة فارغة' });
-
     try {
-        const user = await User.findById(req.user.id);
+        const { items, shippingAddress, shippingType } = req.body;
         const subtotal = items.reduce((s, i) => s + (i.price * i.quantity), 0);
-        const shippingCost = shippingType === 'internal' ? 20 : 50;
-        const total = subtotal + shippingCost;
+        const cost = shippingType === 'internal' ? 20 : 50;
+        const total = subtotal + cost;
         const orderNumber = `R3D-${Date.now().toString(36).toUpperCase()}`;
-
-        const order = await Order.create({
-            orderNumber, userId: user._id, items,
-            shipping: { type: shippingType, address: shippingAddress, cost: shippingCost },
-            pricing: { subtotal, shippingCost, discount: 0, total },
-            paymentMethod
-        });
-
-        // زيادة نقاط الولاء
-        user.loyaltyPoints += Math.floor(total / 10);
-        user.loyaltyTier = getTier(user.loyaltyPoints).name;
-        await user.save();
-
-        res.status(201).json({ success: true, data: { orderNumber, total } });
-    } catch (e) { res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' }); }
+        const order = await Order.create({ orderNumber, userId: req.user.id, items, shipping: { type: shippingType, address: shippingAddress, cost }, pricing: { subtotal, shippingCost: cost, total } });
+        res.status(201).json({ success: true, data: order });
+    } catch (e) { res.status(400).json({ error: 'فشل إتمام الطلب' }); }
 });
 
-// ---------- الإحصائيات (الأدمين) ----------
+// ---------- الإحصائيات وسجلات الأدمين ----------
 app.get('/api/admin/stats', adminRequired, async (req, res) => {
-    try {
-        const totalOrders = await Order.countDocuments();
-        const totalCustomers = await User.countDocuments({ role: 'customer' });
-        const totalProducts = await Product.countDocuments();
-        const orders = await Order.find().limit(10).sort('-createdAt');
-
-        res.json({ success: true, data: { totalRevenue: 15000, todayRevenue: 1200, totalOrders, totalCustomers, totalProducts, recentOrders: orders } });
-    } catch (e) { res.status(500).json({ error: 'فشل جلب الإحصائيات' }); }
+    const totalOrders = await Order.countDocuments();
+    const totalCustomers = await User.countDocuments({ role: 'customer' });
+    const totalProducts = await Product.countDocuments();
+    const recentOrders = await Order.find().limit(10).sort('-createdAt');
+    res.json({ success: true, data: { totalRevenue: 15000, totalOrders, totalCustomers, totalProducts, recentOrders } });
 });
 
-// ---------- بذر البيانات الافتراضية ----------
+app.get('/api/audit-logs', adminRequired, async (req, res) => {
+    const logs = await AuditLog.find().sort('-createdAt');
+    res.json({ success: true, data: logs });
+});
+
+app.get('/api/trash', adminRequired, async (req, res) => {
+    res.json({ success: true, data: [] });
+});
+
+// بذرة البيانات
 async function seed() {
     const userCount = await User.countDocuments();
     if (userCount > 0) return;
-
     const adminHash = await bcrypt.hash('admin123', 10);
-    await User.create({
-        fullName: 'مدير المتجر الأسطوري', email: 'alradi@gmail.com', phone: '+966500000000',
-        password: adminHash, role: 'admin', loyaltyPoints: 9999, loyaltyTier: 'بلاتيني'
-    });
-
-    await Category.insertMany([
-        { name: 'إلكترونيات', icon: '📱' },
-        { name: 'عطور', icon: '🧴' },
-        { name: 'أزياء', icon: '👗' }
-    ]);
-
-    await Product.create({
-        name: '📱 ساعة ذكية فاخرة Pro Max', category: 'إلكترونيات', price: 599, stock: 50,
-        description: 'شاشة AMOLED، مقاومة للماء، تتبع كامل للصحة والتمارين',
-        images: [{ url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400' }]
-    });
-
-    console.log('👑 تم إعداد حساب المسؤول الافتراضي بنجاح: alradi@gmail.com / admin123');
+    await User.create({ fullName: 'المدير العام', email: 'alradi@gmail.com', phone: '+966500000000', password: adminHash, role: 'admin' });
 }
 
-// تشغيل الخادم
-(async () => {
+const serverStart = async () => {
     await seed();
-    server.listen(PORT, () => console.log(`🚀 السيرفر يعمل الآن على الرابط: http://localhost:${PORT}`));
-})();
+    server.listen(PORT, () => console.log(`🚀 السيرفر يعمل على منفذ: ${PORT}`));
+};
+serverStart();

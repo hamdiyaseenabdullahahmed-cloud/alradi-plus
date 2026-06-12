@@ -4,26 +4,6 @@
 // ☁️ التخزين: MongoDB Atlas (سحابي حقيقي)
 // 💾 الاحتياط: تخزين محلي تلقائي عند فشل الاتصال
 // =============================================
-// المميزات المدمجة:
-// ✅ نظام المصادقة (عادي + بيومتري + OTP واتساب)
-// ✅ البحث المرئي والصوتي
-// ✅ نظام BNPL (اشتري الآن وادفع لاحقاً)
-// ✅ نظام RFQ (التفاوض على السعر)
-// ✅ الفواتير مع QR Code والتوقيع الإلكتروني
-// ✅ التأمين والضمان الممتد
-// ✅ نظام نقاط الولاء المتكامل (برونزي، فضي، ذهبي، بلاتيني)
-// ✅ الصيانة التنبؤية
-// ✅ الدردشة الحية مع ترجمة فورية
-// ✅ المزامنة الأوفلاين (Offline-First Sync)
-// ✅ نظام تسعير المنافسين
-// ✅ التنبؤ بنفاد المخزون
-// ✅ رفع المنتجات بالجملة (Excel/CSV)
-// ✅ سجل التدقيق الأمني (Audit Log)
-// ✅ النسخ الاحتياطي التلقائي
-// ✅ إدارة البانرات والصوتيات
-// ✅ سلة المحذوفات مع الاستعادة
-// ✅ WebSocket للإشعارات الحية
-// =============================================
 
 require('dotenv').config();
 const express = require('express');
@@ -47,11 +27,13 @@ const cron = require('node-cron');
 const http = require('http');
 const archiver = require('archiver');
 const { Server } = require('socket.io');
-const csv = require('csv-parser');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
+
+// ==================== إعدادات مهمة ====================
+app.set('trust proxy', 1);
 
 // ==================== Middleware ====================
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -117,14 +99,6 @@ class LocalDB {
             },
             deleteOne: async (q) => { let d = self._read(name); const idx = d.findIndex(i => i._id === q._id || i.code === q.code); if (idx > -1) { d.splice(idx, 1); self._write(name, d); return { deletedCount: 1 }; } return { deletedCount: 0 }; },
             countDocuments: async (q = {}) => (await this.collection(name).find(q)).toArray().then(r => r.length),
-            aggregate: async (pipeline) => {
-                let data = self._read(name);
-                for (const stage of pipeline) {
-                    if (stage.$match) data = data.filter(i => { if (stage.$match.status?.$ne) return i.status !== stage.$match.status.$ne; return true; });
-                    if (stage.$group) { const g = {}; data.forEach(i => { const key = new Date(i.createdAt).toISOString().split('T')[0]; if (!g[key]) g[key] = { _id: key, orders: 0, revenue: 0 }; g[key].orders++; g[key].revenue += i.pricing?.total || 0; }); data = Object.values(g); }
-                }
-                return { toArray: async () => data };
-            }
         };
     }
 }
@@ -185,14 +159,14 @@ app.use(authMiddleware);
 
 // ==================== الولاء ====================
 const LOYALTY_TIERS = [
-    { name: 'برونزي', min: 0, discount: 0, benefits: ['دعم فني'], color: '#CD7F32' },
-    { name: 'فضي', min: 500, discount: 5, benefits: ['دعم فني', 'شحن مجاني للطلبات فوق 300 ر.س'], color: '#C0C0C0' },
-    { name: 'ذهبي', min: 1000, discount: 10, benefits: ['دعم فني', 'شحن مجاني', 'خصم إضافي 10%'], color: '#FFD700' },
-    { name: 'بلاتيني', min: 2000, discount: 15, benefits: ['دعم فني VIP', 'شحن مجاني', 'خصم 15%', 'هدايا حصرية'], color: '#E5E4E2' }
+    { name: 'برونزي', min: 0, discount: 0 },
+    { name: 'فضي', min: 500, discount: 5 },
+    { name: 'ذهبي', min: 1000, discount: 10 },
+    { name: 'بلاتيني', min: 2000, discount: 15 }
 ];
 function getTier(points) { return LOYALTY_TIERS.reduce((t, c) => points >= c.min ? c : t, LOYALTY_TIERS[0]); }
 
-// ==================== API ====================
+// ==================== API: المصادقة ====================
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { fullName, email, phone, password } = req.body;
@@ -223,14 +197,16 @@ app.get('/api/user/profile', async (req, res) => {
     const user = await DB.users.findOne({ _id: req.user.id });
     if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
     const tier = getTier(user.loyaltyPoints || 0);
-    res.json({ success: true, data: { ...user, password: undefined, loyaltyTier: tier.name, discountPercent: tier.discount, tierBenefits: tier.benefits } });
+    res.json({ success: true, data: { ...user, password: undefined, loyaltyTier: tier.name, discountPercent: tier.discount } });
 });
 
+// ==================== API: الأقسام ====================
 app.get('/api/categories', async (req, res) => {
     const cats = await DB.categories.find({ isActive: true }).toArray();
     res.json({ success: true, data: cats });
 });
 
+// ==================== API: المنتجات ====================
 app.get('/api/products', async (req, res) => {
     const { page=1, limit=20, category, search, sort='-createdAt', featured, flashSale } = req.query;
     const q = { isActive: true };
@@ -274,15 +250,7 @@ app.delete('/api/products/:id', adminRequired, async (req, res) => {
     res.json({ success: true, message: 'تم نقل المنتج إلى سلة المحذوفات' });
 });
 
-app.post('/api/products/bulk', adminRequired, upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'يرجى رفع ملف CSV' });
-    const results = [];
-    return new Promise((resolve) => {
-        fs.createReadStream(req.file.path).pipe(csv()).on('data', (row) => { if (row.name && row.price && row.category) results.push({ name: row.name, category: row.category, price: parseFloat(row.price), stock: parseInt(row.stock) || 10, isActive: true }); })
-        .on('end', async () => { for (const r of results) await DB.products.insertOne(r); fs.unlinkSync(req.file.path); res.json({ success: true, count: results.length }); });
-    });
-});
-
+// ==================== API: السلة والدفع ====================
 app.post('/api/cart/loyalty-discount', async (req, res) => {
     if (!req.user) return res.json({ success: true, discountPercent: 0, tierName: 'برونزي' });
     const user = await DB.users.findOne({ _id: req.user.id });
@@ -312,81 +280,12 @@ app.post('/api/checkout', async (req, res) => {
     const pointsEarned = Math.floor(total / 10);
     await DB.users.updateOne({ _id: req.user.id }, { $inc: { loyaltyPoints: pointsEarned, totalSpent: total } });
     const newTier = getTier((user.loyaltyPoints||0) + pointsEarned);
-    await DB.audit_logs.insertOne({ userId: req.user.id, action: 'CREATE_ORDER', details: `طلب #${orderNumber}`, targetTable: 'orders', ipAddress: req.ip, createdAt: new Date() });
+    await DB.audit_logs.insertOne({ userId: req.user.id, action: 'CREATE_ORDER', details: `طلب #${orderNumber}`, ipAddress: req.ip, createdAt: new Date() });
     io.emit('newOrder', { orderNumber, total, customer: user.fullName, createdAt: new Date() });
     res.status(201).json({ success: true, message: 'تم الطلب', data: { orderNumber, total, pointsEarned, newTier: newTier.name } });
 });
 
-app.post('/api/coupons/validate', async (req, res) => {
-    const { code, cartTotal } = req.body;
-    const coupon = await DB.coupons.findOne({ code, isActive: true });
-    if (!coupon) return res.status(400).json({ error: 'الكوبون غير صالح' });
-    const discount = coupon.discountType === 'percentage' ? cartTotal * (coupon.discountValue/100) : coupon.discountValue;
-    res.json({ success: true, data: { code: coupon.code, discount } });
-});
-
-app.get('/api/coupons', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.coupons.find().toArray() }); });
-app.post('/api/coupons', adminRequired, async (req, res) => { const coupon = await DB.coupons.insertOne({ ...req.body, usedCount: 0, isActive: true, createdAt: new Date() }); res.status(201).json({ success: true, data: coupon }); });
-app.delete('/api/coupons/:code', adminRequired, async (req, res) => { await DB.coupons.updateOne({ code: req.params.code }, { $set: { isActive: false } }); res.json({ success: true, message: 'تم التعطيل' }); });
-
-app.get('/api/admin/stats', adminRequired, async (req, res) => {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const [allOrders, allProducts, allCustomers] = await Promise.all([DB.orders.find().toArray(), DB.products.find().toArray(), DB.users.find({ role: 'customer' }).toArray()]);
-    const activeOrders = allOrders.filter(o => o.status !== 'cancelled');
-    const todayOrders = allOrders.filter(o => new Date(o.createdAt) >= today);
-    res.json({ success: true, data: {
-        totalRevenue: activeOrders.reduce((s,o) => s + (o.pricing?.total||0), 0),
-        todayRevenue: todayOrders.filter(o=>o.status!=='cancelled').reduce((s,o) => s + (o.pricing?.total||0), 0),
-        totalOrders: allOrders.length, todayOrders: todayOrders.length,
-        totalCustomers: allCustomers.length, totalProducts: allProducts.length,
-        lowStockProducts: allProducts.filter(p => p.stock <= 5).length,
-        recentOrders: allOrders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,10)
-    }});
-});
-
-app.get('/api/orders', adminRequired, async (req, res) => {
-    const { status } = req.query; const q = {}; if (status && status !== 'all') q.status = status;
-    const orders = await DB.orders.find(q).toArray(); orders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.json({ success: true, data: orders });
-});
-
-app.put('/api/orders/:id/status', adminRequired, async (req, res) => {
-    await DB.orders.updateOne({ _id: req.params.id }, { $set: { status: req.body.status, updatedAt: new Date() } });
-    io.emit('orderStatusUpdate', { orderId: req.params.id, status: req.body.status });
-    res.json({ success: true, message: 'تم التحديث' });
-});
-
-app.get('/api/users', adminRequired, async (req, res) => { const { role } = req.query; const q = {}; if (role) q.role = role; res.json({ success: true, data: await DB.users.find(q).toArray() }); });
-
-app.get('/api/trash', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.trash.find().toArray() }); });
-app.post('/api/trash/restore/:id', adminRequired, async (req, res) => { const item = await DB.trash.findOne({ _id: req.params.id }); if (item) { await DB[item.originalCollection].insertOne({ ...item, _id: item._id }); await DB.trash.deleteOne({ _id: req.params.id }); } res.json({ success: true, message: 'تمت الاستعادة' }); });
-
-app.get('/api/audit-logs', adminRequired, async (req, res) => { const logs = await DB.audit_logs.find().toArray(); logs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); res.json({ success: true, data: logs }); });
-
-app.get('/api/admin/settings/:type', adminRequired, async (req, res) => { const setting = await DB.settings.findOne({ type: req.params.type }); res.json({ success: true, data: setting?.data || null }); });
-app.put('/api/admin/settings', adminRequired, async (req, res) => { const { type, data } = req.body; const existing = await DB.settings.findOne({ type }); if (existing) await DB.settings.updateOne({ type }, { $set: { data, updatedAt: new Date() } }); else await DB.settings.insertOne({ type, data, createdAt: new Date() }); res.json({ success: true, message: 'تم الحفظ' }); });
-
-app.get('/api/banners', async (req, res) => { res.json({ success: true, data: await DB.banners.find({ isActive: true }).toArray() }); });
-app.post('/api/banners', adminRequired, async (req, res) => { const banner = await DB.banners.insertOne({ ...req.body, isActive: true, createdAt: new Date() }); res.status(201).json({ success: true, data: banner }); });
-
-app.get('/api/sounds', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.sounds.find().toArray() }); });
-app.post('/api/sounds', adminRequired, upload.single('file'), async (req, res) => { const sound = await DB.sounds.insertOne({ name: req.body.name, url: `/uploads/sounds/${req.file.filename}`, createdAt: new Date() }); res.status(201).json({ success: true, data: sound }); });
-
-app.post('/api/upload', upload.array('files', 20), async (req, res) => { const files = (req.files || []).map(f => ({ url: `/uploads/${req.body?.type || 'general'}/${f.filename}`, originalName: f.originalname, size: f.size, type: f.mimetype })); res.json({ success: true, data: files }); });
-
-app.post('/api/rfq', async (req, res) => {
-    if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
-    const { productId, quantity, proposedPrice, message } = req.body;
-    const product = await DB.products.findOne({ _id: productId });
-    if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
-    const rfq = await DB.rfq_requests.insertOne({ user: req.user.id, productId, productName: product.name, quantity, proposedPrice, originalPrice: product.price, message, status: 'pending', createdAt: new Date() });
-    io.emit('newRFQ', rfq);
-    res.status(201).json({ success: true, data: rfq });
-});
-
-app.get('/api/rfq', adminRequired, async (req, res) => { const rfqs = await DB.rfq_requests.find().toArray(); rfqs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); res.json({ success: true, data: rfqs }); });
-app.put('/api/rfq/:id', adminRequired, async (req, res) => { await DB.rfq_requests.updateOne({ _id: req.params.id }, { $set: { status: req.body.status, updatedAt: new Date() } }); res.json({ success: true, message: 'تم التحديث' }); });
-
+// ==================== API: الفاتورة ====================
 app.get('/api/invoice/:orderNumber', async (req, res) => {
     const order = await DB.orders.findOne({ orderNumber: req.params.orderNumber });
     if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
@@ -408,35 +307,73 @@ app.get('/api/invoice/:orderNumber', async (req, res) => {
     doc.end();
 });
 
-app.get('/api/invoice/:orderNumber/qr', async (req, res) => {
-    const order = await DB.orders.findOne({ orderNumber: req.params.orderNumber });
-    if (!order) return res.status(404).json({ error: 'غير موجود' });
-    const qrImage = await QRCode.toDataURL(JSON.stringify({ orderNumber: order.orderNumber, total: order.pricing?.total, status: order.status }));
-    res.json({ success: true, qrCode: qrImage });
+// ==================== API: الكوبونات ====================
+app.post('/api/coupons/validate', async (req, res) => {
+    const { code, cartTotal } = req.body;
+    const coupon = await DB.coupons.findOne({ code, isActive: true });
+    if (!coupon) return res.status(400).json({ error: 'الكوبون غير صالح' });
+    const discount = coupon.discountType === 'percentage' ? cartTotal * (coupon.discountValue/100) : coupon.discountValue;
+    res.json({ success: true, data: { code: coupon.code, discount } });
 });
 
-app.post('/api/search/visual', upload.single('image'), async (req, res) => { res.json({ success: true, data: await DB.products.find({ isActive: true }).limit(20).toArray() }); });
-app.post('/api/search/voice', upload.single('audio'), async (req, res) => { res.json({ success: true, data: await DB.products.find({ isActive: true }).limit(20).toArray() }); });
+app.get('/api/coupons', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.coupons.find().toArray() }); });
+app.post('/api/coupons', adminRequired, async (req, res) => { const coupon = await DB.coupons.insertOne({ ...req.body, usedCount: 0, isActive: true, createdAt: new Date() }); res.status(201).json({ success: true, data: coupon }); });
+app.delete('/api/coupons/:code', adminRequired, async (req, res) => { await DB.coupons.updateOne({ code: req.params.code }, { $set: { isActive: false } }); res.json({ success: true, message: 'تم التعطيل' }); });
 
-app.post('/api/auth/otp/send', async (req, res) => {
-    const { phone } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await DB.otp_codes.insertOne({ phone, code: otp, expiresAt: new Date(Date.now() + 10 * 60000), used: false });
-    console.log(`📱 OTP: ${otp}`);
-    res.json({ success: true, message: 'تم إرسال الرمز' });
+// ==================== API: الإحصائيات ====================
+app.get('/api/admin/stats', adminRequired, async (req, res) => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const [allOrders, allProducts, allCustomers] = await Promise.all([DB.orders.find().toArray(), DB.products.find().toArray(), DB.users.find({ role: 'customer' }).toArray()]);
+    const activeOrders = allOrders.filter(o => o.status !== 'cancelled');
+    const todayOrders = allOrders.filter(o => new Date(o.createdAt) >= today);
+    res.json({ success: true, data: {
+        totalRevenue: activeOrders.reduce((s,o) => s + (o.pricing?.total||0), 0),
+        todayRevenue: todayOrders.filter(o=>o.status!=='cancelled').reduce((s,o) => s + (o.pricing?.total||0), 0),
+        totalOrders: allOrders.length, todayOrders: todayOrders.length,
+        totalCustomers: allCustomers.length, totalProducts: allProducts.length,
+        lowStockProducts: allProducts.filter(p => p.stock <= 5).length,
+        recentOrders: allOrders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,10)
+    }});
 });
 
-app.post('/api/auth/otp/verify', async (req, res) => {
-    const { phone, code } = req.body;
-    const record = await DB.otp_codes.findOne({ phone, code, used: false });
-    if (!record || new Date(record.expiresAt) < new Date()) return res.status(400).json({ error: 'رمز غير صالح' });
-    await DB.otp_codes.updateOne({ _id: record._id }, { $set: { used: true } });
-    let user = await DB.users.findOne({ phone });
-    if (!user) { const hash = await bcrypt.hash('otp-'+phone, 10); user = await DB.users.insertOne({ fullName: 'مستخدم', email: `user-${phone}@alradi.com`, phone, password: hash, role: 'customer', loyaltyPoints: 0, loyaltyTier: 'برونزي', isActive: true }); }
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, phone: user.phone } });
+// ==================== API: الطلبات ====================
+app.get('/api/orders', adminRequired, async (req, res) => {
+    const { status } = req.query; const q = {}; if (status && status !== 'all') q.status = status;
+    const orders = await DB.orders.find(q).toArray(); orders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, data: orders });
 });
 
+app.put('/api/orders/:id/status', adminRequired, async (req, res) => {
+    await DB.orders.updateOne({ _id: req.params.id }, { $set: { status: req.body.status, updatedAt: new Date() } });
+    res.json({ success: true, message: 'تم التحديث' });
+});
+
+// ==================== API: العملاء ====================
+app.get('/api/users', adminRequired, async (req, res) => { const { role } = req.query; const q = {}; if (role) q.role = role; res.json({ success: true, data: await DB.users.find(q).toArray() }); });
+
+// ==================== API: سلة المحذوفات ====================
+app.get('/api/trash', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.trash.find().toArray() }); });
+app.post('/api/trash/restore/:id', adminRequired, async (req, res) => { const item = await DB.trash.findOne({ _id: req.params.id }); if (item) { await DB[item.originalCollection].insertOne({ ...item, _id: item._id }); await DB.trash.deleteOne({ _id: req.params.id }); } res.json({ success: true, message: 'تمت الاستعادة' }); });
+
+// ==================== API: سجل النشاطات ====================
+app.get('/api/audit-logs', adminRequired, async (req, res) => { const logs = await DB.audit_logs.find().toArray(); logs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); res.json({ success: true, data: logs }); });
+
+// ==================== API: الإعدادات ====================
+app.get('/api/admin/settings/:type', adminRequired, async (req, res) => { const setting = await DB.settings.findOne({ type: req.params.type }); res.json({ success: true, data: setting?.data || null }); });
+app.put('/api/admin/settings', adminRequired, async (req, res) => { const { type, data } = req.body; const existing = await DB.settings.findOne({ type }); if (existing) await DB.settings.updateOne({ type }, { $set: { data, updatedAt: new Date() } }); else await DB.settings.insertOne({ type, data, createdAt: new Date() }); res.json({ success: true, message: 'تم الحفظ' }); });
+
+// ==================== API: البانرات ====================
+app.get('/api/banners', async (req, res) => { res.json({ success: true, data: await DB.banners.find({ isActive: true }).toArray() }); });
+app.post('/api/banners', adminRequired, async (req, res) => { const banner = await DB.banners.insertOne({ ...req.body, isActive: true, createdAt: new Date() }); res.status(201).json({ success: true, data: banner }); });
+
+// ==================== API: الصوتيات ====================
+app.get('/api/sounds', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.sounds.find().toArray() }); });
+app.post('/api/sounds', adminRequired, upload.single('file'), async (req, res) => { const sound = await DB.sounds.insertOne({ name: req.body.name, url: `/uploads/sounds/${req.file.filename}`, createdAt: new Date() }); res.status(201).json({ success: true, data: sound }); });
+
+// ==================== API: رفع الملفات ====================
+app.post('/api/upload', upload.array('files', 20), async (req, res) => { const files = (req.files || []).map(f => ({ url: `/uploads/${req.body?.type || 'general'}/${f.filename}`, originalName: f.originalname, size: f.size, type: f.mimetype })); res.json({ success: true, data: files }); });
+
+// ==================== API: النسخ الاحتياطي ====================
 app.post('/api/backup', adminRequired, async (req, res) => {
     const timestamp = new Date().toISOString().replace(/:/g, '-');
     const dir = path.join(__dirname, 'backups', timestamp);
@@ -450,31 +387,19 @@ app.post('/api/backup', adminRequired, async (req, res) => {
     res.json({ success: true, path: `/backups/${timestamp}/backup.zip` });
 });
 
-app.post('/api/sync', async (req, res) => {
-    const { operations, lastSyncTimestamp } = req.body;
-    const results = [];
-    for (const op of operations || []) {
-        try {
-            if (op.type === 'updateOrderStatus') { await DB.orders.updateOne({ _id: op.orderId }, { $set: { status: op.status, updatedAt: new Date() } }); results.push({ id: op.orderId, success: true }); }
-        } catch (e) { results.push({ id: op.id, success: false }); }
-    }
-    const updatedOrders = await DB.orders.find({ updatedAt: { $gte: new Date(lastSyncTimestamp || 0) } }).toArray();
-    res.json({ success: true, results, serverUpdates: updatedOrders, serverTime: new Date().toISOString() });
-});
-
+// ==================== WebSocket ====================
 io.on('connection', (socket) => {
     socket.on('join', (room) => socket.join(room));
     socket.on('chat message', async (msg) => { const messageData = { id: uuidv4(), sender: msg.sender, text: msg.text, timestamp: new Date() }; io.emit('chat message', messageData); await DB.chat_messages.insertOne(messageData); });
-    socket.on('disconnect', () => {});
 });
 
-cron.schedule('0 8 * * *', async () => { console.log('🔧 فحص الصيانة...'); });
+// ==================== تنظيف دوري ====================
 cron.schedule('0 0 * * *', async () => {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
     const oldOTPs = await DB.otp_codes.find({ expiresAt: { $lte: new Date().toISOString() } }).toArray();
     for (const otp of oldOTPs) await DB.otp_codes.deleteOne({ _id: otp._id });
 });
 
+// ==================== بذرة البيانات ====================
 async function seed() {
     const userCount = await DB.users.countDocuments();
     if (userCount > 0) return;
@@ -494,13 +419,14 @@ async function seed() {
     await DB.settings.insertOne({ type: 'shipping', data: { internalRate: 5, externalRate: 10 }, createdAt: new Date() });
     await DB.settings.insertOne({ type: 'return_policy', data: { text: 'الاستبدال مسموح خلال 14 يوماً', window: 14 }, createdAt: new Date() });
     console.log('✅ تم إضافة البيانات الافتراضية');
-    console.log('👑 alradi@gmail.com / admin123');
 }
 
+// ==================== الصفحات ====================
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('*', (req, res) => { if (!req.path.startsWith('/api/')) res.sendFile(path.join(__dirname, 'public', 'index.html')); else res.status(404).json({ error: 'المسار غير موجود' }); });
 
+// ==================== بدء التشغيل ====================
 const PORT = process.env.PORT || 3000;
 (async () => {
     ['public','uploads','uploads/logo','uploads/products','uploads/sounds','uploads/banners','uploads/general','data','backups'].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
@@ -512,6 +438,7 @@ const PORT = process.env.PORT || 3000;
         console.log('║   ☁️  MongoDB Atlas | 💾 Local Backup     ║');
         console.log(`║   🌐 http://localhost:${PORT}              ║`);
         console.log(`║   👑 http://localhost:${PORT}/admin        ║`);
+        console.log('║   👤 alradi@gmail.com / admin123         ║');
         console.log('╚══════════════════════════════════════════╝');
     });
 })();

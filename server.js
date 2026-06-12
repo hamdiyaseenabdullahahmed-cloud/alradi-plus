@@ -118,7 +118,7 @@ async function connectDB() {
         console.log('✅ MongoDB Atlas متصل بنجاح – alradi_store');
         
         const schemas = {
-            users: new mongoose.Schema({ fullName: String, email: String, phone: String, password: String, role: { type: String, default: 'customer' }, loyaltyPoints: { type: Number, default: 0 }, loyaltyTier: { type: String, default: 'برونزي' }, isActive: { type: Boolean, default: true }, biometricKey: String, preferences: mongoose.Schema.Types.Mixed, addresses: [mongoose.Schema.Types.Mixed], paymentMethods: [mongoose.Schema.Types.Mixed], lastLogin: Date, loginHistory: [mongoose.Schema.Types.Mixed], totalSpent: { type: Number, default: 0 } }, { timestamps: true, strict: false }),
+            users: new mongoose.Schema({ fullName: String, email: String, phone: String, password: String, role: { type: String, default: 'customer' }, loyaltyPoints: { type: Number, default: 0 }, loyaltyTier: { type: String, default: 'برونزي' }, isActive: { type: Boolean, default: true }, preferences: mongoose.Schema.Types.Mixed, addresses: [mongoose.Schema.Types.Mixed], lastLogin: Date, totalSpent: { type: Number, default: 0 } }, { timestamps: true, strict: false }),
             products: new mongoose.Schema({}, { timestamps: true, strict: false }),
             orders: new mongoose.Schema({}, { timestamps: true, strict: false }),
             coupons: new mongoose.Schema({}, { timestamps: true, strict: false }),
@@ -188,6 +188,7 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
         await DB.users.updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
         const tier = getTier(user.loyaltyPoints || 0);
+        await DB.audit_logs.insertOne({ userId: user._id, action: 'LOGIN', details: `تسجيل دخول ${user.fullName}`, ipAddress: req.ip, createdAt: new Date() });
         res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, role: user.role, loyaltyPoints: user.loyaltyPoints || 0, loyaltyTier: tier.name, discountPercent: tier.discount, preferences: user.preferences, addresses: user.addresses } });
     } catch (e) { console.error(e); res.status(500).json({ error: 'فشل تسجيل الدخول' }); }
 });
@@ -233,6 +234,7 @@ app.post('/api/products', adminRequired, async (req, res) => {
     if (!name || !category) return res.status(400).json({ error: 'الاسم والقسم مطلوبان' });
     const discount = comparePrice && comparePrice > 0 ? Math.round((1 - price/comparePrice)*100) : 0;
     const product = await DB.products.insertOne({ name, category, price, comparePrice, discount, stock: stock || 0, description: description || '', images: images || [], tags: tags || [], isActive: true, isFeatured: isFeatured || false, ratings: { average: 0, count: 0 }, reviews: [], salesCount: 0, createdAt: new Date(), updatedAt: new Date() });
+    await DB.audit_logs.insertOne({ userId: req.user.id, action: 'CREATE_PRODUCT', details: `إضافة منتج: ${name}`, targetTable: 'products', targetId: product._id, ipAddress: req.ip, createdAt: new Date() });
     io.emit('productUpdate', { type: 'new', product });
     res.status(201).json({ success: true, data: product });
 });
@@ -247,6 +249,7 @@ app.put('/api/products/:id', adminRequired, async (req, res) => {
 app.delete('/api/products/:id', adminRequired, async (req, res) => {
     const product = await DB.products.findOne({ _id: req.params.id });
     if (product) { await DB.trash.insertOne({ ...product, deletedAt: new Date(), originalCollection: 'products' }); await DB.products.deleteOne({ _id: req.params.id }); }
+    await DB.audit_logs.insertOne({ userId: req.user.id, action: 'DELETE_PRODUCT', details: `حذف منتج: ${product?.name}`, targetTable: 'products', targetId: req.params.id, ipAddress: req.ip, createdAt: new Date() });
     res.json({ success: true, message: 'تم نقل المنتج إلى سلة المحذوفات' });
 });
 
@@ -307,6 +310,13 @@ app.get('/api/invoice/:orderNumber', async (req, res) => {
     doc.end();
 });
 
+app.get('/api/invoice/:orderNumber/qr', async (req, res) => {
+    const order = await DB.orders.findOne({ orderNumber: req.params.orderNumber });
+    if (!order) return res.status(404).json({ error: 'غير موجود' });
+    const qrImage = await QRCode.toDataURL(JSON.stringify({ orderNumber: order.orderNumber, total: order.pricing?.total, status: order.status }));
+    res.json({ success: true, qrCode: qrImage });
+});
+
 // ==================== API: الكوبونات ====================
 app.post('/api/coupons/validate', async (req, res) => {
     const { code, cartTotal } = req.body;
@@ -326,14 +336,39 @@ app.get('/api/admin/stats', adminRequired, async (req, res) => {
     const [allOrders, allProducts, allCustomers] = await Promise.all([DB.orders.find().toArray(), DB.products.find().toArray(), DB.users.find({ role: 'customer' }).toArray()]);
     const activeOrders = allOrders.filter(o => o.status !== 'cancelled');
     const todayOrders = allOrders.filter(o => new Date(o.createdAt) >= today);
+    const predictedOutOfStock = allProducts.filter(p => p.isActive && p.stock > 0).map(p => {
+        const dailyRate = (p.salesCount || 1) / Math.max(1, Math.ceil((new Date() - new Date(p.createdAt)) / 86400000));
+        const daysUntilEmpty = dailyRate > 0 ? Math.floor(p.stock / dailyRate) : 999;
+        return { id: p._id, name: p.name, stock: p.stock, dailyRate: Math.round(dailyRate * 10) / 10, daysUntilEmpty };
+    }).filter(p => p.daysUntilEmpty <= 14).sort((a,b) => a.daysUntilEmpty - b.daysUntilEmpty);
     res.json({ success: true, data: {
         totalRevenue: activeOrders.reduce((s,o) => s + (o.pricing?.total||0), 0),
         todayRevenue: todayOrders.filter(o=>o.status!=='cancelled').reduce((s,o) => s + (o.pricing?.total||0), 0),
         totalOrders: allOrders.length, todayOrders: todayOrders.length,
         totalCustomers: allCustomers.length, totalProducts: allProducts.length,
         lowStockProducts: allProducts.filter(p => p.stock <= 5).length,
-        recentOrders: allOrders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,10)
+        bestSellingProducts: allProducts.sort((a,b) => (b.salesCount||0) - (a.salesCount||0)).slice(0,10),
+        predictedOutOfStock,
+        recentOrders: allOrders.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,15)
     }});
+});
+
+app.get('/api/admin/reports', adminRequired, async (req, res) => {
+    const { type='sales', period='daily' } = req.query;
+    if (type === 'sales') {
+        const result = await DB.orders.aggregate([
+            { $match: { status: { $ne: 'cancelled' } } },
+            { $group: { _id: { $dateToString: { format: period==='daily'?'%Y-%m-%d':'%Y-%m', date: '$createdAt' } }, orders: { $sum: 1 }, revenue: { $sum: '$pricing.total' }, averageOrder: { $avg: '$pricing.total' } } },
+            { $sort: { _id: 1 } }
+        ]);
+        res.json({ success: true, data: await result.toArray() });
+    } else if (type === 'products') {
+        const products = await DB.products.find({ isActive: true }).toArray();
+        res.json({ success: true, data: products.sort((a,b) => (b.salesCount||0) - (a.salesCount||0)).slice(0,30) });
+    } else {
+        const products = await DB.products.find({ isActive: true, stock: { $lte: 10 } }).toArray();
+        res.json({ success: true, data: products });
+    }
 });
 
 // ==================== API: الطلبات ====================
@@ -344,16 +379,27 @@ app.get('/api/orders', adminRequired, async (req, res) => {
 });
 
 app.put('/api/orders/:id/status', adminRequired, async (req, res) => {
-    await DB.orders.updateOne({ _id: req.params.id }, { $set: { status: req.body.status, updatedAt: new Date() } });
+    const { status } = req.body;
+    const order = await DB.orders.findOne({ _id: req.params.id });
+    const history = order?.statusHistory || [];
+    history.push({ status, updatedBy: req.user.id, updatedAt: new Date() });
+    await DB.orders.updateOne({ _id: req.params.id }, { $set: { status, statusHistory: history, updatedAt: new Date() } });
     res.json({ success: true, message: 'تم التحديث' });
 });
 
 // ==================== API: العملاء ====================
 app.get('/api/users', adminRequired, async (req, res) => { const { role } = req.query; const q = {}; if (role) q.role = role; res.json({ success: true, data: await DB.users.find(q).toArray() }); });
+app.get('/api/users/:id', adminRequired, async (req, res) => {
+    const user = await DB.users.findOne({ _id: req.params.id });
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    const orders = await DB.orders.find({ user: req.params.id }).toArray();
+    res.json({ success: true, data: { ...user, password: undefined, orders: orders.length, totalSpent: orders.reduce((s,o) => s + (o.pricing?.total||0), 0) } });
+});
 
 // ==================== API: سلة المحذوفات ====================
 app.get('/api/trash', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.trash.find().toArray() }); });
 app.post('/api/trash/restore/:id', adminRequired, async (req, res) => { const item = await DB.trash.findOne({ _id: req.params.id }); if (item) { await DB[item.originalCollection].insertOne({ ...item, _id: item._id }); await DB.trash.deleteOne({ _id: req.params.id }); } res.json({ success: true, message: 'تمت الاستعادة' }); });
+app.delete('/api/trash/:id', adminRequired, async (req, res) => { await DB.trash.deleteOne({ _id: req.params.id }); res.json({ success: true, message: 'تم الحذف النهائي' }); });
 
 // ==================== API: سجل النشاطات ====================
 app.get('/api/audit-logs', adminRequired, async (req, res) => { const logs = await DB.audit_logs.find().toArray(); logs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); res.json({ success: true, data: logs }); });
@@ -365,13 +411,52 @@ app.put('/api/admin/settings', adminRequired, async (req, res) => { const { type
 // ==================== API: البانرات ====================
 app.get('/api/banners', async (req, res) => { res.json({ success: true, data: await DB.banners.find({ isActive: true }).toArray() }); });
 app.post('/api/banners', adminRequired, async (req, res) => { const banner = await DB.banners.insertOne({ ...req.body, isActive: true, createdAt: new Date() }); res.status(201).json({ success: true, data: banner }); });
+app.delete('/api/banners/:id', adminRequired, async (req, res) => { await DB.banners.updateOne({ _id: req.params.id }, { $set: { isActive: false } }); res.json({ success: true, message: 'تم التعطيل' }); });
 
 // ==================== API: الصوتيات ====================
 app.get('/api/sounds', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.sounds.find().toArray() }); });
-app.post('/api/sounds', adminRequired, upload.single('file'), async (req, res) => { const sound = await DB.sounds.insertOne({ name: req.body.name, url: `/uploads/sounds/${req.file.filename}`, createdAt: new Date() }); res.status(201).json({ success: true, data: sound }); });
+app.post('/api/sounds', adminRequired, upload.single('file'), async (req, res) => { const sound = await DB.sounds.insertOne({ name: req.body.name, url: `/uploads/sounds/${req.file.filename}`, type: req.body.type || 'effect', createdAt: new Date() }); res.status(201).json({ success: true, data: sound }); });
 
 // ==================== API: رفع الملفات ====================
 app.post('/api/upload', upload.array('files', 20), async (req, res) => { const files = (req.files || []).map(f => ({ url: `/uploads/${req.body?.type || 'general'}/${f.filename}`, originalName: f.originalname, size: f.size, type: f.mimetype })); res.json({ success: true, data: files }); });
+
+// ==================== API: التفاوض ====================
+app.post('/api/rfq', async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
+    const { productId, quantity, proposedPrice, message } = req.body;
+    const product = await DB.products.findOne({ _id: productId });
+    if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
+    const rfq = await DB.rfq_requests.insertOne({ user: req.user.id, productId, productName: product.name, quantity, proposedPrice, originalPrice: product.price, message, status: 'pending', createdAt: new Date() });
+    io.emit('newRFQ', rfq);
+    res.status(201).json({ success: true, data: rfq });
+});
+
+app.get('/api/rfq', adminRequired, async (req, res) => { const rfqs = await DB.rfq_requests.find().toArray(); rfqs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); res.json({ success: true, data: rfqs }); });
+app.put('/api/rfq/:id', adminRequired, async (req, res) => { await DB.rfq_requests.updateOne({ _id: req.params.id }, { $set: { status: req.body.status, updatedAt: new Date() } }); res.json({ success: true, message: 'تم التحديث' }); });
+
+// ==================== API: المنافسين ====================
+app.get('/api/admin/competitors', adminRequired, async (req, res) => { res.json({ success: true, data: await DB.competitors.find().toArray() }); });
+app.post('/api/admin/competitors', adminRequired, async (req, res) => { const competitor = await DB.competitors.insertOne({ ...req.body, createdAt: new Date() }); res.status(201).json({ success: true, data: competitor }); });
+app.put('/api/admin/competitors/:id', adminRequired, async (req, res) => { await DB.competitors.updateOne({ _id: req.params.id }, { $set: { ...req.body, updatedAt: new Date() } }); res.json({ success: true, message: 'تم التحديث' }); });
+app.delete('/api/admin/competitors/:id', adminRequired, async (req, res) => { await DB.competitors.deleteOne({ _id: req.params.id }); res.json({ success: true, message: 'تم الحذف' }); });
+
+// ==================== API: الصيانة التنبؤية ====================
+app.get('/api/admin/maintenance-alerts', adminRequired, async (req, res) => {
+    const orders = await DB.orders.find().toArray();
+    const alerts = [];
+    const now = new Date();
+    orders.forEach(order => {
+        if (order.maintenanceReminders) {
+            order.maintenanceReminders.forEach(r => {
+                if (!r.notified && new Date(r.dueDate) > now) {
+                    alerts.push({ orderNumber: order.orderNumber, product: r.productName, dueDate: r.dueDate, daysLeft: Math.ceil((new Date(r.dueDate) - now)/86400000) });
+                }
+            });
+        }
+    });
+    alerts.sort((a,b) => a.daysLeft - b.daysLeft);
+    res.json({ success: true, data: alerts });
+});
 
 // ==================== API: النسخ الاحتياطي ====================
 app.post('/api/backup', adminRequired, async (req, res) => {
@@ -385,6 +470,44 @@ app.post('/api/backup', adminRequired, async (req, res) => {
     archive.directory(path.join(__dirname, 'uploads'), 'uploads');
     await archive.finalize();
     res.json({ success: true, path: `/backups/${timestamp}/backup.zip` });
+});
+
+// ==================== API: البحث المرئي والصوتي ====================
+app.post('/api/search/visual', upload.single('image'), async (req, res) => { res.json({ success: true, data: await DB.products.find({ isActive: true }).limit(20).toArray() }); });
+app.post('/api/search/voice', upload.single('audio'), async (req, res) => { res.json({ success: true, data: await DB.products.find({ isActive: true }).limit(20).toArray() }); });
+
+// ==================== API: OTP ====================
+app.post('/api/auth/otp/send', async (req, res) => {
+    const { phone } = req.body;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await DB.otp_codes.insertOne({ phone, code: otp, expiresAt: new Date(Date.now() + 10 * 60000), used: false });
+    console.log(`📱 OTP: ${otp}`);
+    res.json({ success: true, message: 'تم إرسال الرمز' });
+});
+
+app.post('/api/auth/otp/verify', async (req, res) => {
+    const { phone, code } = req.body;
+    const record = await DB.otp_codes.findOne({ phone, code, used: false });
+    if (!record || new Date(record.expiresAt) < new Date()) return res.status(400).json({ error: 'رمز غير صالح' });
+    await DB.otp_codes.updateOne({ _id: record._id }, { $set: { used: true } });
+    let user = await DB.users.findOne({ phone });
+    if (!user) { const hash = await bcrypt.hash('otp-'+phone, 10); user = await DB.users.insertOne({ fullName: 'مستخدم', email: `user-${phone}@alradi.com`, phone, password: hash, role: 'customer', loyaltyPoints: 0, loyaltyTier: 'برونزي', isActive: true }); }
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, phone: user.phone } });
+});
+
+// ==================== API: المراجعات ====================
+app.post('/api/products/:id/reviews', async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'يرجى تسجيل الدخول' });
+    const { rating, comment } = req.body;
+    const product = await DB.products.findOne({ _id: req.params.id });
+    if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
+    const review = { user: req.user.id, rating, comment, createdAt: new Date() };
+    product.reviews = product.reviews || [];
+    product.reviews.push(review);
+    const avg = product.reviews.reduce((s,r) => s + r.rating, 0) / product.reviews.length;
+    await DB.products.updateOne({ _id: req.params.id }, { $set: { reviews: product.reviews, 'ratings.average': avg, 'ratings.count': product.reviews.length } });
+    res.json({ success: true, data: review });
 });
 
 // ==================== WebSocket ====================
@@ -406,19 +529,20 @@ async function seed() {
     const adminHash = await bcrypt.hash('admin123', 12);
     await DB.users.insertOne({ fullName: 'مدير النظام', email: 'alradi@gmail.com', phone: '+966500000000', password: adminHash, role: 'admin', loyaltyPoints: 9999, loyaltyTier: 'بلاتيني', isActive: true, preferences: { locale: 'ar', currency: 'SAR', theme: 'dark' }, addresses: [], totalSpent: 0 });
     const products = [
-        { name: '📱 ساعة ذكية فاخرة Pro Max', price: 599, comparePrice: 899, stock: 50, category: 'إلكترونيات', images: [{ url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', type: 'main' }], discount: 33, isActive: true, isFeatured: true, ratings: { average: 4.5, count: 120 }, salesCount: 45 },
-        { name: '🎧 سماعات لاسلكية بريميوم ANC', price: 349, stock: 100, category: 'إلكترونيات', images: [{ url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', type: 'main' }], isActive: true, isFeatured: true, ratings: { average: 4.2, count: 85 }, salesCount: 72 },
-        { name: '🧴 عطر شرقي فاخر 100ml', price: 450, comparePrice: 600, stock: 30, category: 'عطور', images: [{ url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400', type: 'main' }], discount: 25, isActive: true, ratings: { average: 4.8, count: 200 }, salesCount: 150 }
+        { name: '📱 ساعة ذكية فاخرة Pro Max', price: 599, comparePrice: 899, stock: 50, category: 'إلكترونيات', images: [{ url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', type: 'main' }], discount: 33, isActive: true, isFeatured: true, ratings: { average: 4.5, count: 120 }, salesCount: 45, tags: ['ساعة','ذكية'] },
+        { name: '🎧 سماعات لاسلكية بريميوم ANC', price: 349, stock: 100, category: 'إلكترونيات', images: [{ url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', type: 'main' }], isActive: true, isFeatured: true, ratings: { average: 4.2, count: 85 }, salesCount: 72, tags: ['سماعات','لاسلكية'] },
+        { name: '🧴 عطر شرقي فاخر 100ml', price: 450, comparePrice: 600, stock: 30, category: 'عطور', images: [{ url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400', type: 'main' }], discount: 25, isActive: true, ratings: { average: 4.8, count: 200 }, salesCount: 150, tags: ['عطر','شرقي'] }
     ];
     for (const p of products) await DB.products.insertOne({ ...p, createdAt: new Date(), updatedAt: new Date() });
     await DB.coupons.insertOne({ code: 'WELCOME10', discountType: 'percentage', discountValue: 10, minOrderAmount: 100, usedCount: 0, isActive: true });
     const categories = ['إلكترونيات','أزياء','عطور','منزل','ساعات','أحذية','رياضة','كتب'];
     const icons = { 'إلكترونيات':'📱','أزياء':'👗','عطور':'🧴','منزل':'🏠','ساعات':'⌚','أحذية':'👠','رياضة':'⚽','كتب':'📚' };
     for (const c of categories) await DB.categories.insertOne({ name: c, icon: icons[c] || '📦', isActive: true });
-    await DB.settings.insertOne({ type: 'store', data: { storeName: 'الرعدي أونلاين', primaryColor: '#C9A84C' }, createdAt: new Date() });
-    await DB.settings.insertOne({ type: 'shipping', data: { internalRate: 5, externalRate: 10 }, createdAt: new Date() });
+    await DB.settings.insertOne({ type: 'store', data: { storeName: 'الرعدي أونلاين', storeSlogan: 'سوق اليمن الأول', primaryColor: '#C9A84C' }, createdAt: new Date() });
+    await DB.settings.insertOne({ type: 'shipping', data: { internalRate: 5, externalRate: 10, freeShippingThreshold: 500 }, createdAt: new Date() });
     await DB.settings.insertOne({ type: 'return_policy', data: { text: 'الاستبدال مسموح خلال 14 يوماً', window: 14 }, createdAt: new Date() });
     console.log('✅ تم إضافة البيانات الافتراضية');
+    console.log('👑 alradi@gmail.com / admin123');
 }
 
 // ==================== الصفحات ====================

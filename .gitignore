@@ -1,85 +1,52 @@
-# ==================== Node.js ====================
+# الاعتماديات
 node_modules/
+
+# ملفات البيئة
+.env
+.env.local
+.env.production
+
+# ملفات الرفع
+uploads/
+uploads/products/
+uploads/avatars/
+uploads/receipts/
+uploads/banners/
+uploads/sounds/
+uploads/logo/
+
+# البيانات المحلية
+data/
+backups/
+*.db
+*.sqlite
+
+# سجلات
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
 
-# ==================== متغيرات البيئة ====================
-.env
-.env.local
-.env.development
-.env.production
-.env.test
-
-# ==================== ملفات قاعدة البيانات المحلية ====================
-data/*.json
-!data/.gitkeep
-
-# ==================== مجلد الرفع (فارغ مع gitkeep) ====================
-uploads/*
-!uploads/.gitkeep
-!uploads/logo/
-!uploads/logo/.gitkeep
-!uploads/products/
-!uploads/products/.gitkeep
-!uploads/sounds/
-!uploads/sounds/.gitkeep
-!uploads/banners/
-!uploads/banners/.gitkeep
-!uploads/general/
-!uploads/general/.gitkeep
-
-# ==================== النسخ الاحتياطي ====================
-backups/*
-!backups/.gitkeep
-
-# ==================== ملفات السجلات ====================
-*.log
-logs/
-*.pid
-
-# ==================== ملفات النظام ====================
+# ملفات نظام التشغيل
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# ==================== ملفات IDE ====================
+# ملفات المحرر
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-*.sublime-*
 
-# ==================== ملفات مؤقتة ====================
-tmp/
-temp/
-*.tmp
-*.temp
-.cache/
-
-# ==================== مفاتيح وشهادات ====================
-*.pem
-*.key
-*.cert
-*.crt
-secret/
-secrets/
-credentials/
-
-# ==================== أخرى ====================
-*.zip
-*.tar
-*.gz
-*.rar
+# ملفات البناء
 dist/
 build/
-coverage/
-.nyc_output/
+*.zip
+*.tar.gz
+
+# ملفات مؤقتة
+tmp/
+temp/
+.cache/
